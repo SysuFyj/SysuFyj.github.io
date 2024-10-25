@@ -39,7 +39,7 @@
 <meta property="og:image" content="http://example.com/images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025105532844.png">
 <meta property="og:image" content="http://example.com/images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025110816069.png">
 <meta property="article:published_time" content="2024-10-23T09:30:25.000Z">
-<meta property="article:modified_time" content="2024-10-25T05:59:43.037Z">
+<meta property="article:modified_time" content="2024-10-25T06:01:59.988Z">
 <meta property="article:author" content="Ringo.fu">
 <meta property="article:tag" content="GPU">
 <meta property="article:tag" content="科研">
@@ -239,7 +239,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-10-25 13:59:43" itemprop="dateModified" datetime="2024-10-25T13:59:43+08:00">2024-10-25</time>
+      <time title="Modified: 2024-10-25 14:01:59" itemprop="dateModified" datetime="2024-10-25T14:01:59+08:00">2024-10-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -287,7 +287,8 @@
     
     
     <div class="post-body" itemprop="articleBody"><p>嵌入式和自主系统越来越多地集成 AI&#x2F;ML 功能，这些功能通常由 GPU 等硬件加速器启用。随着这些工作负载的要求越来越高，但尺寸、重量、功耗和成本限制仍然存在，迫切需要增加 GPU 容量的方法。在这项工作中，我们提供了一种透明地对 NVIDIA GPU 的计算单元进行<strong>空间分区</strong>的方法，从而允许通过安全高效的 GPU 共享来回收闲置的容量。我们的方法适用于 2013 年以来的任何 NVIDIA GPU，并且可以通过我们易于使用的名为 libsmctrl 的用户空间库来应用。我们通过深入研究 NVIDIA GPU 的<strong>硬件调度管道</strong>来支持我们的系统设计。我们提供了系统的使用指南，并通过使用 YOLOv2 的对象检测案例研究进行了演示。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- more --&gt;</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
 
 <h2 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h2><h3 id="主要创新点"><a href="#主要创新点" class="headerlink" title="主要创新点"></a>主要创新点</h3><h4 id="现有不足"><a href="#现有不足" class="headerlink" title="现有不足"></a>现有不足</h4><ul>
 <li>当前的 GPU 管理和调度方法通常将 GPU 视为单个整体设备并强制执行互斥的访问控制。这可能会导致严重的容量损失，类似于在多核 CPU 上一次仅调度一项任务。</li>
