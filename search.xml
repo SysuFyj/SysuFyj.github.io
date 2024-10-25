@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Hello World</title>
+    <url>/2024/10/21/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>hexo搭建笔记</title>
+    <url>/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>Hardware Compute Partitioning on NVIDIA GPUs 论文笔记</title>
+    <url>/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<h1 id="论文架构"><a href="#论文架构" class="headerlink" title="论文架构"></a>论文架构</h1><p>[TOC]</p>
+<h2 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h2><h3 id="主要创新点"><a href="#主要创新点" class="headerlink" title="主要创新点"></a>主要创新点</h3><h4 id="现有不足"><a href="#现有不足" class="headerlink" title="现有不足"></a>现有不足</h4><ul>
+<li>当前的 GPU 管理和调度方法通常将 GPU 视为单个整体设备并强制执行互斥的访问控制。这可能会导致严重的容量损失，类似于在多核 CPU 上一次仅调度一项任务。</li>
+<li>现有的关于nvidia-gpu的文档不足，各个方法都继承了协作多任务处理的许多问题，包括缺乏与行为不当的任务的隔离。这些方法还限制了允许的内核启动类型，导致不可避免的指令缓存干扰，并且除其他缺陷外，还需要大量的专家程序修改。</li>
+</ul>
+<h4 id="贡献"><a href="#贡献" class="headerlink" title="贡献"></a>贡献</h4><ul>
+<li>揭示自 2013 年以来所有 NVIDIA GPU 中计算单元空间分区的硬件机制。 </li>
+<li>构建并演示一个简单、有效且可移植的 GPU 空间分区  API。</li>
+<li>提供迄今为止未公开的 NVIDIA GPU 硬件调度管道的详细信息。 </li>
+<li>迄今为止未发布的 NVIDIA GPU  架构模式的详细信息，包括计算单元和内存单元之间的布局和互连。</li>
+<li>提供高效的分区方针</li>
+<li>通过案例研究演示如何应用空间分区来提高 GPU 利用率并减少卷积神经网络 (CNN) 的延迟</li>
+</ul>
+<h3 id="理论阐释"><a href="#理论阐释" class="headerlink" title="理论阐释"></a>理论阐释</h3><h4 id="硬件分区实现"><a href="#硬件分区实现" class="headerlink" title="硬件分区实现"></a>硬件分区实现</h4><p>内核 i 的第 j 个块表示为 Ki:j</p>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025131917706.png" alt="image-20241025131917706"></p>
+<p>右边使用SM掩码，让K1无法使用5-8，K2无法使用0-5，可以让K2快速启动。</p>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132031131.png" alt="image-20241025132031131"></p>
+<p>不同型号的掩码分区效果不同：GTX 1060 和 Tesla P100 均基于 NVIDIA 的 Pascal 架构，但使用的芯片配置方式略有不同。 P100 和较新的 GPU 的配置与图 2 中的 GA100 更相似，每个 TPC 有两个 SM，而 GTX 1060 和较旧的 GPU 具有一对一的 SM 与 TPC 比率。这一关键区别和大量支持结果表明“<strong>SM 掩码”实际上充当 GPU 的 TPC 掩码</strong>。据推测，TMD中字段的名称继承自TPC和SM数量相同的时代，允许更多的术语互换。</p>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132323178.png" alt="image-20241025132323178"></p>
+<p>为什么两个表面上相同的 GPU 会有如此不同的内部配置？芯片之间的差异源于地板扫描，这是 NVIDIA 近年来越来越多地采用的技术。随着 GPU 芯片尺寸不断增大以满足不断增长的计算需求，芯片制造错误的可能性也随之增加。扫地技术可以通过熔断（“扫除”）有缺陷的部件来使用这些不完美的模具，从而使其余部件能够正常工作。</p>
+<h4 id="分区特性"><a href="#分区特性" class="headerlink" title="分区特性"></a>分区特性</h4><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132903987.png" alt="image-20241025132903987"></p>
+<ul>
+<li>分区纵轴上来看是有洞的。</li>
+<li>即使后续内核可能需要一组互斥的 SM，GPU 也会保留流中内核的顺序。的流2中，K9只需要SM 5，而K10只需要SM 10。但是，K10直到K9完成才开始。 CUDA 流语义要求同一流中的后续内核在所有先前的内核完成之前不会启动 - 我们发现即使在使用 TPC 分区时也要保留这一点。【既然要保持顺序你划分分区有什么用？是不同block的并行？】</li>
+<li>适用于多个型号的gpu。</li>
+</ul>
+<h4 id="可能的硬件故障"><a href="#可能的硬件故障" class="headerlink" title="可能的硬件故障"></a>可能的硬件故障</h4><ul>
+<li>WDU导致的SM非必要重叠：K2只能用1-3，但是被可以更加灵活分配的K1霸占了。</li>
+</ul>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025134354958.png" alt="image-20241025134354958"></p>
+<ul>
+<li>任务槽被耗尽，优先级低的TMU被WDU一脚踢出去。</li>
+</ul>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h4><p>关于 GPU 计算单元空间分区的现有工作原理发现，计算单元到分区的分配对于 AMD GPU 至关重要，因为在某些情况下，向分区添加计算单元可能会减慢分区速度 。这项工作提出并评估了两种分区策略：SE 打包和 SE 分布式。 SE 代表着色器引擎，相当于我们上下文中的 GPC。 SE-packed 算法尝试将同一 GPC 中的所有 TPC 分配到该分区，然后再将分区扩展到多个 GPC。或者，SE 分布式算法尝试将每个分区的 TPC 尽可能均匀地分布在 GPC 上。由于这种语言已被其他工作采用，我们在这里继续使用它。这两种方式对性能差异不大，因此使用更加简单的SE打包。</p>
+<h4 id="实验主体"><a href="#实验主体" class="headerlink" title="实验主体"></a>实验主体</h4><p>在yolov2上跑</p>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025134935385.png" alt="image-20241025134935385"></p>
+<p>TPC 分区可以防止 GPU 上下文共享任务因计算密集型任务而导致性能下降。（参考上表234）</p>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025135011722.png" alt="image-20241025135011722"></p>
+<ul>
+<li>TPC 分区允许平滑调整任务执行时间，分配对时间有影响。</li>
+<li>这种影响是有边际效用的。</li>
+</ul>
+<h2 id="知识学习"><a href="#知识学习" class="headerlink" title="知识学习"></a>知识学习</h2><h3 id="GPU架构"><a href="#GPU架构" class="headerlink" title="GPU架构"></a>GPU架构</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025130701643.png" alt="image-20241025130701643"></p>
+<h4 id="GPU概述"><a href="#GPU概述" class="headerlink" title="GPU概述"></a>GPU概述</h4><p>GPU 是高度并行的加速器，通常由多个离散的功能单元构建，每个功能单元都具有内部并行能力。上图显示了此类最新 NVIDIA GPU 的内部功能单元。</p>
+<ul>
+<li>八个 GPC（通用处理集群），每个由 16 个 SM（流式多处理器）组成，共同构成 GPU 的计算&#x2F;图形引擎。</li>
+<li>每个 TPC（线程处理集群）将 SM 以两个为一组排列。 每个 SM 包含 64 个CUDA 核心。</li>
+<li>其他 GPU 引擎包括 5 个异步复制引擎、3 个视频编码引擎、1 个视频解码引擎和 1 个 JPEG 解码引擎。 先前的工作表明，这些引擎可以在一定程度上独立于计算&#x2F;图形引擎运行</li>
+</ul>
+<h4 id="CUDA概述"><a href="#CUDA概述" class="headerlink" title="CUDA概述"></a>CUDA概述</h4><p>为了简化这些复杂加速器（GPU）的编程，NVIDIA 开发了 CUDA 编程语言和 API。所有 CUDA 应用程序都在自己的内存地址空间（称为上下文）中运行，默认情况下，时分复用用于在 CUDA 和其他使用 GPU 的应用程序（例如显示任务）之间进行。</p>
+<p>在单个cuda程序中，可以使用多个称为流的 FIFO 队列来允许工作完全并发地使用 GPU 。通常会将所有使用 CUDA 的功能组合到具有多个流的单个上下文中，以避免出现多个用不满gpu的小型应用程序被专门进行时间切片的情况 。</p>
+<h4 id="任务术语【没看懂】"><a href="#任务术语【没看懂】" class="headerlink" title="任务术语【没看懂】"></a>任务术语【没看懂】</h4><p>任务（TASK)由作业(JOB)组成，其释放速率称为周期。发布后，每项工作都必须在随后的截止日期前完成。</p>
+<ul>
+<li><p>如果任务恰好在其周期开始时释放作业，则它们被称为周期性任务。</p>
+</li>
+<li><p>相反，如果该时间段仅定义版本之间的最小间隔，则该任务称为零星任务。任务可能具有相关的关键性。</p>
+<p>这反映了它们在系统中的相对重要性。例如，在自动驾驶汽车中，行人检测任务的重要性较高，而屏幕显示更新的重要性较低。</p>
+</li>
+</ul>
+<h3 id="TMD调度流程总结"><a href="#TMD调度流程总结" class="headerlink" title="TMD调度流程总结"></a>TMD调度流程总结</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025102939062.png" alt="image-20241025102939062"></p>
+<h4 id="内核初始化"><a href="#内核初始化" class="headerlink" title="内核初始化"></a>内核初始化</h4><p>内核实例化。在 NVIDIA GPU 上，内核通过前面提到的 TMD 结构进行内部描述。它描述了内核所需的线程块、每个块的线程和共享内存资源，并包括内核入口点的地址（以及优先级等字段）。用户空间库（例如 CUDA 或 OpenCL）构造 TMD 后，会将包含指向 TMD 的指针的启动命令排队到命令段中的下一个可用命令槽中。命令段是包含 GPU 命令的连续内存块。 TMD 在整个调度管道中用作内核描述符和句柄（引用），一直持续到 GPU 内核的所有计算完成。</p>
+<h4 id="②HostInterface"><a href="#②HostInterface" class="headerlink" title="②HostInterface"></a>②HostInterface</h4><p>主机接口。GPU 的主机接口弥合了 TMD 从 CPU 到 GPU 的路程。该单元包含一个或多个 Pushbuffer 直接内存访问单元 (PBDMA)、上下文切换控制逻辑以及其他子单元。 </p>
+<ul>
+<li>PBDMA 通过间接缓冲区从用户空间加载命令（GPU版RDMA？），间接缓冲区是指向命令段的指针的循环缓冲区。 这些结构（如图 6 顶部所示）允许用户空间应用程序直接将命令分派到 GPU，而无需系统呼叫或驱动程序开销，少了一层中介。PBDMA 单元单独加载、解析和缓存命令的速度比大多数 GPU 引擎快得多。</li>
+<li>在图中，我们将 GPU 命令队列显示为位于 CPU 内存中（这是最常见的），但它们也可以位于 GPU 内存中。在命令获取和解析之后，主机接口将命令转发到适当的引擎。在内核启动的情况下，它将 TMD 传递到计算前端。</li>
+</ul>
+<h4 id="③Compute-FrontEnd"><a href="#③Compute-FrontEnd" class="headerlink" title="③Compute FrontEnd"></a>③Compute FrontEnd</h4><p>计算前端将 TMD 指针从主机接口 2 中继到任务管理单元 4。此外，我们了解到该单元可以在后续单元中协调上下文切换。 虽然该单元以与其他单元解耦的速率处理 TMD，但不正确的上下文context可能会导致工作在此排队堵塞。</p>
+<h4 id="④TMU"><a href="#④TMU" class="headerlink" title="④TMU"></a>④TMU</h4><p>任务管理单元按优先级和到达顺序对TMD进行排队，直到工作分配单元WDU准备好接收它们。由于 TMU 的明确调度职责，我们对其进行了深入研究。</p>
+<p>TMU 围绕一系列优先级单链表构建，每个优先级都有一个链表头和尾指针跟踪。每个列表都完全由TMD组成。</p>
+<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025125632852.png" alt="image-20241025125632852"></p>
+<p>图7中，我们展示了一个支持三个优先级的单元，TMD 按到达序进行了说明性编号。三个 TMD 位于最高优先级列表中，没有一个 TMD 位于中优先级列表中，两个 TMD 位于最低优先级列表中。每个优先级列表正式称为一个 TMD 组。 这些列表允许 TMU 对其接收到的 TMD 进行重新排序，从而使优先级较高的 TMD 跳过优先级较低的 TMD。当 TMD 从计算前端或其他地方到达时， TMU 读取 TMD 的 GROUP_ID 字段，并将 TMD 附加到指定 TMD 组的尾部。例如，在图 7 中，TMD4 是最近到达的高优先级TMD，TMD2是最近到达的低优先级TMD。【优先级别重排】</p>
+<p>当WDU发出另一个 TMD 准备就绪的信号时，TMU 删除并传递最高优先级非空列表的头部。这在图 7 中用粗体轮廓和“下一个 TMD”框来说明。给定图 7 的 TMU 状态，TMD 将按以下顺序退出 TMU：TMD1、TMD3、TMD4、TMD0【先到先得】，然后是 TMD2。 TMU 是可以以与 TMD 完成率解耦的速率接收 TMD 的最终单元。当用户空间以比其完成速度更快的速度分派内核时，这会导致 TMD 最终在 TMU 中累积。【队伍太长】</p>
+<h4 id="⑤WDU"><a href="#⑤WDU" class="headerlink" title="⑤WDU"></a>⑤WDU</h4><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025105532844.png" alt="image-20241025105532844"></p>
+<p>WDU将可用的TMD移动到TPC上，任务槽的数量受到硬件限制。例如，当就绪内核的数量超过任务槽的数量时wdu也要决策。</p>
+<p>每当任务槽变得可用时，WDU就向TMU发送新TMD的信号。然后，它将TMD插入到任务表中的任务槽中，并将对<strong>TMD的引用</strong>插入到按优先级排序的任务表中。优先级排序表首先按优先级排序，然后按到达时间排序。负载均衡器从优先级排序表头部的 TMD 调度线程块。一旦 TMD 的所有块都启动了，它就会从优先级排序表中删除，但会保留在任务表中，直到所有块都完成。【优先级表只提供开始顺序】。我们通过 TPC 资源跟踪器的阴影反映哪些内核正在哪些 TPC 上执行：这些单元在 TPC 和 WDU 之间中继状态和命令。请注意 TMD1 仍在 TPC 上执行（浅阴影线），因此保留在任务表中。 TMD3 作为目前最高优先级和最早到达的 TMD，现在正在向 TPC 调度块。 TMD4 正在等待 TMD3 调度其所有块，然后才能移动到优先级表的头部并调度块。</p>
+<p>此排序和分派过程可能会受到两件事的干扰：TPC 分区和 4（TMU）中待处理的更高优先级工作。</p>
+<ul>
+<li>当使用TPC分区时，如果某个TPC有可用容量，但排序表头部的TMD被禁止在该TPC上执行，则WDU将在表中向前跳跃，直到找到允许在该TPC上执行的TMD。【你不允许在这个TPC上就找下一个】</li>
+<li>当所有WDU任务槽都被占用，并且存在一个任务槽包含优先级低于TMU 中任何待处理的TMD时，较低优先级的TMD将从WDU中逐出并用较高优先级的TMD替换。当这种情况发生时，被驱逐的 TMD 会停止调度区块并完成已经在进行中的区块。然后将被逐出的TMD重新插入到TMU中相应优先级列表的头部。【有高优先级TMD来了就让位，重新排队】</li>
+</ul>
+<h3 id="内存并行性"><a href="#内存并行性" class="headerlink" title="内存并行性"></a>内存并行性</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025110816069.png" alt="image-20241025110816069"></p>
+<h4 id="⑥Execution-engine-and-memory-subsystem"><a href="#⑥Execution-engine-and-memory-subsystem" class="headerlink" title="⑥Execution engine and memory subsystem."></a>⑥Execution engine and memory subsystem.</h4><p>高速缓存的“I”（或“D”）后缀表示指令（或数据）高速缓存。</p>
+<p>从图 的底部开始，内存分区单元与每个 DRAM 芯片为一对一关系，每个分区单元包含一个 DRAM 控制器和 L2 缓存的子集。每个分区单元通过交叉总线独立地连接到每个GPC，因此对内存分区单元进行分区也等价于对交叉总线和L2进行分区。</p>
+<p>每个 GPC 内部的交叉总线与内存管理单元（MMU，以及相关的转换后备缓冲区，TLB）链接以提供虚拟内存支持。它连接到每个 SM 中的 L1D数据缓存，以及 GPC 范围的 L1.5I 缓存。 L1.5I 分别为每个 SM 指令高速缓存提供数据。</p>
+<p>总之，理论上每个 GPC 都可以配置为使用 GPU 缓存、总线和 DRAM 资源的专有子集进行操作（如果内存分区单元已分区）。此外，每个 SM 都可以从其 L1 高速缓存进行操作，而不会产生干扰。</p>
+<p>总结本节，我们发现 GPU 硬件不仅能够同时向多个GPC分区提供作业，而且还能够为分区提供无竞争的缓存、总线和 DRAM 资源。</p>
+]]></content>
+      <categories>
+        <category>论文</category>
+        <category>GPU架构</category>
+      </categories>
+      <tags>
+        <tag>GPU</tag>
+        <tag>科研</tag>
+      </tags>
+  </entry>
+</search>
