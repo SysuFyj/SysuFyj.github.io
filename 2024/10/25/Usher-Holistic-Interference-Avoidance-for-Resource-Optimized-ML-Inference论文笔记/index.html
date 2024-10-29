@@ -1,131 +1,285 @@
-<?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title>Hello World</title>
-    <url>/2024/10/21/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
 
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>Hardware Compute Partitioning on NVIDIA GPUs 论文笔记</title>
-    <url>/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>嵌入式和自主系统越来越多地集成 AI&#x2F;ML 功能，这些功能通常由 GPU 等硬件加速器启用。随着这些工作负载的要求越来越高，但尺寸、重量、功耗和成本限制仍然存在，迫切需要增加 GPU 容量的方法。在这项工作中，我们提供了一种透明地对 NVIDIA GPU 的计算单元进行<strong>空间分区</strong>的方法，从而允许通过安全高效的 GPU 共享来回收闲置的容量。我们的方法适用于 2013 年以来的任何 NVIDIA GPU，并且可以通过我们易于使用的名为 libsmctrl 的用户空间库来应用。我们通过深入研究 NVIDIA GPU 的<strong>硬件调度管道</strong>来支持我们的系统设计。我们提供了系统的使用指南，并通过使用 YOLOv2 的对象检测案例研究进行了演示。</p>
-<span id="more"></span>
+<link rel="stylesheet" href="/css/main.css">
 
 
 
-<h2 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h2><h3 id="主要创新点"><a href="#主要创新点" class="headerlink" title="主要创新点"></a>主要创新点</h3><h4 id="现有不足"><a href="#现有不足" class="headerlink" title="现有不足"></a>现有不足</h4><ul>
-<li>当前的 GPU 管理和调度方法通常将 GPU 视为单个整体设备并强制执行互斥的访问控制。这可能会导致严重的容量损失，类似于在多核 CPU 上一次仅调度一项任务。</li>
-<li>现有的关于nvidia-gpu的文档不足，各个方法都继承了协作多任务处理的许多问题，包括缺乏与行为不当的任务的隔离。这些方法还限制了允许的内核启动类型，导致不可避免的指令缓存干扰，并且除其他缺陷外，还需要大量的专家程序修改。</li>
-</ul>
-<h4 id="贡献"><a href="#贡献" class="headerlink" title="贡献"></a>贡献</h4><ul>
-<li>揭示自 2013 年以来所有 NVIDIA GPU 中计算单元空间分区的硬件机制。 </li>
-<li>构建并演示一个简单、有效且可移植的 GPU 空间分区  API。</li>
-<li>提供迄今为止未公开的 NVIDIA GPU 硬件调度管道的详细信息。 </li>
-<li>迄今为止未发布的 NVIDIA GPU  架构模式的详细信息，包括计算单元和内存单元之间的布局和互连。</li>
-<li>提供高效的分区方针</li>
-<li>通过案例研究演示如何应用空间分区来提高 GPU 利用率并减少卷积神经网络 (CNN) 的延迟</li>
-</ul>
-<h3 id="理论阐释"><a href="#理论阐释" class="headerlink" title="理论阐释"></a>理论阐释</h3><h4 id="硬件分区实现"><a href="#硬件分区实现" class="headerlink" title="硬件分区实现"></a>硬件分区实现</h4><p>内核 i 的第 j 个块表示为 Ki:j</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025131917706.png" alt="image-20241025131917706"></p>
-<p>右边使用SM掩码，让K1无法使用5-8，K2无法使用0-5，可以让K2快速启动。</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132031131.png" alt="image-20241025132031131"></p>
-<p>不同型号的掩码分区效果不同：GTX 1060 和 Tesla P100 均基于 NVIDIA 的 Pascal 架构，但使用的芯片配置方式略有不同。 P100 和较新的 GPU 的配置与图 2 中的 GA100 更相似，每个 TPC 有两个 SM，而 GTX 1060 和较旧的 GPU 具有一对一的 SM 与 TPC 比率。这一关键区别和大量支持结果表明“<strong>SM 掩码”实际上充当 GPU 的 TPC 掩码</strong>。据推测，TMD中字段的名称继承自TPC和SM数量相同的时代，允许更多的术语互换。</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132323178.png" alt="image-20241025132323178"></p>
-<p>为什么两个表面上相同的 GPU 会有如此不同的内部配置？芯片之间的差异源于地板扫描，这是 NVIDIA 近年来越来越多地采用的技术。随着 GPU 芯片尺寸不断增大以满足不断增长的计算需求，芯片制造错误的可能性也随之增加。扫地技术可以通过熔断（“扫除”）有缺陷的部件来使用这些不完美的模具，从而使其余部件能够正常工作。</p>
-<h4 id="分区特性"><a href="#分区特性" class="headerlink" title="分区特性"></a>分区特性</h4><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132903987.png" alt="image-20241025132903987"></p>
-<ul>
-<li>分区纵轴上来看是有洞的。</li>
-<li>即使后续内核可能需要一组互斥的 SM，GPU 也会保留流中内核的顺序。的流2中，K9只需要SM 5，而K10只需要SM 10。但是，K10直到K9完成才开始。 CUDA 流语义要求同一流中的后续内核在所有先前的内核完成之前不会启动 - 我们发现即使在使用 TPC 分区时也要保留这一点。【既然要保持顺序你划分分区有什么用？是不同block的并行？】</li>
-<li>适用于多个型号的gpu。</li>
-</ul>
-<h4 id="可能的硬件故障"><a href="#可能的硬件故障" class="headerlink" title="可能的硬件故障"></a>可能的硬件故障</h4><ul>
-<li>WDU导致的SM非必要重叠：K2只能用1-3，但是被可以更加灵活分配的K1霸占了。</li>
-</ul>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025134354958.png" alt="image-20241025134354958"></p>
-<ul>
-<li>任务槽被耗尽，优先级低的TMU被WDU一脚踢出去。</li>
-</ul>
-<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h4><p>关于 GPU 计算单元空间分区的现有工作原理发现，计算单元到分区的分配对于 AMD GPU 至关重要，因为在某些情况下，向分区添加计算单元可能会减慢分区速度 。这项工作提出并评估了两种分区策略：SE 打包和 SE 分布式。 SE 代表着色器引擎，相当于我们上下文中的 GPC。 SE-packed 算法尝试将同一 GPC 中的所有 TPC 分配到该分区，然后再将分区扩展到多个 GPC。或者，SE 分布式算法尝试将每个分区的 TPC 尽可能均匀地分布在 GPC 上。由于这种语言已被其他工作采用，我们在这里继续使用它。这两种方式对性能差异不大，因此使用更加简单的SE打包。</p>
-<h4 id="实验主体"><a href="#实验主体" class="headerlink" title="实验主体"></a>实验主体</h4><p>在yolov2上跑</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025134935385.png" alt="image-20241025134935385"></p>
-<p>TPC 分区可以防止 GPU 上下文共享任务因计算密集型任务而导致性能下降。（参考上表234）</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025135011722.png" alt="image-20241025135011722"></p>
-<ul>
-<li>TPC 分区允许平滑调整任务执行时间，分配对时间有影响。</li>
-<li>这种影响是有边际效用的。</li>
-</ul>
-<h2 id="知识学习"><a href="#知识学习" class="headerlink" title="知识学习"></a>知识学习</h2><h3 id="GPU架构"><a href="#GPU架构" class="headerlink" title="GPU架构"></a>GPU架构</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025130701643.png" alt="image-20241025130701643"></p>
-<h4 id="GPU概述"><a href="#GPU概述" class="headerlink" title="GPU概述"></a>GPU概述</h4><p>GPU 是高度并行的加速器，通常由多个离散的功能单元构建，每个功能单元都具有内部并行能力。上图显示了此类最新 NVIDIA GPU 的内部功能单元。</p>
-<ul>
-<li>八个 GPC（通用处理集群），每个由 16 个 SM（流式多处理器）组成，共同构成 GPU 的计算&#x2F;图形引擎。</li>
-<li>每个 TPC（线程处理集群）将 SM 以两个为一组排列。 每个 SM 包含 64 个CUDA 核心。</li>
-<li>其他 GPU 引擎包括 5 个异步复制引擎、3 个视频编码引擎、1 个视频解码引擎和 1 个 JPEG 解码引擎。 先前的工作表明，这些引擎可以在一定程度上独立于计算&#x2F;图形引擎运行</li>
-</ul>
-<h4 id="CUDA概述"><a href="#CUDA概述" class="headerlink" title="CUDA概述"></a>CUDA概述</h4><p>为了简化这些复杂加速器（GPU）的编程，NVIDIA 开发了 CUDA 编程语言和 API。所有 CUDA 应用程序都在自己的内存地址空间（称为上下文）中运行，默认情况下，时分复用用于在 CUDA 和其他使用 GPU 的应用程序（例如显示任务）之间进行。</p>
-<p>在单个cuda程序中，可以使用多个称为流的 FIFO 队列来允许工作完全并发地使用 GPU 。通常会将所有使用 CUDA 的功能组合到具有多个流的单个上下文中，以避免出现多个用不满gpu的小型应用程序被专门进行时间切片的情况 。</p>
-<h4 id="任务术语【没看懂】"><a href="#任务术语【没看懂】" class="headerlink" title="任务术语【没看懂】"></a>任务术语【没看懂】</h4><p>任务（TASK)由作业(JOB)组成，其释放速率称为周期。发布后，每项工作都必须在随后的截止日期前完成。</p>
-<ul>
-<li><p>如果任务恰好在其周期开始时释放作业，则它们被称为周期性任务。</p>
-</li>
-<li><p>相反，如果该时间段仅定义版本之间的最小间隔，则该任务称为零星任务。任务可能具有相关的关键性。</p>
-<p>这反映了它们在系统中的相对重要性。例如，在自动驾驶汽车中，行人检测任务的重要性较高，而屏幕显示更新的重要性较低。</p>
-</li>
-</ul>
-<h3 id="TMD调度流程总结"><a href="#TMD调度流程总结" class="headerlink" title="TMD调度流程总结"></a>TMD调度流程总结</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025102939062.png" alt="image-20241025102939062"></p>
-<h4 id="内核初始化"><a href="#内核初始化" class="headerlink" title="内核初始化"></a>内核初始化</h4><p>内核实例化。在 NVIDIA GPU 上，内核通过前面提到的 TMD 结构进行内部描述。它描述了内核所需的线程块、每个块的线程和共享内存资源，并包括内核入口点的地址（以及优先级等字段）。用户空间库（例如 CUDA 或 OpenCL）构造 TMD 后，会将包含指向 TMD 的指针的启动命令排队到命令段中的下一个可用命令槽中。命令段是包含 GPU 命令的连续内存块。 TMD 在整个调度管道中用作内核描述符和句柄（引用），一直持续到 GPU 内核的所有计算完成。</p>
-<h4 id="②HostInterface"><a href="#②HostInterface" class="headerlink" title="②HostInterface"></a>②HostInterface</h4><p>主机接口。GPU 的主机接口弥合了 TMD 从 CPU 到 GPU 的路程。该单元包含一个或多个 Pushbuffer 直接内存访问单元 (PBDMA)、上下文切换控制逻辑以及其他子单元。 </p>
-<ul>
-<li>PBDMA 通过间接缓冲区从用户空间加载命令（GPU版RDMA？），间接缓冲区是指向命令段的指针的循环缓冲区。 这些结构（如图 6 顶部所示）允许用户空间应用程序直接将命令分派到 GPU，而无需系统呼叫或驱动程序开销，少了一层中介。PBDMA 单元单独加载、解析和缓存命令的速度比大多数 GPU 引擎快得多。</li>
-<li>在图中，我们将 GPU 命令队列显示为位于 CPU 内存中（这是最常见的），但它们也可以位于 GPU 内存中。在命令获取和解析之后，主机接口将命令转发到适当的引擎。在内核启动的情况下，它将 TMD 传递到计算前端。</li>
-</ul>
-<h4 id="③Compute-FrontEnd"><a href="#③Compute-FrontEnd" class="headerlink" title="③Compute FrontEnd"></a>③Compute FrontEnd</h4><p>计算前端将 TMD 指针从主机接口 2 中继到任务管理单元 4。此外，我们了解到该单元可以在后续单元中协调上下文切换。 虽然该单元以与其他单元解耦的速率处理 TMD，但不正确的上下文context可能会导致工作在此排队堵塞。</p>
-<h4 id="④TMU"><a href="#④TMU" class="headerlink" title="④TMU"></a>④TMU</h4><p>任务管理单元按优先级和到达顺序对TMD进行排队，直到工作分配单元WDU准备好接收它们。由于 TMU 的明确调度职责，我们对其进行了深入研究。</p>
-<p>TMU 围绕一系列优先级单链表构建，每个优先级都有一个链表头和尾指针跟踪。每个列表都完全由TMD组成。</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025125632852.png" alt="image-20241025125632852"></p>
-<p>图7中，我们展示了一个支持三个优先级的单元，TMD 按到达序进行了说明性编号。三个 TMD 位于最高优先级列表中，没有一个 TMD 位于中优先级列表中，两个 TMD 位于最低优先级列表中。每个优先级列表正式称为一个 TMD 组。 这些列表允许 TMU 对其接收到的 TMD 进行重新排序，从而使优先级较高的 TMD 跳过优先级较低的 TMD。当 TMD 从计算前端或其他地方到达时， TMU 读取 TMD 的 GROUP_ID 字段，并将 TMD 附加到指定 TMD 组的尾部。例如，在图 7 中，TMD4 是最近到达的高优先级TMD，TMD2是最近到达的低优先级TMD。【优先级别重排】</p>
-<p>当WDU发出另一个 TMD 准备就绪的信号时，TMU 删除并传递最高优先级非空列表的头部。这在图 7 中用粗体轮廓和“下一个 TMD”框来说明。给定图 7 的 TMU 状态，TMD 将按以下顺序退出 TMU：TMD1、TMD3、TMD4、TMD0【先到先得】，然后是 TMD2。 TMU 是可以以与 TMD 完成率解耦的速率接收 TMD 的最终单元。当用户空间以比其完成速度更快的速度分派内核时，这会导致 TMD 最终在 TMU 中累积。【队伍太长】</p>
-<h4 id="⑤WDU"><a href="#⑤WDU" class="headerlink" title="⑤WDU"></a>⑤WDU</h4><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025105532844.png" alt="image-20241025105532844"></p>
-<p>WDU将可用的TMD移动到TPC上，任务槽的数量受到硬件限制。例如，当就绪内核的数量超过任务槽的数量时wdu也要决策。</p>
-<p>每当任务槽变得可用时，WDU就向TMU发送新TMD的信号。然后，它将TMD插入到任务表中的任务槽中，并将对<strong>TMD的引用</strong>插入到按优先级排序的任务表中。优先级排序表首先按优先级排序，然后按到达时间排序。负载均衡器从优先级排序表头部的 TMD 调度线程块。一旦 TMD 的所有块都启动了，它就会从优先级排序表中删除，但会保留在任务表中，直到所有块都完成。【优先级表只提供开始顺序】。我们通过 TPC 资源跟踪器的阴影反映哪些内核正在哪些 TPC 上执行：这些单元在 TPC 和 WDU 之间中继状态和命令。请注意 TMD1 仍在 TPC 上执行（浅阴影线），因此保留在任务表中。 TMD3 作为目前最高优先级和最早到达的 TMD，现在正在向 TPC 调度块。 TMD4 正在等待 TMD3 调度其所有块，然后才能移动到优先级表的头部并调度块。</p>
-<p>此排序和分派过程可能会受到两件事的干扰：TPC 分区和 4（TMU）中待处理的更高优先级工作。</p>
-<ul>
-<li>当使用TPC分区时，如果某个TPC有可用容量，但排序表头部的TMD被禁止在该TPC上执行，则WDU将在表中向前跳跃，直到找到允许在该TPC上执行的TMD。【你不允许在这个TPC上就找下一个】</li>
-<li>当所有WDU任务槽都被占用，并且存在一个任务槽包含优先级低于TMU 中任何待处理的TMD时，较低优先级的TMD将从WDU中逐出并用较高优先级的TMD替换。当这种情况发生时，被驱逐的 TMD 会停止调度区块并完成已经在进行中的区块。然后将被逐出的TMD重新插入到TMU中相应优先级列表的头部。【有高优先级TMD来了就让位，重新排队】</li>
-</ul>
-<h3 id="内存并行性"><a href="#内存并行性" class="headerlink" title="内存并行性"></a>内存并行性</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025110816069.png" alt="image-20241025110816069"></p>
-<h4 id="⑥Execution-engine-and-memory-subsystem"><a href="#⑥Execution-engine-and-memory-subsystem" class="headerlink" title="⑥Execution engine and memory subsystem."></a>⑥Execution engine and memory subsystem.</h4><p>高速缓存的“I”（或“D”）后缀表示指令（或数据）高速缓存。</p>
-<p>从图 的底部开始，内存分区单元与每个 DRAM 芯片为一对一关系，每个分区单元包含一个 DRAM 控制器和 L2 缓存的子集。每个分区单元通过交叉总线独立地连接到每个GPC，因此对内存分区单元进行分区也等价于对交叉总线和L2进行分区。</p>
-<p>每个 GPC 内部的交叉总线与内存管理单元（MMU，以及相关的转换后备缓冲区，TLB）链接以提供虚拟内存支持。它连接到每个 SM 中的 L1D数据缓存，以及 GPC 范围的 L1.5I 缓存。 L1.5I 分别为每个 SM 指令高速缓存提供数据。</p>
-<p>总之，理论上每个 GPC 都可以配置为使用 GPU 缓存、总线和 DRAM 资源的专有子集进行操作（如果内存分区单元已分区）。此外，每个 SM 都可以从其 L1 高速缓存进行操作，而不会产生干扰。</p>
-<p>总结本节，我们发现 GPU 硬件不仅能够同时向多个GPC分区提供作业，而且还能够为分区提供无竞争的缓存、总线和 DRAM 资源。</p>
-]]></content>
-      <categories>
-        <category>论文</category>
-        <category>GPU架构</category>
-      </categories>
-      <tags>
-        <tag>GPU</tag>
-        <tag>科研</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记</title>
-    <url>/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求估计器，2) 一个轻量级的基于启发式的干扰感知资源利用率最大化调度程序，用于决定批量大小、模型复制程度和模型放置最小化货币成本，同时满足延迟 SLO 或最大化吞吐量，以及 3) 一种新颖的运算符图合并，用于合并类似权重的多个模型，以最大程度地减少 GPU 缓存中的干扰。使用生产工作负载的大规模实验表明，与现有方法相比，USHER 的吞吐量提高了 2.6 倍，成本效率提高了 3.5 倍，同时可扩展到数千个 GPU。</p>
-<p>代码：<a href="https://github.com/ss7krd/Usher/">https://github.com/ss7krd/Usher/</a></p>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记">
+<meta property="og:url" content="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Ringo的博客">
+<meta property="og:description" content="随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152848852.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153551110.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153748440.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153803154.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029154303254.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161702907.png">
+<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161715260.png">
+<meta property="article:published_time" content="2024-10-25T12:28:10.000Z">
+<meta property="article:modified_time" content="2024-10-29T08:56:22.957Z">
+<meta property="article:author" content="Ringo.fu">
+<meta property="article:tag" content="GPU">
+<meta property="article:tag" content="科研">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png">
+
+
+<link rel="canonical" href="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/","path":"2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference论文笔记/","title":"Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记 | Ringo的博客</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ringo的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">Archives</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">Categories</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%87%E7%AB%A0%E4%B8%BB%E4%BD%93"><span class="nav-number">1.</span> <span class="nav-text">文章主体</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%91%E7%8E%B0"><span class="nav-number">1.1.</span> <span class="nav-text">基本发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.2.</span> <span class="nav-text">系统设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-GPU-%E5%86%85%E6%A0%B8%E7%9A%84%E8%B5%84%E6%BA%90%E9%9C%80%E6%B1%82%E4%BC%B0%E8%AE%A1%E5%99%A8%EF%BC%88GK-Estimator%EF%BC%89%E3%80%82"><span class="nav-number">1.2.1.</span> <span class="nav-text">基于 GPU 内核的资源需求估计器（GK-Estimator）。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B2%E6%89%B0%E6%84%9F%E7%9F%A5%E8%B5%84%E6%BA%90%E5%88%A9%E7%94%A8%E7%8E%87%E6%9C%80%E5%A4%A7%E5%8C%96%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F%EF%BC%88IR-%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F%EF%BC%89%E3%80%82"><span class="nav-number">1.2.2.</span> <span class="nav-text">干扰感知资源利用率最大化调度程序（IR 调度程序）。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E7%BB%84"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">分组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">调度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E5%AD%90%E5%9B%BE%E5%90%88%E5%B9%B6%EF%BC%88OG-Merger%EF%BC%89%E3%80%82"><span class="nav-number">1.2.3.</span> <span class="nav-text">算子图合并（OG-Merger）。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E7%B1%BB%E4%BC%BC%E6%9E%B6%E6%9E%84%E7%9A%84%E6%93%8D%E4%BD%9C%E5%88%86%E7%BB%84"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">对类似架构的操作分组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%B3%E5%AE%9A%E5%A4%9A%E4%B8%AA%E5%9B%BE%E4%B8%AD%E5%90%88%E5%B9%B6%E7%9A%84%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">决定多个图中合并的运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%90%88%E5%B9%B6%E6%93%8D%E4%BD%9C"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">执行合并操作</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%AE%9E%E8%B7%B5"><span class="nav-number">1.3.</span> <span class="nav-text">实验实践</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD%E7%A7%AF%E7%B4%AF"><span class="nav-number">2.</span> <span class="nav-text">术语积累</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E5%92%8C%E5%86%85%E5%AD%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">2.1.</span> <span class="nav-text">计算利用率和内存利用率</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%86%85%E5%AD%98%E5%88%A9%E7%94%A8%E7%8E%87%E9%9C%80%E6%B1%82%E9%AB%98%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">1. 内存利用率需求高的模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E9%9C%80%E6%B1%82%E9%AB%98%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.2.</span> <span class="nav-text">2. 计算利用率需求高的模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-GPU-%E7%9A%84%E5%86%85%E5%AD%98%E5%92%8C%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E5%86%B3%E5%AE%9A%E5%9B%A0%E7%B4%A0"><span class="nav-number">2.1.3.</span> <span class="nav-text">3. GPU 的内存和计算利用率决定因素</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SLO"><span class="nav-number">2.2.</span> <span class="nav-text">SLO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BS%E5%92%8CRD"><span class="nav-number">2.3.</span> <span class="nav-text">BS和RD</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ringo.fu</p>
+  <div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记 | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-10-25 20:28:10" itemprop="dateCreated datePublished" datetime="2024-10-25T20:28:10+08:00">2024-10-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-10-29 16:56:22" itemprop="dateModified" datetime="2024-10-29T16:56:22+08:00">2024-10-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>7.7k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>7 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求估计器，2) 一个轻量级的基于启发式的干扰感知资源利用率最大化调度程序，用于决定批量大小、模型复制程度和模型放置最小化货币成本，同时满足延迟 SLO 或最大化吞吐量，以及 3) 一种新颖的运算符图合并，用于合并类似权重的多个模型，以最大程度地减少 GPU 缓存中的干扰。使用生产工作负载的大规模实验表明，与现有方法相比，USHER 的吞吐量提高了 2.6 倍，成本效率提高了 3.5 倍，同时可扩展到数千个 GPU。</p>
+<p>代码：<a target="_blank" rel="noopener" href="https://github.com/ss7krd/Usher/">https://github.com/ss7krd/Usher/</a></p>
 <span id="more"></span>
 
 <h1 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h1><p>我们使用 Cuti 和 Muti 分别表示 GPU 计算和内存利用率，并使用 Creq 和 Mreq 表示模型对它们的要求。模型的 Creq（或 Mreq）是模型在执行期间的任何时刻消耗的 GPU 总计算（或内存）空间的最高百分比。我们进一步用Rreq来表示Mreq和Creq的和。我们使用 C-heavy 和 M-heavy 分别表示计算密集型和内存密集型。</p>
@@ -214,18 +368,127 @@
 <h2 id="SLO"><a href="#SLO" class="headerlink" title="SLO"></a>SLO</h2><p>在 GPU 计算中，SLO（Service Level Objective，服务级别目标） 是用来定义 GPU 服务性能的目标标准。SLO 的设定主要是为了确保服务能够达到特定的性能要求，例如响应时间、延迟、吞吐量或资源利用率等，从而为任务提供稳定和高效的计算环境。对 GPU 来说，SLO 通常设定的目标会围绕延迟、计算时间、资源占用比（如计算或内存利用率）等，以满足用户的需求或应用的实时性要求</p>
 <h2 id="BS和RD"><a href="#BS和RD" class="headerlink" title="BS和RD"></a>BS和RD</h2><p><strong>BS（Batch Size，批量大小）</strong>：指模型在 GPU 上执行时的批处理数量，即模型每次传入 GPU 的数据量大小。批量越大，通常能够更好地利用 GPU 计算资源，但也可能受到 GPU 内存的限制。</p>
 <p><strong>RD（Replication Degree，复制度）</strong>：指模型的复制数量，以提高并发度。每个模型可以创建多份副本（replica），RD 就是副本的数量。增大 RD 值可以分散模型负载，提高任务完成速度，但需要更多的 GPU 资源。</p>
-]]></content>
-      <categories>
-        <category>论文</category>
-      </categories>
-      <tags>
-        <tag>GPU</tag>
-        <tag>科研</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>hexo搭建笔记</title>
-    <url>/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-</search>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GPU/" rel="tag"># GPU</a>
+              <a href="/tags/%E7%A7%91%E7%A0%94/" rel="tag"># 科研</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/" rel="prev" title="hexo搭建笔记">
+                  <i class="fa fa-angle-left"></i> hexo搭建笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="Word count total">13k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">12 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
