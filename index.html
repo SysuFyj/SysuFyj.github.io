@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives">
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -175,6 +175,191 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2024-11-01 10:43:49 / Modified: 20:46:35" itemprop="dateCreated datePublished" datetime="2024-11-01T10:43:49+08:00">2024-11-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>20k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>18 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>自动驾驶和虚拟现实等许多智能应用程序都需要运行延迟关键型和尽力而为的 DNN 推理任务，以在 GPU 上实现实时性和节省工作量。然而，商用 GPU 缺乏高效的抢占式调度支持，最先进的方法要么必须独占 GPU，要么让实时任务等待尽力而为的任务完成，这会导致利用率低或延迟高，或两者兼而有之。本文介绍了 REEF，这是第一个 GPU 加速的 DNN 推理服务系统，可在 GPU 调度中实现微秒级内核抢占和受控并发执行。 REEF 有两个新颖之处。首先，<strong>基于 DNN 推理内核大多具有幂等性的观察，REEF 设计了一种基于重置的抢占方案，通过主动杀死和恢复微秒级的尽力而为内核，在 GPU 上启动实时内核</strong>。其次，<strong>由于 DNN 推理内核具有不同的并行性和可预测的延迟，REEF 提出了一种动态内核填充机制，可以使用适当的尽力而为内核动态填充实时内核，从而以可忽略的开销充分利用 GPU</strong>。使用新的 DNN 推理服务基准 (DISB) 以及 AMD GPU 上的不同工作负载和真实世界跟踪进行的评估表明，REEF 在实时任务的端到端延迟方面仅产生不到 2% 的开销，但增加了与将 GPU 专用于实时任务相比，整体吞吐量提高了高达 7.7 倍。为了证明我们的方法在闭源 GPU 上的可行性，我们在 NVIDIA GPU 上进一步移植和评估了 REEF 的受限版本，将抢占延迟减少了 12.3 倍（从 6.3 倍）。</p>
+<p>代码：https: &#x2F;&#x2F;github.com&#x2F;SJTU-IPADS&#x2F;reef</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-11-01 10:42:51" itemprop="dateCreated datePublished" datetime="2024-11-01T10:42:51+08:00">2024-11-01</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>0</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>1 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -601,13 +786,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">13k</span>
+    <span title="Word count total">33k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">12 mins.</span>
+    <span title="Reading time total">30 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">

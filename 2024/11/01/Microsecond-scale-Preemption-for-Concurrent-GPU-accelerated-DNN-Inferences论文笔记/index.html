@@ -1,117 +1,288 @@
-<?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title>Hardware Compute Partitioning on NVIDIA GPUs 论文笔记</title>
-    <url>/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>嵌入式和自主系统越来越多地集成 AI&#x2F;ML 功能，这些功能通常由 GPU 等硬件加速器启用。随着这些工作负载的要求越来越高，但尺寸、重量、功耗和成本限制仍然存在，迫切需要增加 GPU 容量的方法。在这项工作中，我们提供了一种透明地对 NVIDIA GPU 的计算单元进行<strong>空间分区</strong>的方法，从而允许通过安全高效的 GPU 共享来回收闲置的容量。我们的方法适用于 2013 年以来的任何 NVIDIA GPU，并且可以通过我们易于使用的名为 libsmctrl 的用户空间库来应用。我们通过深入研究 NVIDIA GPU 的<strong>硬件调度管道</strong>来支持我们的系统设计。我们提供了系统的使用指南，并通过使用 YOLOv2 的对象检测案例研究进行了演示。</p>
-<span id="more"></span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
 
 
 
-<h2 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h2><h3 id="主要创新点"><a href="#主要创新点" class="headerlink" title="主要创新点"></a>主要创新点</h3><h4 id="现有不足"><a href="#现有不足" class="headerlink" title="现有不足"></a>现有不足</h4><ul>
-<li>当前的 GPU 管理和调度方法通常将 GPU 视为单个整体设备并强制执行互斥的访问控制。这可能会导致严重的容量损失，类似于在多核 CPU 上一次仅调度一项任务。</li>
-<li>现有的关于nvidia-gpu的文档不足，各个方法都继承了协作多任务处理的许多问题，包括缺乏与行为不当的任务的隔离。这些方法还限制了允许的内核启动类型，导致不可避免的指令缓存干扰，并且除其他缺陷外，还需要大量的专家程序修改。</li>
-</ul>
-<h4 id="贡献"><a href="#贡献" class="headerlink" title="贡献"></a>贡献</h4><ul>
-<li>揭示自 2013 年以来所有 NVIDIA GPU 中计算单元空间分区的硬件机制。 </li>
-<li>构建并演示一个简单、有效且可移植的 GPU 空间分区  API。</li>
-<li>提供迄今为止未公开的 NVIDIA GPU 硬件调度管道的详细信息。 </li>
-<li>迄今为止未发布的 NVIDIA GPU  架构模式的详细信息，包括计算单元和内存单元之间的布局和互连。</li>
-<li>提供高效的分区方针</li>
-<li>通过案例研究演示如何应用空间分区来提高 GPU 利用率并减少卷积神经网络 (CNN) 的延迟</li>
-</ul>
-<h3 id="理论阐释"><a href="#理论阐释" class="headerlink" title="理论阐释"></a>理论阐释</h3><h4 id="硬件分区实现"><a href="#硬件分区实现" class="headerlink" title="硬件分区实现"></a>硬件分区实现</h4><p>内核 i 的第 j 个块表示为 Ki:j</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025131917706.png" alt="image-20241025131917706"></p>
-<p>右边使用SM掩码，让K1无法使用5-8，K2无法使用0-5，可以让K2快速启动。</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132031131.png" alt="image-20241025132031131"></p>
-<p>不同型号的掩码分区效果不同：GTX 1060 和 Tesla P100 均基于 NVIDIA 的 Pascal 架构，但使用的芯片配置方式略有不同。 P100 和较新的 GPU 的配置与图 2 中的 GA100 更相似，每个 TPC 有两个 SM，而 GTX 1060 和较旧的 GPU 具有一对一的 SM 与 TPC 比率。这一关键区别和大量支持结果表明“<strong>SM 掩码”实际上充当 GPU 的 TPC 掩码</strong>。据推测，TMD中字段的名称继承自TPC和SM数量相同的时代，允许更多的术语互换。</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132323178.png" alt="image-20241025132323178"></p>
-<p>为什么两个表面上相同的 GPU 会有如此不同的内部配置？芯片之间的差异源于地板扫描，这是 NVIDIA 近年来越来越多地采用的技术。随着 GPU 芯片尺寸不断增大以满足不断增长的计算需求，芯片制造错误的可能性也随之增加。扫地技术可以通过熔断（“扫除”）有缺陷的部件来使用这些不完美的模具，从而使其余部件能够正常工作。</p>
-<h4 id="分区特性"><a href="#分区特性" class="headerlink" title="分区特性"></a>分区特性</h4><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025132903987.png" alt="image-20241025132903987"></p>
-<ul>
-<li>分区纵轴上来看是有洞的。</li>
-<li>即使后续内核可能需要一组互斥的 SM，GPU 也会保留流中内核的顺序。的流2中，K9只需要SM 5，而K10只需要SM 10。但是，K10直到K9完成才开始。 CUDA 流语义要求同一流中的后续内核在所有先前的内核完成之前不会启动 - 我们发现即使在使用 TPC 分区时也要保留这一点。【既然要保持顺序你划分分区有什么用？是不同block的并行？】</li>
-<li>适用于多个型号的gpu。</li>
-</ul>
-<h4 id="可能的硬件故障"><a href="#可能的硬件故障" class="headerlink" title="可能的硬件故障"></a>可能的硬件故障</h4><ul>
-<li>WDU导致的SM非必要重叠：K2只能用1-3，但是被可以更加灵活分配的K1霸占了。</li>
-</ul>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025134354958.png" alt="image-20241025134354958"></p>
-<ul>
-<li>任务槽被耗尽，优先级低的TMU被WDU一脚踢出去。</li>
-</ul>
-<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><h4 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h4><p>关于 GPU 计算单元空间分区的现有工作原理发现，计算单元到分区的分配对于 AMD GPU 至关重要，因为在某些情况下，向分区添加计算单元可能会减慢分区速度 。这项工作提出并评估了两种分区策略：SE 打包和 SE 分布式。 SE 代表着色器引擎，相当于我们上下文中的 GPC。 SE-packed 算法尝试将同一 GPC 中的所有 TPC 分配到该分区，然后再将分区扩展到多个 GPC。或者，SE 分布式算法尝试将每个分区的 TPC 尽可能均匀地分布在 GPC 上。由于这种语言已被其他工作采用，我们在这里继续使用它。这两种方式对性能差异不大，因此使用更加简单的SE打包。</p>
-<h4 id="实验主体"><a href="#实验主体" class="headerlink" title="实验主体"></a>实验主体</h4><p>在yolov2上跑</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025134935385.png" alt="image-20241025134935385"></p>
-<p>TPC 分区可以防止 GPU 上下文共享任务因计算密集型任务而导致性能下降。（参考上表234）</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025135011722.png" alt="image-20241025135011722"></p>
-<ul>
-<li>TPC 分区允许平滑调整任务执行时间，分配对时间有影响。</li>
-<li>这种影响是有边际效用的。</li>
-</ul>
-<h2 id="知识学习"><a href="#知识学习" class="headerlink" title="知识学习"></a>知识学习</h2><h3 id="GPU架构"><a href="#GPU架构" class="headerlink" title="GPU架构"></a>GPU架构</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025130701643.png" alt="image-20241025130701643"></p>
-<h4 id="GPU概述"><a href="#GPU概述" class="headerlink" title="GPU概述"></a>GPU概述</h4><p>GPU 是高度并行的加速器，通常由多个离散的功能单元构建，每个功能单元都具有内部并行能力。上图显示了此类最新 NVIDIA GPU 的内部功能单元。</p>
-<ul>
-<li>八个 GPC（通用处理集群），每个由 16 个 SM（流式多处理器）组成，共同构成 GPU 的计算&#x2F;图形引擎。</li>
-<li>每个 TPC（线程处理集群）将 SM 以两个为一组排列。 每个 SM 包含 64 个CUDA 核心。</li>
-<li>其他 GPU 引擎包括 5 个异步复制引擎、3 个视频编码引擎、1 个视频解码引擎和 1 个 JPEG 解码引擎。 先前的工作表明，这些引擎可以在一定程度上独立于计算&#x2F;图形引擎运行</li>
-</ul>
-<h4 id="CUDA概述"><a href="#CUDA概述" class="headerlink" title="CUDA概述"></a>CUDA概述</h4><p>为了简化这些复杂加速器（GPU）的编程，NVIDIA 开发了 CUDA 编程语言和 API。所有 CUDA 应用程序都在自己的内存地址空间（称为上下文）中运行，默认情况下，时分复用用于在 CUDA 和其他使用 GPU 的应用程序（例如显示任务）之间进行。</p>
-<p>在单个cuda程序中，可以使用多个称为流的 FIFO 队列来允许工作完全并发地使用 GPU 。通常会将所有使用 CUDA 的功能组合到具有多个流的单个上下文中，以避免出现多个用不满gpu的小型应用程序被专门进行时间切片的情况 。</p>
-<h4 id="任务术语【没看懂】"><a href="#任务术语【没看懂】" class="headerlink" title="任务术语【没看懂】"></a>任务术语【没看懂】</h4><p>任务（TASK)由作业(JOB)组成，其释放速率称为周期。发布后，每项工作都必须在随后的截止日期前完成。</p>
-<ul>
-<li><p>如果任务恰好在其周期开始时释放作业，则它们被称为周期性任务。</p>
-</li>
-<li><p>相反，如果该时间段仅定义版本之间的最小间隔，则该任务称为零星任务。任务可能具有相关的关键性。</p>
-<p>这反映了它们在系统中的相对重要性。例如，在自动驾驶汽车中，行人检测任务的重要性较高，而屏幕显示更新的重要性较低。</p>
-</li>
-</ul>
-<h3 id="TMD调度流程总结"><a href="#TMD调度流程总结" class="headerlink" title="TMD调度流程总结"></a>TMD调度流程总结</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025102939062.png" alt="image-20241025102939062"></p>
-<h4 id="内核初始化"><a href="#内核初始化" class="headerlink" title="内核初始化"></a>内核初始化</h4><p>内核实例化。在 NVIDIA GPU 上，内核通过前面提到的 TMD 结构进行内部描述。它描述了内核所需的线程块、每个块的线程和共享内存资源，并包括内核入口点的地址（以及优先级等字段）。用户空间库（例如 CUDA 或 OpenCL）构造 TMD 后，会将包含指向 TMD 的指针的启动命令排队到命令段中的下一个可用命令槽中。命令段是包含 GPU 命令的连续内存块。 TMD 在整个调度管道中用作内核描述符和句柄（引用），一直持续到 GPU 内核的所有计算完成。</p>
-<h4 id="②HostInterface"><a href="#②HostInterface" class="headerlink" title="②HostInterface"></a>②HostInterface</h4><p>主机接口。GPU 的主机接口弥合了 TMD 从 CPU 到 GPU 的路程。该单元包含一个或多个 Pushbuffer 直接内存访问单元 (PBDMA)、上下文切换控制逻辑以及其他子单元。 </p>
-<ul>
-<li>PBDMA 通过间接缓冲区从用户空间加载命令（GPU版RDMA？），间接缓冲区是指向命令段的指针的循环缓冲区。 这些结构（如图 6 顶部所示）允许用户空间应用程序直接将命令分派到 GPU，而无需系统呼叫或驱动程序开销，少了一层中介。PBDMA 单元单独加载、解析和缓存命令的速度比大多数 GPU 引擎快得多。</li>
-<li>在图中，我们将 GPU 命令队列显示为位于 CPU 内存中（这是最常见的），但它们也可以位于 GPU 内存中。在命令获取和解析之后，主机接口将命令转发到适当的引擎。在内核启动的情况下，它将 TMD 传递到计算前端。</li>
-</ul>
-<h4 id="③Compute-FrontEnd"><a href="#③Compute-FrontEnd" class="headerlink" title="③Compute FrontEnd"></a>③Compute FrontEnd</h4><p>计算前端将 TMD 指针从主机接口 2 中继到任务管理单元 4。此外，我们了解到该单元可以在后续单元中协调上下文切换。 虽然该单元以与其他单元解耦的速率处理 TMD，但不正确的上下文context可能会导致工作在此排队堵塞。</p>
-<h4 id="④TMU"><a href="#④TMU" class="headerlink" title="④TMU"></a>④TMU</h4><p>任务管理单元按优先级和到达顺序对TMD进行排队，直到工作分配单元WDU准备好接收它们。由于 TMU 的明确调度职责，我们对其进行了深入研究。</p>
-<p>TMU 围绕一系列优先级单链表构建，每个优先级都有一个链表头和尾指针跟踪。每个列表都完全由TMD组成。</p>
-<p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025125632852.png" alt="image-20241025125632852"></p>
-<p>图7中，我们展示了一个支持三个优先级的单元，TMD 按到达序进行了说明性编号。三个 TMD 位于最高优先级列表中，没有一个 TMD 位于中优先级列表中，两个 TMD 位于最低优先级列表中。每个优先级列表正式称为一个 TMD 组。 这些列表允许 TMU 对其接收到的 TMD 进行重新排序，从而使优先级较高的 TMD 跳过优先级较低的 TMD。当 TMD 从计算前端或其他地方到达时， TMU 读取 TMD 的 GROUP_ID 字段，并将 TMD 附加到指定 TMD 组的尾部。例如，在图 7 中，TMD4 是最近到达的高优先级TMD，TMD2是最近到达的低优先级TMD。【优先级别重排】</p>
-<p>当WDU发出另一个 TMD 准备就绪的信号时，TMU 删除并传递最高优先级非空列表的头部。这在图 7 中用粗体轮廓和“下一个 TMD”框来说明。给定图 7 的 TMU 状态，TMD 将按以下顺序退出 TMU：TMD1、TMD3、TMD4、TMD0【先到先得】，然后是 TMD2。 TMU 是可以以与 TMD 完成率解耦的速率接收 TMD 的最终单元。当用户空间以比其完成速度更快的速度分派内核时，这会导致 TMD 最终在 TMU 中累积。【队伍太长】</p>
-<h4 id="⑤WDU"><a href="#⑤WDU" class="headerlink" title="⑤WDU"></a>⑤WDU</h4><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025105532844.png" alt="image-20241025105532844"></p>
-<p>WDU将可用的TMD移动到TPC上，任务槽的数量受到硬件限制。例如，当就绪内核的数量超过任务槽的数量时wdu也要决策。</p>
-<p>每当任务槽变得可用时，WDU就向TMU发送新TMD的信号。然后，它将TMD插入到任务表中的任务槽中，并将对<strong>TMD的引用</strong>插入到按优先级排序的任务表中。优先级排序表首先按优先级排序，然后按到达时间排序。负载均衡器从优先级排序表头部的 TMD 调度线程块。一旦 TMD 的所有块都启动了，它就会从优先级排序表中删除，但会保留在任务表中，直到所有块都完成。【优先级表只提供开始顺序】。我们通过 TPC 资源跟踪器的阴影反映哪些内核正在哪些 TPC 上执行：这些单元在 TPC 和 WDU 之间中继状态和命令。请注意 TMD1 仍在 TPC 上执行（浅阴影线），因此保留在任务表中。 TMD3 作为目前最高优先级和最早到达的 TMD，现在正在向 TPC 调度块。 TMD4 正在等待 TMD3 调度其所有块，然后才能移动到优先级表的头部并调度块。</p>
-<p>此排序和分派过程可能会受到两件事的干扰：TPC 分区和 4（TMU）中待处理的更高优先级工作。</p>
-<ul>
-<li>当使用TPC分区时，如果某个TPC有可用容量，但排序表头部的TMD被禁止在该TPC上执行，则WDU将在表中向前跳跃，直到找到允许在该TPC上执行的TMD。【你不允许在这个TPC上就找下一个】</li>
-<li>当所有WDU任务槽都被占用，并且存在一个任务槽包含优先级低于TMU 中任何待处理的TMD时，较低优先级的TMD将从WDU中逐出并用较高优先级的TMD替换。当这种情况发生时，被驱逐的 TMD 会停止调度区块并完成已经在进行中的区块。然后将被逐出的TMD重新插入到TMU中相应优先级列表的头部。【有高优先级TMD来了就让位，重新排队】</li>
-</ul>
-<h3 id="内存并行性"><a href="#内存并行性" class="headerlink" title="内存并行性"></a>内存并行性</h3><p><img src="/./../images/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241025110816069.png" alt="image-20241025110816069"></p>
-<h4 id="⑥Execution-engine-and-memory-subsystem"><a href="#⑥Execution-engine-and-memory-subsystem" class="headerlink" title="⑥Execution engine and memory subsystem."></a>⑥Execution engine and memory subsystem.</h4><p>高速缓存的“I”（或“D”）后缀表示指令（或数据）高速缓存。</p>
-<p>从图 的底部开始，内存分区单元与每个 DRAM 芯片为一对一关系，每个分区单元包含一个 DRAM 控制器和 L2 缓存的子集。每个分区单元通过交叉总线独立地连接到每个GPC，因此对内存分区单元进行分区也等价于对交叉总线和L2进行分区。</p>
-<p>每个 GPC 内部的交叉总线与内存管理单元（MMU，以及相关的转换后备缓冲区，TLB）链接以提供虚拟内存支持。它连接到每个 SM 中的 L1D数据缓存，以及 GPC 范围的 L1.5I 缓存。 L1.5I 分别为每个 SM 指令高速缓存提供数据。</p>
-<p>总之，理论上每个 GPC 都可以配置为使用 GPU 缓存、总线和 DRAM 资源的专有子集进行操作（如果内存分区单元已分区）。此外，每个 SM 都可以从其 L1 高速缓存进行操作，而不会产生干扰。</p>
-<p>总结本节，我们发现 GPU 硬件不仅能够同时向多个GPC分区提供作业，而且还能够为分区提供无竞争的缓存、总线和 DRAM 资源。</p>
-]]></content>
-      <categories>
-        <category>论文</category>
-        <category>GPU架构</category>
-      </categories>
-      <tags>
-        <tag>GPU</tag>
-        <tag>科研</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记</title>
-    <url>/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记</title>
-    <url>/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>自动驾驶和虚拟现实等许多智能应用程序都需要运行延迟关键型和尽力而为的 DNN 推理任务，以在 GPU 上实现实时性和节省工作量。然而，商用 GPU 缺乏高效的抢占式调度支持，最先进的方法要么必须独占 GPU，要么让实时任务等待尽力而为的任务完成，这会导致利用率低或延迟高，或两者兼而有之。本文介绍了 REEF，这是第一个 GPU 加速的 DNN 推理服务系统，可在 GPU 调度中实现微秒级内核抢占和受控并发执行。 REEF 有两个新颖之处。首先，<strong>基于 DNN 推理内核大多具有幂等性的观察，REEF 设计了一种基于重置的抢占方案，通过主动杀死和恢复微秒级的尽力而为内核，在 GPU 上启动实时内核</strong>。其次，<strong>由于 DNN 推理内核具有不同的并行性和可预测的延迟，REEF 提出了一种动态内核填充机制，可以使用适当的尽力而为内核动态填充实时内核，从而以可忽略的开销充分利用 GPU</strong>。使用新的 DNN 推理服务基准 (DISB) 以及 AMD GPU 上的不同工作负载和真实世界跟踪进行的评估表明，REEF 在实时任务的端到端延迟方面仅产生不到 2% 的开销，但增加了与将 GPU 专用于实时任务相比，整体吞吐量提高了高达 7.7 倍。为了证明我们的方法在闭源 GPU 上的可行性，我们在 NVIDIA GPU 上进一步移植和评估了 REEF 的受限版本，将抢占延迟减少了 12.3 倍（从 6.3 倍）。</p>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="自动驾驶和虚拟现实等许多智能应用程序都需要运行延迟关键型和尽力而为的 DNN 推理任务，以在 GPU 上实现实时性和节省工作量。然而，商用 GPU 缺乏高效的抢占式调度支持，最先进的方法要么必须独占 GPU，要么让实时任务等待尽力而为的任务完成，这会导致利用率低或延迟高，或两者兼而有之。本文介绍了 REEF，这是第一个 GPU 加速的 DNN 推理服务系统，可在 GPU 调度中实现微秒级内核抢占和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记">
+<meta property="og:url" content="http://example.com/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Ringo的博客">
+<meta property="og:description" content="自动驾驶和虚拟现实等许多智能应用程序都需要运行延迟关键型和尽力而为的 DNN 推理任务，以在 GPU 上实现实时性和节省工作量。然而，商用 GPU 缺乏高效的抢占式调度支持，最先进的方法要么必须独占 GPU，要么让实时任务等待尽力而为的任务完成，这会导致利用率低或延迟高，或两者兼而有之。本文介绍了 REEF，这是第一个 GPU 加速的 DNN 推理服务系统，可在 GPU 调度中实现微秒级内核抢占和">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101105618450.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101111147938.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101111943502.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101112605339.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101113847986.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101143138816.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101143637626-1730443000309-1.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101191640539.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101194812969.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101195250169.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101195343686.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101201601290.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101202356613.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101203419207.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101203647916.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101203845199.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101203958105.png">
+<meta property="og:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101204036888.png">
+<meta property="article:published_time" content="2024-11-01T02:43:49.000Z">
+<meta property="article:modified_time" content="2024-11-01T12:46:35.288Z">
+<meta property="article:author" content="Ringo.fu">
+<meta property="article:tag" content="GPU">
+<meta property="article:tag" content="科研">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241101105618450.png">
+
+
+<link rel="canonical" href="http://example.com/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/","path":"2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences论文笔记/","title":"Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记 | Ringo的博客</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ringo的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">Archives</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">Categories</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E5%88%86%E7%B1%BB"><span class="nav-number">1.1.</span> <span class="nav-text">任务分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E7%9A%84GPU%E5%B9%B6%E8%A1%8C%E6%8A%80%E6%9C%AF"><span class="nav-number">1.2.</span> <span class="nav-text">传统的GPU并行技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#REEF%E7%9A%84%E4%B8%BB%E8%A6%81%E6%80%9D%E6%83%B3"><span class="nav-number">1.3.</span> <span class="nav-text">REEF的主要思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#contribution"><span class="nav-number">1.4.</span> <span class="nav-text">contribution</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80"><span class="nav-number">2.</span> <span class="nav-text">理论基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DNN%E7%89%B9%E6%80%A7"><span class="nav-number">2.1.</span> <span class="nav-text">DNN特性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%82%E7%AD%89%E6%80%A7"><span class="nav-number">2.1.1.</span> <span class="nav-text">幂等性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E9%87%8F%E5%86%85%E6%A0%B8"><span class="nav-number">2.1.2.</span> <span class="nav-text">大量内核</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E9%A2%84%E6%B5%8B%E6%80%A7"><span class="nav-number">2.1.3.</span> <span class="nav-text">可预测性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E6%80%A7"><span class="nav-number">2.1.4.</span> <span class="nav-text">并行性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%B0%E6%9C%89GPU%E8%B0%83%E5%BA%A6state-of-art"><span class="nav-number">2.2.</span> <span class="nav-text">现有GPU调度state-of-art</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REEF%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">REEF结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%E6%9E%84"><span class="nav-number">3.1.</span> <span class="nav-text">总结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DNN-%E6%A8%A1%E5%9E%8B%E5%87%86%E5%A4%87%EF%BC%88%E7%A6%BB%E7%BA%BF%EF%BC%89"><span class="nav-number">3.1.1.</span> <span class="nav-text">DNN 模型准备（离线）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DNN%E6%8E%A8%E7%90%86%E6%9C%8D%E5%8A%A1-%E5%9C%A8%E7%BA%BF"><span class="nav-number">3.1.2.</span> <span class="nav-text">DNN推理服务(在线)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E9%87%8D%E7%BD%AE%E7%9A%84%E6%8A%A2%E5%8D%A0"><span class="nav-number">3.2.</span> <span class="nav-text">基于重置的抢占</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A9%B1%E9%80%90%E7%BC%93%E5%86%B2%E5%8C%BA%E5%86%85%E6%A0%B8"><span class="nav-number">3.2.2.</span> <span class="nav-text">驱逐缓冲区内核</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9D%80%E6%AD%BB%E6%AD%A3%E5%9C%A8%E8%BF%90%E8%A1%8C%E7%9A%84%E5%86%85%E6%A0%B8"><span class="nav-number">3.2.3.</span> <span class="nav-text">杀死正在运行的内核</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E6%8A%A2%E5%8D%A0%E4%BB%BB%E5%8A%A1"><span class="nav-number">3.2.4.</span> <span class="nav-text">恢复抢占任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8A%A2%E5%8D%A0%E5%9C%A8%E9%97%AD%E6%BA%90GPU%E4%B8%8A%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">3.2.5.</span> <span class="nav-text">抢占在闭源GPU上的效果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%86%85%E6%A0%B8%E5%A1%AB%E5%85%85"><span class="nav-number">3.3.</span> <span class="nav-text">动态内核填充</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%AB%98%E6%95%88%E7%9A%84%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88"><span class="nav-number">3.3.1.</span> <span class="nav-text">高效的函数指针</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E9%80%89%E6%8B%A9"><span class="nav-number">3.3.2.</span> <span class="nav-text">内核选择</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E9%83%A8%E5%88%86"><span class="nav-number">4.</span> <span class="nav-text">实验部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%9F%BA%E7%A1%80"><span class="nav-number">4.1.</span> <span class="nav-text">实验基础</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E6%9D%A1%E4%BB%B6"><span class="nav-number">4.1.1.</span> <span class="nav-text">测试条件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E6%9D%A1%E4%BB%B6%EF%BC%88DISB%EF%BC%89"><span class="nav-number">4.1.2.</span> <span class="nav-text">负载条件（DISB）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#baseline"><span class="nav-number">4.1.3.</span> <span class="nav-text">baseline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">4.1.4.</span> <span class="nav-text">执行结果</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8D%95%E4%B8%AABE%EF%BC%88DSIB-A-B"><span class="nav-number">4.1.4.1.</span> <span class="nav-text">单个BE（DSIB A&#x2F;B)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AABE%EF%BC%88DSIB-C-D-E"><span class="nav-number">4.1.4.2.</span> <span class="nav-text">多个BE（DSIB C&#x2F;D&#x2F;E)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E4%B8%96%E7%95%8C"><span class="nav-number">4.1.4.3.</span> <span class="nav-text">真实世界</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DNN%E6%8E%A8%E7%90%86%E6%8A%A2%E5%8D%A0%E7%BB%93%E6%9E%9C"><span class="nav-number">4.1.5.</span> <span class="nav-text">DNN推理抢占结果</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E6%95%88%E6%9E%9C"><span class="nav-number">4.1.5.1.</span> <span class="nav-text">优化效果</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%86%85%E6%A0%B8%E5%A1%AB%E5%85%85-1"><span class="nav-number">4.1.6.</span> <span class="nav-text">动态内核填充</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">4.1.6.1.</span> <span class="nav-text">结果</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E6%A3%80%E9%AA%8C"><span class="nav-number">4.1.6.2.</span> <span class="nav-text">优化检验</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AD%E6%BA%90GPU"><span class="nav-number">4.1.7.</span> <span class="nav-text">闭源GPU</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E4%B8%8D%E8%B6%B3"><span class="nav-number">4.2.</span> <span class="nav-text">研究不足</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%82%E7%AD%89%E6%80%A7%E5%81%87%E8%AE%BE"><span class="nav-number">4.2.1.</span> <span class="nav-text">幂等性假设</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E5%86%85%E6%A0%B8%E9%80%89%E6%8B%A9%E7%9A%84%E9%99%90%E5%88%B6%E3%80%82"><span class="nav-number">4.2.2.</span> <span class="nav-text">对内核选择的限制。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E7%9A%84GPU-API%E5%92%8C%E8%BF%90%E8%A1%8C%E6%97%B6"><span class="nav-number">4.2.3.</span> <span class="nav-text">未来的GPU API和运行时</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E5%85%B3%E4%BB%BB%E5%8A%A1"><span class="nav-number">4.3.</span> <span class="nav-text">有关任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DNN-%E6%8E%A8%E7%90%86%E6%9C%8D%E5%8A%A1%E7%B3%BB%E7%BB%9F%E3%80%82"><span class="nav-number">4.3.1.</span> <span class="nav-text">DNN 推理服务系统。</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">4.4.</span> <span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%A5%E8%AF%86"><span class="nav-number">5.</span> <span class="nav-text">知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%86%85%E6%A0%B8%E8%9E%8D%E5%90%88"><span class="nav-number">5.1.</span> <span class="nav-text">静态内核融合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%98%E6%8E%89%E7%9A%84C-%E7%9F%A5%E8%AF%86"><span class="nav-number">5.2.</span> <span class="nav-text">忘掉的C++知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E6%A0%B8-%E6%B5%81-CU%E5%8D%A0%E7%94%A8%E5%92%8C%E5%AF%84%E5%AD%98%E5%99%A8%E6%95%B0%E9%87%8F"><span class="nav-number">5.3.</span> <span class="nav-text">内核\流\CU占用和寄存器数量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98-%E4%BB%80%E4%B9%88%E8%BF%87%E5%BA%A6%E5%88%86%E9%85%8D-%E6%B2%A1%E6%87%82"><span class="nav-number">5.4.</span> <span class="nav-text">动态共享内存(什么过度分配?没懂)</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ringo.fu</p>
+  <div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记 | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2024-11-01 10:43:49 / Modified: 20:46:35" itemprop="dateCreated datePublished" datetime="2024-11-01T10:43:49+08:00">2024-11-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>20k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>18 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>自动驾驶和虚拟现实等许多智能应用程序都需要运行延迟关键型和尽力而为的 DNN 推理任务，以在 GPU 上实现实时性和节省工作量。然而，商用 GPU 缺乏高效的抢占式调度支持，最先进的方法要么必须独占 GPU，要么让实时任务等待尽力而为的任务完成，这会导致利用率低或延迟高，或两者兼而有之。本文介绍了 REEF，这是第一个 GPU 加速的 DNN 推理服务系统，可在 GPU 调度中实现微秒级内核抢占和受控并发执行。 REEF 有两个新颖之处。首先，<strong>基于 DNN 推理内核大多具有幂等性的观察，REEF 设计了一种基于重置的抢占方案，通过主动杀死和恢复微秒级的尽力而为内核，在 GPU 上启动实时内核</strong>。其次，<strong>由于 DNN 推理内核具有不同的并行性和可预测的延迟，REEF 提出了一种动态内核填充机制，可以使用适当的尽力而为内核动态填充实时内核，从而以可忽略的开销充分利用 GPU</strong>。使用新的 DNN 推理服务基准 (DISB) 以及 AMD GPU 上的不同工作负载和真实世界跟踪进行的评估表明，REEF 在实时任务的端到端延迟方面仅产生不到 2% 的开销，但增加了与将 GPU 专用于实时任务相比，整体吞吐量提高了高达 7.7 倍。为了证明我们的方法在闭源 GPU 上的可行性，我们在 NVIDIA GPU 上进一步移植和评估了 REEF 的受限版本，将抢占延迟减少了 12.3 倍（从 6.3 倍）。</p>
 <p>代码：https: &#x2F;&#x2F;github.com&#x2F;SJTU-IPADS&#x2F;reef</p>
 <span id="more"></span>
 
@@ -280,138 +451,127 @@
 <p>GPU 多任务处理。人们已经做出了许多努力来同时执行多个 GPU 内核以实现高吞吐量 [27,43,55,57,74,76]。对于 DNN 计算，Rammer [47] 采用整体方法在编译时利用内核间和内核内并行性，它使用静态内核融合 [74] 来强制并发内核的 CU 分配。然而，静态内核融合要求融合内核在编译时已知，这不适用于REEF中的动态任务调度。R EEF提出动态内核填充以允许在运行时做出调度决策。先前的工作还提出了建模和预测并发内核执行速度减慢的方法[13,14,86,88]。 DASE [34] 对并发内核的内存争用进行建模。 Themis [87]使用神经网络来预测性能干扰。该预测可以帮助做出调度决策，以满足实时内核的延迟要求。然而，预测并不总是准确的，减速确实发生了。不同的是，REEF 中的动态内核填充强制并发内核仅使用实时内核剩余的 GPU 资源。目前，REEF主要关注GPU计算资源（即CU），并假设其他资源充足（例如GPU内存和带宽）。我们把它留作未来的工作。</p>
 <h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>本文介绍了 REEF，这是第一个适用于商用 GPU 的 DNN 推理服务系统。它可以在GPU调度中实现微秒级的内核抢占和受控并发执行。首先，REEF 可以通过在微秒级主动终止和恢复尽力而为的内核，在 GPU 上启动实时内核。其次，REEF 可以使用适当的尽力而为内核动态填充实时内核，从而以可忽略的开销充分利用 GPU。此外，我们还为 DNN 推理服务构建了一个新的基准 (DISB)，其中包含不同的工作负载和真实世界的跟踪。使用 DISB 和微基准测试进行的评估证实了 REEF 在 AMD 和 NVIDIA GPU 上的功效和效率。</p>
 <h2 id="知识"><a href="#知识" class="headerlink" title="知识"></a>知识</h2><h3 id="静态内核融合"><a href="#静态内核融合" class="headerlink" title="静态内核融合"></a>静态内核融合</h3><h3 id="忘掉的C-知识"><a href="#忘掉的C-知识" class="headerlink" title="忘掉的C++知识"></a>忘掉的C++知识</h3><p>内联函数</p>
-<h3 id="内核-流-CU占用和寄存器数量"><a href="#内核-流-CU占用和寄存器数量" class="headerlink" title="内核\流\CU占用和寄存器数量"></a>内核\流\CU占用和寄存器数量</h3><h3 id="动态共享内存-什么过度分配-没懂"><a href="#动态共享内存-什么过度分配-没懂" class="headerlink" title="动态共享内存(什么过度分配?没懂)"></a>动态共享内存(什么过度分配?没懂)</h3>]]></content>
-      <categories>
-        <category>论文</category>
-      </categories>
-      <tags>
-        <tag>GPU</tag>
-        <tag>科研</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记</title>
-    <url>/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求估计器，2) 一个轻量级的基于启发式的干扰感知资源利用率最大化调度程序，用于决定批量大小、模型复制程度和模型放置最小化货币成本，同时满足延迟 SLO 或最大化吞吐量，以及 3) 一种新颖的运算符图合并，用于合并类似权重的多个模型，以最大程度地减少 GPU 缓存中的干扰。使用生产工作负载的大规模实验表明，与现有方法相比，USHER 的吞吐量提高了 2.6 倍，成本效率提高了 3.5 倍，同时可扩展到数千个 GPU。</p>
-<p>代码：<a href="https://github.com/ss7krd/Usher/">https://github.com/ss7krd/Usher/</a></p>
-<span id="more"></span>
+<h3 id="内核-流-CU占用和寄存器数量"><a href="#内核-流-CU占用和寄存器数量" class="headerlink" title="内核\流\CU占用和寄存器数量"></a>内核\流\CU占用和寄存器数量</h3><h3 id="动态共享内存-什么过度分配-没懂"><a href="#动态共享内存-什么过度分配-没懂" class="headerlink" title="动态共享内存(什么过度分配?没懂)"></a>动态共享内存(什么过度分配?没懂)</h3>
+    </div>
 
-<h1 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h1><p>我们使用 Cuti 和 Muti 分别表示 GPU 计算和内存利用率，并使用 Creq 和 Mreq 表示模型对它们的要求。模型的 Creq（或 Mreq）是模型在执行期间的任何时刻消耗的 GPU 总计算（或内存）空间的最高百分比。我们进一步用Rreq来表示Mreq和Creq的和。我们使用 C-heavy 和 M-heavy 分别表示计算密集型和内存密集型。</p>
-<h2 id="基本发现"><a href="#基本发现" class="headerlink" title="基本发现"></a>基本发现</h2><p>观察1.现有的推理服务系统无法最大化Cuti或Muti，并且它们的模型复用由于模型干扰而显着降低了吞吐量。此外，最大化 Cuti 并不一定最大化 Muti。（很多模型都是C重或是M重的）</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png" alt="image-20241029152349418"></p>
-<p>观察2.在基于空间复用的推理服务中，与现有系统不同，即使一个 GPU 足以完成 SLO 内的工作负载，我们也可能需要划分模型的工作负载，以提高整体资源利用率。（图4）</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152848852.png" alt="image-20241029152848852"></p>
-<p>观察 3. 不应为每个模型单独决定最佳工作负载划分。相反，同时考虑所有模型的整体方法至关重要。（参考图3）</p>
-<p>一般概念假设大模型具有高 Creq 和 Mreq，而小模型具有低 Creq 和 Mreq。然而，这种区别忽略了 BS 在推理服务中的影响。增加 BS 可能会提高资源使用率，但存在延迟违规和内存溢出的风险。这凸显了 Cuti 和 Muti 在工作负载调度方面的微妙平衡。例如，当我们在 Nvidia H100 GPU 中以 BS&#x3D;4 执行 LlaMA-2（具有 130 亿个参数）时，它几乎占用了所有 GPU 内存，但有 45% 的 Cuti 未使用。进一步增加 BS 会导致内存溢出。因此，尽管它是一个大型模型，但它是 M 重而不是 C 重。另一方面，BS&#x3D;128 的 MobileNetV2（只有 340 万个参数）的 Cuti 高达 93%，但 Muti 为 30%。进一步增加 BS 会违反其 64 毫秒 SLO。因此，它是 C 重模型而不是 M 重模型。图 6a 显示了模型的 CDF 与模型的比率 Creq&#x2F;Mreq 的关系。我们看到 22% 的模型的比率≤0.75，表明它们是 M 重的。另外，28%的模型的比率在(1.35,1.65]，表明它们是Cheavy。Llama-2是M重模型(即Mreq&#x2F;Creq≥1.2)。在其他小模型中，39%是M -heavy，2% 具有可比的 Creq 和 Mreq，其余为 C-heavy（即 Creq&#x2F;Mreq≥1.2）。</p>
-<p>观察4.与普遍看法不同，模型参数大小本身并不能决定模型是 Cheavy 还是 M-heavy。在 BS、依赖于 BS 的资源需求和 SLO 之间复杂关系的驱动下，即使是一个小模型也可以超越 Creq 中的较大模型。</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153551110.png" alt="image-20241029153551110"></p>
-<p>观察 5. 将 C 重模型与 M 重模型复用会增加 GPU 的 Cuti 和 Muti。</p>
-<p>给定 CNN 模型 A 和 B，我们首先找到两个模型中每个可能的卷积层对之间的权重相似性。然后，我们将所有层对的平均权重相似度作为两个模型之间的权重相似度。为了找到第 i 层和第 j 层之间的权重相似度，其中 Lx 表示模型 x 中所有卷积层的集合，我们计算了 2×|max(Wi A∩W j B )| |W i A|+|W j B| ，其中 max(W i A ∩W j B ) 表示权重矩阵 W i A 和 W j B 之间的最长公共子矩阵。如果两个权重值的绝对差异非常小，我们认为它们相同</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153748440.png" alt="image-20241029153748440"></p>
-<p>观察 6. 不同 CNN 模型之间以及不同 Transformer 模型之间存在显着的权重重叠。</p>
-<h2 id="系统设计"><a href="#系统设计" class="headerlink" title="系统设计"></a>系统设计</h2><p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153803154.png" alt="image-20241029153803154"></p>
-<h3 id="基于-GPU-内核的资源需求估计器（GK-Estimator）。"><a href="#基于-GPU-内核的资源需求估计器（GK-Estimator）。" class="headerlink" title="基于 GPU 内核的资源需求估计器（GK-Estimator）。"></a>基于 GPU 内核的资源需求估计器（GK-Estimator）。</h3><p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029154303254.png" alt="image-20241029154303254"></p>
-<p>（上面形成的二部图就是算子生成的图，边是输入输出的中介数据）</p>
-<p>估计器根据给定的配置快速、正确地计算 GPU 类型中模型的 Creq 和 Mreq。</p>
-<p>离线分析估计每个新模型的 Creq 和 Mreq 的常用方法。然而，这是昂贵且耗时的。为了应对这一挑战，我们提出了 GK-Estimator，它通过分析低级 GPU 内核来独立估计每个模型的资源需求，而无需在 GPU 中实际运行模型。我们以 Mreq 为例来解释 GK-Estimator 的工作原理。每个模型都可以被视为一个计算图，其中节点是算子，边是张量（即多维矩阵），表示模型输入或模型层生成的中间数据。在内部，每个算子执行都涉及顺序调用 GPU 编程框架中定义的一个或多个 GPU 内核 API（例如，用于 Nvidia GPU 的 CUDA、用于 AMD GPU 的 ROCm）。对于 ONNX 中定义的每个运算符，我们使用 Nvidia Profiling 工具发现在运算符执行期间 ML 框架调用了哪些 GPU 内核。我们注意到，分别有 2%、8%、56% 和 34% 的算子调用了 1、2、3 和 4 个 GPU 内核。</p>
-<p>新模型的算子通常来自一组预先已知的算子 [53, 54]。因此，GK-Estimator 使用回归模型，根据输入张量的大小和算子的数学运算，快速计算算子生成的中间数据所需的内存。那么，对于顺序DL模型，其Mreq是模型参数大小和算子所需的最高内存之和。具有并行分支的模型的内存需求来自并发执行的内核的中间数据的Meqs。然后，如图 10 所示，首先，GK-Estimator 通过用其调用的 GPU 内核序列替换每个运算符，将运算符级计算图转换为内核级计算图。对于 ONNX 中的每个操作员，都会离线找到此序列。然后，它找到将同时执行的每组内核。接下来，对于每个集合，它通过回归模型（称为MreqRegressor）估计集合中每个内核生成的中间数据的Mreq，然后将集合中所有内核的Mreq求和。最后，将<strong>模型参数大小与所有集合中的最大内存需求之和</strong>作为模型的Mreq。</p>
-<p>模型的第一个内核（即直接获取模型输入的内核）的启动时间为 0thms。为了确定哪些内核将同时执行，GK-Estimator 首先查找每个内核的开始时间。它使用另一个回归模型来估计每个内核的执行时间持续时间（称为时间回归器）。启动时间差不超过 τms（例如 0.001ms）的内核被视为可能同时运行。</p>
-<p>使用一个集成学习回归器离线训练，可以达到98%的准确率。</p>
-<h3 id="干扰感知资源利用率最大化调度程序（IR-调度程序）。"><a href="#干扰感知资源利用率最大化调度程序（IR-调度程序）。" class="headerlink" title="干扰感知资源利用率最大化调度程序（IR 调度程序）。"></a>干扰感知资源利用率最大化调度程序（IR 调度程序）。</h3><p>USHER 不是解决复杂度很高的优化问题，而是提供轻量级启发式方法来快速导出时间表。它首先以最大化在组内复用 C 重模型和 M 重模型的机会的方式对模型进行分组。然后，在每个组中，它选择能够实现特定目标（通过利用 O2-5）的最佳性能的配置。 IR-Scheduler 确保每个模型副本在其所在的 GPU 中获取其 Creq 和 Mreq，从而确保 C 空间和 M 空间中不存在模型间干扰。 </p>
-<h4 id="分组"><a href="#分组" class="headerlink" title="分组"></a>分组</h4><p>基于O4和O5，将C重模型与M重模型复用可以最大化Ruti。这种多路复用使得 GPU 的 Cuti 和 Muti 具有可比性。如果 GPU 的 C 空间远低于其 M 空间，反之亦然，它可能无法托管额外的模型。</p>
-<p>基于此，我们在复用模型时遵循一个原则。也就是说，模型的 Creq 之和几乎等于 GPU 中模型的 Mreq 之和（即 Σi Creqi ≈ Σi Mreqi）。在此基础上，USHER 对模型进行分组，使得每组中的模型 <strong>Σi Creqi ≈ Σi Mreqi</strong>。</p>
-<p>在进行分组之前，USHER首先找到每个模型的Creq和Mreq。 USHER 使用 GK-Estiamtor（第 3.2 节中所述）计算所有可能的 BS 和 GPU 类型组合的平均 Rreq。对于 GPU 类型，USHER 在 Creq 或 Mreq 分别超过该类型的最大 C 空间或 M 空间的 BS 处停止。接下来，USHER 使用 <strong>k 均值聚类</strong>的变体进行分组 [56]。一开始，每个组都由一个模型组成。 USHER 将每两个模型之间的距离计算为 D &#x3D; | Σi Creqi − Σi Mreqi|。然后，它使用k-means算法将模型分为几组，其中每组由两个模型组成，使得D最小化，即每组的Σi Creqi ≈ Σi Mreqi。接下来，将每个组视为一个元素，USHER 执行算法的另一遍。此过程将前一遍创建的两个组合并为一个，并将每组中的模型数量增加两倍。因此，如果我们决定每组中最多有 2p（即 4）个模型，则需要执行 p 遍算法。最后，模型被分为几组，组的集合表示为 G &#x3D; {G1, G2, …, Gn}。（两两分组）</p>
-<h4 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h4><p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161702907.png" alt="image-20241029161702907"></p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161715260.png" alt="image-20241029161715260"></p>
-<p>算法2比较难理解：放置算法如算法 2 所示。USHER 首先根据使用 GKEstimator 作为输入给出的配置计算每个 GPU 类型中每个模型的 Creq 和 Mreq（第 3-4 行）。然后进一步将模型组 Gi 中的模型分为 C 重模型和 M 重模型（第 7 行）。如果模型的平均 C-req&#x2F;M-req ≥ 1.2，则模型为 C 重；如果 M-req&#x2F;C-req ≥ 1.2，则模型为 M 重。接下来，USHER 按 Creq+Mreq 的降序对两个子组中的每一个进行排序（第 8 行）。之后，USHER 将两个子组中的每两个模型配对以创建 Final_model_list（第 9 行）。最后，USHER 将既不是 C 重也不是 M 重的模型插入到列表中，同时保持 Creq+Mreq 的降序。然后，USHER 从列表中逐一挑选一对或一个模型以分配给 GPU。</p>
-<p>具体来说，USHER 调用 MODEL_REPLICA_PLACEMENT_WITHIN_GiGPU 函数（第 11 行）。该函数将尽可能多的 M 模型副本放置到该模式的 GPU 组（用 GiGPU 表示）中。模型组的 GPU 组定义为托管模型组的大部分模型副本的 GPU 组。基本上，当 USHER 为模型组 Gi 的任何模型副本初始化新 GPU 时，新 GPU 就会添加到 GPU 组 GiGPU 中。这样，USHER 会尝试将同一模型组中的模型副本放置到同一 GPU 组的 GPU 上。如果一个模型或一对模型有多个 GPU 可用，<strong>USHER 会选择托管后留下最低 C 空间 + M 空间的 GPU，以避免资源碎片。</strong></p>
-<p>之后，USHER 调用 MODEL_REPLICA_PLACMENT_OUTSIDE_GiGPU，将尽可能多的 M 剩余模型副本放置到其他 GPU 组的 GPU 上（第 12 行）。最后，对于尚未放置到任何 GPU 的每个模型副本，USHER <strong>调用NEW_LOWEST_COST_GPU_INITIALIZATION 来初始化可以以最低成本托管模型或配对的 GPU 类型的新 GPU，并将 GPU 分配给 GiGPU</strong>（第 1315 行）。最后，布局算法将初始化新 GPU 的额外成本以及所有模型的总吞吐量返回给调度算法（第 19 行）。如[14]，模型的有效吞吐量被视为批量大小与第 954 届 USENIX 操作系统设计与实现 USENIX 协会完成批量的预期时间（包括队列等待时间）之间的比率。</p>
-<h3 id="算子图合并（OG-Merger）。"><a href="#算子图合并（OG-Merger）。" class="headerlink" title="算子图合并（OG-Merger）。"></a>算子图合并（OG-Merger）。</h3><p>决定放置位置后，OG-Merger 会合并尽可能多的分配给 GPU 的模型的算子图，以最大限度地减少 GPU 缓存中的模型间干扰。合并后，合并后的图所分配的资源是分配给已合并图的模型（由 IR-Scheduler 决定）的资源总和。请注意，IR 调度程序不满足模型的缓存要求，我们发现在第 2 节的设置中几乎 100% 满足模型的缓存要求。因此，满足高速缓存要求会导致C空间和M空间的利用不足。这就是 USHER 在 OG-Merger 中单独解决缓存干扰的原因。</p>
-<p>为了最大限度地减少 GPU 缓存的干扰，在分配给一个 GPU 的模型中，USHER 将尽可能多的模型运算符图合并到单个图中。为了执行最大算子图合并，USHER 首先根据模型的架构相似性（即结构和构成算子）将模型分组为子组。然后，对于每个子组，在 O6 的推动下，USHER 根据权重相似性决定多个图中要合并的运算符。最后，在合并过程中，USHER提取出需要合并的算子之间的最大公共权子矩阵，并确保同时处理不同模型的不同输入的与该子矩阵相关的矩阵乘法，而该子矩阵为在 GPU 缓存中。</p>
-<h4 id="对类似架构的操作分组"><a href="#对类似架构的操作分组" class="headerlink" title="对类似架构的操作分组"></a>对类似架构的操作分组</h4><p>具有类似架构的算子图的模型的权重更有可能具有高度相似性。基于此，USHER 使用 DBSCAN 算法根据架构相似性对分配给 GPU 的模型进行分组。给定一组元素，DBSCAN 算法可以将元素之间距离很小（即 10−7）的元素聚集在同一组内，而不需要任何预定数量的组或组内的元素数量。在 DBSCAN 算法中，USHER 使用图编辑距离 来计算距离来衡量两个算子图之间的架构相似性。基本上，编辑距离算法发现需要执行多少操作符的添加&#x2F;删除&#x2F;替换才能使两个操作符图相同。距离越短意味着架构相似度越高。</p>
-<h4 id="决定多个图中合并的运算符"><a href="#决定多个图中合并的运算符" class="headerlink" title="决定多个图中合并的运算符"></a>决定多个图中合并的运算符</h4><p> USHER 首先随机抽取两个模型。然后，它生成包含两个模型的运算符的二部图 B。当且仅当满足以下所有条件时，两个图的两个顶点之间存在边 e：(i) 相同类型（即卷积算子或注意力算子），(ii) 相同的起始时间（第 3.2 节中解释） ), (iii) 算子之间的权重相似度（第 2.4 节中描述）不小于 ω（例如 40%）。它被指定为边权重。生成 B 后，U SHER 在 B 中使用匈牙利算法 [59] 找到最大加权匹配，该算法选择一组独立的边（即不共享任何公共顶点），以使权重之和最大化。每条所选边的两个端点运算符都匹配并将被合并（第 3.4.2 节中进行了说明）。然后，USHER 从剩余模型中随机取出另一个模型，并通过重复相同的过程，使用 B 和另一个模型生成新的二分图 B’。重复此过程，直到组中不再有模型可以合并为止。</p>
-<h4 id="执行合并操作"><a href="#执行合并操作" class="headerlink" title="执行合并操作"></a>执行合并操作</h4><p>作为运算符合并的示例，我们描述了两个 Transformer 模型的注意力层中两个 Query 运算符的过程。它是一个矩阵乘法运算：I′ 1 &#x3D; W1I1，其中I1是输入，W1是查询权重矩阵。现在，我们解释 USHER 如何修改此操作以进行运算符合并。如果 I1 和 I2 以及 W1 和 W2 的大小不同，我们将应用零填充以使它们大小相同。</p>
-<p>只要加载一遍W1和W2重合的Ws，然后把矩阵乘法分配律用上之后分开：I′ 1 &#x3D; W sI1 + W R 1 I1. </p>
-<h2 id="实验实践"><a href="#实验实践" class="headerlink" title="实验实践"></a>实验实践</h2><p>除了表1中描述的模型之外，我们还使用了两个包含多个DL模型的多模型应用程序：视频监控（SLO：500ms）[2]和社交媒体（SLO：750ms）[65] 。</p>
-<p>除了具有稳定和密集的请求到达率的 Microsoft Azure Function Trace 2019 (MAF1) 之外，我们还尝试了具有突发到达率的 MAF Trace 2021 (MAF2) [66]。 (a) MAF1 (b) MAF2 图 13：固定集群的实际测试台中不同方法的良好吞吐量比较。 (a) MAF1 (b) MAF2 我们进行了真实测试台和模拟实验。真正的测试床是一个包含 6 个 AWS EC2 p3.8xlarge 服务器的集群，每个服务器由 4 个 V100 Nvidia GPU 组成，并且 GPU 通过 NVLink 互连。在模拟中，我们将GPU数量增加到6000个，以模拟大型企业级GPU集群[67]。由于使用如此多的 GPU 实际执行模型的成本极其昂贵，因此我们直接从调度程序决策中报告结果，而不实际运行模型。在模拟中，我们尝试了高达 15M 请求&#x2F;秒的超大工作负载，以模拟企业级集群中的大型工作负载。我们测试了固定和非固定集群设置。我们将 USHER 与 Shepherd [3]、GPUlet [14] 和 AlpaServe [4] 进行了比较。</p>
-<p>主要实验包括：</p>
-<ul>
-<li><p>固定配置集群</p>
-</li>
-<li><p>非固定集群</p>
-<ul>
-<li>同质GPU</li>
-<li>异构GPU</li>
-</ul>
-</li>
-<li><p>overhead：对模型正确率的影响</p>
-</li>
-<li><p>限制SLO情况下</p>
-<ul>
-<li>固定集群</li>
-<li>非固定集群</li>
-</ul>
-</li>
-<li><p>不同工作负载下GPU可扩展性</p>
-</li>
-<li><p>消融实验</p>
-</li>
-<li><p>敏感性分析（w和t）</p>
-</li>
-</ul>
-<p>结果略，反正表现很好就对了。</p>
-<h1 id="术语积累"><a href="#术语积累" class="headerlink" title="术语积累"></a>术语积累</h1><h2 id="计算利用率和内存利用率"><a href="#计算利用率和内存利用率" class="headerlink" title="计算利用率和内存利用率"></a>计算利用率和内存利用率</h2><p>GPU 内存利用率（Muti）和计算利用率（Cuti）的需求主要由模型的任务类型和架构决定，不同类型的模型会对内存和计算资源提出不同的要求。</p>
-<h3 id="1-内存利用率需求高的模型"><a href="#1-内存利用率需求高的模型" class="headerlink" title="1. 内存利用率需求高的模型"></a>1. 内存利用率需求高的模型</h3><p><strong>图像生成模型（如 GANs）</strong>和<strong>大规模预训练语言模型（如 GPT-3、BERT）</strong>通常对内存有很高需求。这类模型的参数量较大，尤其是预训练语言模型，它们需要存储大量的词嵌入和参数矩阵。因此，在推理或训练中，它们的内存需求通常较高。此外：</p>
-<ul>
-<li><strong>Transformer 模型</strong>（如 BERT 和 GPT）因其自注意力机制，需存储大量激活值和中间结果，导致内存需求增加。</li>
-<li><strong>卷积神经网络（CNN）</strong>用于高分辨率图像处理时，也需要较高的内存来存储特征图。</li>
-</ul>
-<h3 id="2-计算利用率需求高的模型"><a href="#2-计算利用率需求高的模型" class="headerlink" title="2. 计算利用率需求高的模型"></a>2. 计算利用率需求高的模型</h3><p>**卷积神经网络（CNNs）**和**图像分类或对象检测模型**（如 ResNet、YOLO 等）通常是计算密集型。这些模型会进行大量矩阵乘法和卷积操作，因而对计算资源的需求较大。此外：</p>
-<ul>
-<li><strong>视频处理模型</strong>也有高计算需求，因为要处理每一帧图像，并可能涉及时间上的信息建模。</li>
-<li><strong>Recurrent Neural Networks（RNNs）</strong>和 LSTM 也由于其时间依赖性操作（如在序列数据上的递归操作），在长序列数据上对计算资源需求较高。</li>
-</ul>
-<h3 id="3-GPU-的内存和计算利用率决定因素"><a href="#3-GPU-的内存和计算利用率决定因素" class="headerlink" title="3. GPU 的内存和计算利用率决定因素"></a>3. GPU 的内存和计算利用率决定因素</h3><p>GPU 的架构在很大程度上决定了内存利用率和计算利用率的表现，具体包括以下几点：</p>
-<ul>
-<li><strong>CUDA 核心数量和频率</strong>：决定了 GPU 可以进行的并行计算能力，从而影响计算利用率。</li>
-<li><strong>内存带宽和显存大小</strong>：内存带宽越大，GPU 处理内存密集型任务的效率越高，显存大小也会影响大型模型是否能完全加载进 GPU。</li>
-<li><strong>SM（Streaming Multiprocessor）数量和结构</strong>：这直接决定了每个 GPU 核心的处理能力和任务分配情况，进而影响计算和内存的综合利用率。</li>
-<li><strong>缓存机制和内存管理</strong>：较高的缓存可以提升模型执行速度，减少对全局内存的依赖，提高总体利用效率。</li>
-</ul>
-<p>不同架构和模型的组合会直接影响 GPU 的计算和内存使用表现，因此在选择 GPU 时，需根据模型需求做出针对性选择。</p>
-<h2 id="SLO"><a href="#SLO" class="headerlink" title="SLO"></a>SLO</h2><p>在 GPU 计算中，SLO（Service Level Objective，服务级别目标） 是用来定义 GPU 服务性能的目标标准。SLO 的设定主要是为了确保服务能够达到特定的性能要求，例如响应时间、延迟、吞吐量或资源利用率等，从而为任务提供稳定和高效的计算环境。对 GPU 来说，SLO 通常设定的目标会围绕延迟、计算时间、资源占用比（如计算或内存利用率）等，以满足用户的需求或应用的实时性要求</p>
-<h2 id="BS和RD"><a href="#BS和RD" class="headerlink" title="BS和RD"></a>BS和RD</h2><p><strong>BS（Batch Size，批量大小）</strong>：指模型在 GPU 上执行时的批处理数量，即模型每次传入 GPU 的数据量大小。批量越大，通常能够更好地利用 GPU 计算资源，但也可能受到 GPU 内存的限制。</p>
-<p><strong>RD（Replication Degree，复制度）</strong>：指模型的复制数量，以提高并发度。每个模型可以创建多份副本（replica），RD 就是副本的数量。增大 RD 值可以分散模型负载，提高任务完成速度，但需要更多的 GPU 资源。</p>
-]]></content>
-      <categories>
-        <category>论文</category>
-      </categories>
-      <tags>
-        <tag>GPU</tag>
-        <tag>科研</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2024/10/21/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+    
+    
+    
 
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GPU/" rel="tag"># GPU</a>
+              <a href="/tags/%E7%A7%91%E7%A0%94/" rel="tag"># 科研</a>
+          </div>
 
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+        
 
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="prev" title="Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记">
+                  <i class="fa fa-angle-left"></i> Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
 
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>hexo搭建笔记</title>
-    <url>/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-</search>
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="Word count total">33k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">30 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
