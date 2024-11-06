@@ -19,17 +19,32 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="乌拉呀哈咿呀哈">
+    <meta name="description" content="摘要GPU 对于最大化深度神经网络 (DNN) 应用的每瓦吞吐量至关重要。然而，DNN 应用程序经常未充分利用 GPU，即使使用大批量大小并消除输入数据处理或通信停顿也是如此。 DNN 工作负载由依赖于数据的算子组成，具有不同的计算和内存要求。虽然算子可能会使 GPU 计算单元或内存带宽饱和，但它通常会使其他 GPU 资源闲置。尽管 GPU 共享技术很流行，但当前的方法还不够细粒度或干扰感知，无法">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记">
 <meta property="og:url" content="http://example.com/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/index.html">
 <meta property="og:site_name" content="Ringo的博客">
-<meta property="og:description" content="乌拉呀哈咿呀哈">
+<meta property="og:description" content="摘要GPU 对于最大化深度神经网络 (DNN) 应用的每瓦吞吐量至关重要。然而，DNN 应用程序经常未充分利用 GPU，即使使用大批量大小并消除输入数据处理或通信停顿也是如此。 DNN 工作负载由依赖于数据的算子组成，具有不同的计算和内存要求。虽然算子可能会使 GPU 计算单元或内存带宽饱和，但它通常会使其他 GPU 资源闲置。尽管 GPU 共享技术很流行，但当前的方法还不够细粒度或干扰感知，无法">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106094015904.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106105310581.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106105525146.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106111902249.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106134538057.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106134607263.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106140615287.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106141246063.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106141420118.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106141446617.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106094035422.png">
+<meta property="og:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106102811657.png">
 <meta property="article:published_time" content="2024-11-01T02:42:51.000Z">
-<meta property="article:modified_time" content="2024-11-01T02:42:51.465Z">
+<meta property="article:modified_time" content="2024-11-06T06:18:49.482Z">
 <meta property="article:author" content="Ringo.fu">
+<meta property="article:tag" content="GPU">
+<meta property="article:tag" content="科研">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106094015904.png">
 
 
 <link rel="canonical" href="http://example.com/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
@@ -125,7 +140,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           Table of Contents
@@ -138,6 +153,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Orion%E6%9E%B6%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">Orion架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5"><span class="nav-number">3.1.</span> <span class="nav-text">调度策略</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#kernel%E8%B0%83%E5%BA%A6"><span class="nav-number">3.1.1.</span> <span class="nav-text">kernel调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95%E8%AE%BA"><span class="nav-number">3.1.2.</span> <span class="nav-text">调度方法论</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">3.1.3.</span> <span class="nav-text">内存管理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E8%B4%9F%E8%BD%BD%E5%88%86%E6%9E%90"><span class="nav-number">3.2.</span> <span class="nav-text">工作负载分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8EDNN%E6%A1%86%E6%9E%B6%E6%95%B4%E5%90%88"><span class="nav-number">3.3.</span> <span class="nav-text">与DNN框架整合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E9%83%A8%E5%88%86"><span class="nav-number">4.</span> <span class="nav-text">实验部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83"><span class="nav-number">4.1.</span> <span class="nav-text">测试环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%BB%E4%BD%93"><span class="nav-number">4.2.</span> <span class="nav-text">实验主体</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A8%E7%90%86-%E8%AE%AD%E7%BB%83"><span class="nav-number">4.2.1.</span> <span class="nav-text">推理-训练</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83-%E8%AE%AD%E7%BB%83"><span class="nav-number">4.2.2.</span> <span class="nav-text">训练-训练</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83-%E6%8E%A8%E7%90%86"><span class="nav-number">4.2.3.</span> <span class="nav-text">训练-推理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9B%B4%E5%A4%9A%E7%9A%84GPU%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-number">4.2.4.</span> <span class="nav-text">更多的GPU和客户端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.2.5.</span> <span class="nav-text">消融实验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E9%94%80"><span class="nav-number">4.2.6.</span> <span class="nav-text">开销</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B9%E8%BF%9B%E6%96%B9%E5%90%91"><span class="nav-number">5.</span> <span class="nav-text">改进方向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">6.</span> <span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GPU%E6%9E%B6%E6%9E%84"><span class="nav-number">6.1.</span> <span class="nav-text">GPU架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GPU%E7%BC%96%E7%A8%8B%E6%8A%BD%E8%B1%A1"><span class="nav-number">6.1.1.</span> <span class="nav-text">GPU编程抽象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GPU%E7%A1%AC%E4%BB%B6%E8%B0%83%E5%BA%A6%E3%80%82"><span class="nav-number">6.1.2.</span> <span class="nav-text">GPU硬件调度。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GPU%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">6.1.3.</span> <span class="nav-text">GPU利用率</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNN-GPU-%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">6.2.</span> <span class="nav-text">DNN-GPU 利用率</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%9E%90-DNN-%E4%BD%9C%E4%B8%9A%E7%9A%84-GPU-%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">6.2.1.</span> <span class="nav-text">分析 DNN 作业的 GPU 利用率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GPU%E5%86%85%E6%A0%B8%E6%90%AD%E9%85%8D%E6%8E%A2%E7%B4%A2"><span class="nav-number">6.2.2.</span> <span class="nav-text">GPU内核搭配探索</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-number">6.3.</span> <span class="nav-text">相关工作</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -218,6 +234,22 @@
 
       <time title="Created: 2024-11-01 10:42:51" itemprop="dateCreated datePublished" datetime="2024-11-01T10:42:51+08:00">2024-11-01</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-11-06 14:18:49" itemprop="dateModified" datetime="2024-11-06T14:18:49+08:00">2024-11-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
 
   
     <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
@@ -233,14 +265,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>0</span>
+      <span>11k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>1 mins.</span>
+      <span>10 mins.</span>
     </span>
 </div>
 
@@ -250,7 +282,124 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
+    <div class="post-body" itemprop="articleBody"><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>GPU 对于最大化深度神经网络 (DNN) 应用的每瓦吞吐量至关重要。然而，DNN 应用程序经常未充分利用 GPU，即使使用大批量大小并消除输入数据处理或通信停顿也是如此。 DNN 工作负载由依赖于数据的算子组成，具有不同的计算和内存要求。虽然算子可能会使 GPU 计算单元或内存带宽饱和，但它通常会使其他 GPU 资源闲置。尽管 GPU 共享技术很流行，但当前的方法还不够细粒度或干扰感知，无法最大限度地提高 GPU 利用率，同时最大限度地减少 10 μs 粒度的干扰。我们提出了 Orion，这是一个可以透明地<strong>拦截</strong>共享 GPU 的多个客户端的 GPU 内核启动的系统。 Orion 以各个<strong>算子的粒度</strong>安排 GPU 上的工作，并通过考虑每个算子的计算和内存需求来最大限度地减少干扰。我们将 Orion 集成到 PyTorch 中，并在各种 DNN 工作负载搭配用例中展示其优势。与高优先级推理作业的最先进基线相比，Orion 显着改善了<strong>尾部延迟</strong>，同时搭配尽力而为推理作业，将每个 GPU 请求吞吐量提高高达 7.3 倍，或者搭配 DNN 训练时，节省高达 1.49 倍× 与<strong>专用 GPU</strong> 分配相比，训练成本降低。</p>
+<span id="more"></span>
+
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>DNN在gpu上消耗更大，使用DNN作业的最终成本取决于硬件的高利用率，单个DNN无法充分利用GPU硬件：</p>
+<ul>
+<li>RT（延迟关键）任务由于批量较小导致并行性不足，无法保持GPU计算单元繁忙。</li>
+<li>训练作业会最大化批量大小以提高吞吐量，但也要基于模型收敛的情况进行权衡，且训练作业可能因等待输入数据或通信瓶颈导致GPU空闲。</li>
+</ul>
+<p>不考虑输入数据和通信的延迟，DNN工作负载仍然无法充分利用GPU硬件：DNN 工作负载由许多运行较短时间的数据相关算子组成，每个算子都有不同的计算和内存要求。由于个别算子使<strong>计算单元</strong>或<strong>内存带宽</strong>饱和，但利用率通常会处于空闲状态，因此利用率呈突发性且平均较低。</p>
+<p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106094015904.png" alt="image-20241106094015904"></p>
+<p>常见的解决方案是在作业之间共享 GPU。主要挑战是最大限度地提高利用率，同时减少作业之间的干扰以获得高性能：</p>
+<ul>
+<li>时间共享技术以推理请求或训练小批量的粒度对 GPU 进行时间切片（时分复用）。这可能会导致阻塞情况，因为传入的推理请求或训练小批量需要等待正在进行的任务在 GPU 上完成执行，并且当单个任务的运算符执行时仍然会浪费资源。</li>
+<li>空间共享提高了利用率，但是，当前的技术要么太粗粒度，要么没有足够的干扰感知（比如更好地分配BE和RT任务。减少碎片）的能力。</li>
+</ul>
+<p>为了帮助缩小这一差距，我们提出了 Orion，一种细粒度、干扰感知的 GPU 调度程序。 Orion 保持高优先级工作负载的性能，同时配置尽力而为的作业，以最大限度地提高 GPU 利用率并节省成本。 Orion是一个拦截GPU内核启动的软件系统，根据客户端作业优先级、算子大小以及算子是否受计算或内存限制来调度请求。通过按单个算子的粒度进行调度，Orion 在空间上共享 GPU，以充分利用 GPU 计算单元和内存带宽，而高优先级作业可能仅在 10-1000 μs 的时间内未充分利用这些带宽。</p>
+<p>Orion 提高了各种 DNN 搭配用例的 GPU 资源效率（和成本），同时对高优先级作业性能的影响最小。</p>
+<ul>
+<li>当将延迟敏感推理与尽力而为离线推理相结合时，与专用 GPU 执行相比，Orion 将总吞吐量提高了 7.3 倍，同时将高优先级作业的 p99 延迟平均保持在 15% 以内。</li>
+<li>当将延迟敏感的推理作业与训练作业搭配使用时，Orion 将 p99 （99%的推理延迟）推理延迟平均保持在 14% 以内，同时将 GPU 的总吞吐量提高至 2.3 倍。</li>
+<li>Orion 在配置训练作业时将成本降低了 1.29 倍，同时确保高优先级训练作业的吞吐量保持在其专用 GPU 吞吐量的 <strong>16% 以内</strong>。</li>
+</ul>
+<h2 id="Orion架构"><a href="#Orion架构" class="headerlink" title="Orion架构"></a>Orion架构</h2><p>我们提出了 Orion，一种细粒度、干扰感知的 GPU 调度程序。 Orion 的目标是保持高优先级作业的高性能，同时将备用 GPU 资源用于尽力而为的作业来控制GPU算子提交。 Orion 对最终用户是透明的，不需要更改 API。我们将 Orion 实现为动态链接库。</p>
+<p>如图 5 所示，Orion 拦截每个客户端提交的 GPU 算子，并将算子缓冲到每个客户端软件队列中。操作包括 GPU <strong>内核</strong>【<strong>一些深度学习的GPU操作</strong>】（例如，卷积、批量归一化）和内存管理操作（例如，内存分配、内存复制）。 Orion 使用第 5.1 节中描述的调度策略将操作从每个客户端软件队列提交到 GPU 硬件，并利用在离线工作负载分析阶段收集的内核特征（第 5.2 节中所述）。 Orion 在单个 GPU 设备的级别上运行。在分布式 DNN 作业部署中，每个 GPU 设备运行一个单独的 Orion 实例</p>
+<p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106105310581.png" alt="image-20241106105310581"></p>
+<h3 id="调度策略"><a href="#调度策略" class="headerlink" title="调度策略"></a>调度策略</h3><h4 id="kernel调度"><a href="#kernel调度" class="headerlink" title="kernel调度"></a>kernel调度</h4><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106105525146.png" alt="image-20241106105525146"></p>
+<ol>
+<li>首先拿出be和高优先级的，并且执行高优先级内核</li>
+<li>如果有be任务，则考虑be任务能否调度（12行，be任务运行时间是否小于高优先级时间*（1-dur阈值），防止be任务影响高优先级任务调度）（27行，考虑be任务的SM数量会不会超过阈值，如果高优先级任务吞吐量大可以调高SM阈值），如果可以调度就将其加入调度队列，并更新duration时间。</li>
+</ol>
+<h4 id="调度方法论"><a href="#调度方法论" class="headerlink" title="调度方法论"></a>调度方法论</h4><ul>
+<li>GPU流优先级：闭源GPU不会暴露抢占方法给你，但可以通过流优先级进行优先级调度，并通过DUR_THRETHOD最小化抢占带来的影响。</li>
+<li>CUDA事件：CUDA Events 提供了一种监视 GPU 中每个流的进度的方法，而无需昂贵的流同步操作，这会阻塞 CPU 调度程序线程。提交尽力而为内核后，Orion 将其提交记录在 CUDA 事件中（第 21 行）。提交的内核完成后，GPU 将事件状态设置为“完成”。 Orion 使用 cudaEventQuery 查询尽力而为流的状态而不阻塞。</li>
+</ul>
+<h4 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h4><p>这段话描述了 Orion 系统在 GPU 资源管理上的方法，以及未来的改进方向，重点在于 GPU 核心 (Streaming Multiprocessors, SM) 调度和内存操作管理。以下是分解的主要内容：</p>
+<ol>
+<li><p><strong>GPU Kernel 调度策略</strong>：Orion 使用 §5.1.1 中定义的策略，将 GPU 内核（kernel）分配到不同的 SM 上。这意味着 Orion 会合理分配 GPU 计算资源，以提升任务执行效率。</p>
+</li>
+<li><p><strong>内存操作管理</strong>：</p>
+<ul>
+<li><strong>CPU-GPU 传输带宽的使用</strong>：内存分配和数据传输主要依赖于 CPU-GPU 间的 PCIe 带宽。当前设计中，Orion 直接将内存操作任务提交给 GPU。</li>
+<li><strong>带宽干扰管理的未来计划</strong>：Orion 未来计划增加带宽干扰管理的功能，即在分配带宽时考虑带宽的使用率，以避免不同内存操作间的相互干扰。</li>
+</ul>
+</li>
+<li><p><strong>内存操作的处理方式</strong>：</p>
+<ul>
+<li><strong>同步内存操作</strong>：对于同步操作（例如 <code>cudaMemcpy</code>、<code>cudaMemset</code>），Orion 会在 GPU 完成操作前暂停主机端的执行，以确保数据传输的完成。</li>
+<li><strong>异步内存操作</strong>：对于异步操作（如 <code>cudaMemcpyAsync</code>），Orion 会在捕获这些操作后立即允许主机端继续执行，以提高效率。</li>
+<li><strong>需要设备同步的操作</strong>：某些操作（例如 <code>cudaMalloc</code>、<code>cudaFree</code>）会导致设备同步。Orion 在这种情况下会同步所有客户端，确保不会出现无效的内存访问。</li>
+</ul>
+</li>
+<li><p><strong>内存管理假设</strong>：当前 Orion 假设集群管理器会合理地将能够在 GPU 内存中放下的任务进行同置（collocate），类似于 REEF 中的假设。</p>
+</li>
+<li><p><strong>GPU 内存交换机制的兼容性</strong>：Orion 兼容现有的 GPU 内存交换机制（例如 NVIDIA 的 Unified Memory）。此外，它也可以结合更复杂的交换机制，如 Salus、PipeSwitch、ClockWork 和 vLLM 中提出的技术。</p>
+</li>
+<li><p><strong>未来优化方向</strong>：Orion 计划集成逐层卸载 (layer-by-layer offloading)，即保持高优先级任务留在 GPU 中，并将次要任务逐层载入&#x2F;卸出 GPU 内存。这种方法在高优先级任务所需内存不足时尤为有效。随着 GPU-CPU 互连带宽的提升，这种交换机制的开销预计会逐渐降低。</p>
+</li>
+</ol>
+<p>总结来说，Orion 的设计关注在提高 GPU 资源利用率和内存管理效率，同时也在持续改进以支持更加复杂的内存交换机制。</p>
+<h3 id="工作负载分析"><a href="#工作负载分析" class="headerlink" title="工作负载分析"></a>工作负载分析</h3><p>Orion 的调度策略需要有关每个内核的计算与内存强度、每个尽力而为作业内核的预期执行时间和 SM 要求以及高优先级作业的请求延迟的信息。在执行之前，Orion 会离线分析每个 DNN 工作负载，并生成一个包含模型中每个内核的配置信息的文件。 Orion 调度程序将分析信息加载到内存查找表中，并按唯一的内核 ID 进行索引。</p>
+<p><strong>内核延迟和资源配置文件。</strong> Orion 使用 NVIDIA 的 Night Compute [26] 和 Nsight Systems [27] 工具来收集每个内核的计算吞吐量、内存吞吐量和执行时间。我们使用 Nsight Compute 中的屋顶线分析，将内核分类为计算限制型或内存限制型。由于该工具不包括所有内核的屋顶线分析，因此如果计算吞吐量或内存带宽利用率分别超过 Nsight 计算工具的建议的 60%，我们将进一步将内核分类为计算或内存限制。如果计算吞吐量和内存带宽利用率均低于 60%，并且内核无法进行屋顶线分析，我们将其资源配置文件分类为未知。在实践中，未知文件通常执行时间很短，影响不大。</p>
+<p><strong>内核 SM 要求。</strong>对于 besteffort 作业中的每个内核，Orion 使用 Nsight 计算工具获取块数、块的线程数、每个线程的寄存器数以及内核所需的共享内存量。对于每个内核 k，我们首先确定blocks_per_smk，它是该内核的目标 GPU 架构上每个 SM 可支持的块数。 block_per_smk 可能受到线程数量、寄存器数量或内核 k 所需的每个 SM 可用共享内存量的限制。然后，我们计算每个内核所需的 SM 数量： sm_neededk &#x3D; ceil(num_blocksk &#x2F;blocks_per_smk )。</p>
+<p><strong>请求延迟。</strong>为了确定 DUR_THRESHOLD 参数（Orion 使用该参数根据相对于高优先级请求执行的持续时间来限制尽力而为内核启动），当作业在专用 GPU 中单独运行时，Orion 还必须分析高优先级请求延迟。对于推理作业，一个请求是指单批推理请求。对于训练作业，请求指的是单个训练迭代。</p>
+<h3 id="与DNN框架整合"><a href="#与DNN框架整合" class="headerlink" title="与DNN框架整合"></a>与DNN框架整合</h3><p>Orion 的调度策略与应用程序框架无关。 Orion 动态链接到 DNN 框架，并且对最终用户透明。 </p>
+<p>PyTorch 原型。我们在 PyTorch [79] 中用 3000 行 C++&#x2F;CUDA 代码实现了 Orion。在本机 PyTorch 中，客户端应用程序使用 CUDA 运行时 API [14] 以及 CUBLAS [19] 和 CUDNN [20] 等库启动内核，这些库为常见的 DNN 操作提供高性能实现。 Orion 通过使用包装函数覆盖它们来拦截 CUDA 内核启动，这些函数将必要的信息（内核标识符和参数）提交到每个客户端软件队列。 Orion 目前实现了来自 CUDA 运行时 API 的内存管理操作（cudaMalloc、cudaMemcpy、cudaMemset、cudaFree 等）和内核启动操作（cudaLaunchKernel）的包装器，以及用于卷积、批量归一化和矩阵矩阵乘法的 CUDNN 和 CUBLAS 函数。这些包装器足以支持我们评估中的所有 DNN 工作负载，但还可以添加更多。拦截操作和管理每个客户端软件队列是轻量级的，使用 Orion 包装器的开销不到 1%。</p>
+<p>在我们当前的原型和评估中，客户端应用程序和 Orion 调度程序作为同一进程的不同线程运行，从而实现进程内内存共享和快速通信。 Orion 还可用于作为不同进程执行的应用程序。在这种情况下，Orion 作为单独的进程执行，客户端将内核提交到共享内存区域中的队列。这就需要GPU支持多个进程的并发访问，比如NVIDIA的MPS功能。  </p>
+<h2 id="实验部分"><a href="#实验部分" class="headerlink" title="实验部分"></a>实验部分</h2><p>我们评估Orion 是为了回答以下关键问题： </p>
+<ul>
+<li>Orion 的性能与其他GPU 共享方法相比如何？ </li>
+<li>与为每项作业使用专用GPU 相比，使用Orion 在成本和GPU 利用率方面有何优势？</li>
+<li>Orion 调度策略的哪些方面对性能优势贡献最大？</li>
+<li>Orion 如何推广到新的 GPU 架构？</li>
+<li>Orion 如何扩展到多个尽力而为的客户？</li>
+<li>Orion 的内核分析和内核启动拦截机制的开销是多少？</li>
+</ul>
+<h3 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h3><p><strong>实验试验台：</strong>我们使用 Google Cloud n1-standard-8 VM 在 NVIDIA V100-16GB GPU 上评估 Orion，该 VM 具有 8 个 vCPU 内核和 30 GB DRAM。我们将 PyTorch 1.12 与 Python 3.9 和 CUDA 10.2 结合使用。我们还通过使用 a2-highgpu-1g VM 和 CUDA 11.3 在 A100-40GB GPU 上评估 Orion，展示了 Orion 可以推广到其他 GPU 架构。</p>
+<p>对于所有实验，我们确保作业执行时没有数据预处理或通信瓶颈。因此，我们评估了 Orion 提高 GPU 利用率的能力，同时最大限度地减少最具挑战性的环境中的干扰，其中每个单独的作业都最大化其自己的 GPU 利用率。我们将每个实验重复三次。</p>
+<p><strong>工作负载：</strong>我们考虑三种常见的 GPU 共享用例。首先，我们将高优先级、延迟敏感的推理作业与尽力而为的训练作业（inf-train）搭配起来。接下来，我们搭配高优先级和尽力而为的训练（train-train）。最后，我们将高优先级、延迟敏感的推理作业与尽力而为的离线推理作业（inf-inf）结合起来。对于每个用例，我们都会考虑计算机视觉和自然语言处理 (NLP) 领域的流行 DNN 模型。 ResNet50、ResNet101 [51] 和 MobileNet-v2 [84] 是代表性的视觉模型。我们使用他们的 TorchVision 实现 [28]。 BERT [43] 和 Transformer [92] 是代表性的 NLP 模型。我们使用 NVIDIA [22] 的实现。我们使用全精度进行训练和推理。</p>
+<p>表 1 总结了每个工作负载的批量大小。我们将批量大小与之前在相同或类似 GPU 平台上的工作中使用的批量大小进行匹配 [21,23,51,54,84,97]。我们考虑推理作业的均匀分布和泊松请求到达分布。均匀分布代表自动驾驶等应用领域（例如，摄像机检测障碍物 [36, 37]），而泊松到达代表事件驱动的实时 DNN 应用（例如语音识别 [50, 52]） ]）。平均请求到达率（如表 3 所示）与 Microsoft Azure Functions 跟踪 [87] 中前 20 个最常执行的函数的平均调用请求率相匹配，如其他作品 [49, 105] 中用于压力测试的那样GPU搭配场景。对于视觉模型，我们还使用从阿波罗自动驾驶系统中部署的真实物体检测模型收集的推理轨迹[36]。该推理跟踪来自 DISB 推理服务基准 [17]，首先用于评估 REEF [50]。对于 Apollo 跟踪的实验，我们将跟踪的调用时间戳用于高优先级推理作业，并假设并置的尽力而为推理作业的请求到达时间一致。同时，训练作业在闭环中提交请求。</p>
+<p><strong>基线。</strong>我们将 Orion 与时间共享、NVIDIA MPS [25] 和 GPU Streams [3] 空间共享机制进行比较。 GPU 流允许多个客户端应用程序共享 GPU，只要它们属于同一进程即可。因此，对于此基线，我们将每个 DNN 应用程序客户端作为单独的线程运行，该线程将请求提交到单独的 CUDA 流。我们为高优先级作业分配一个高优先级流，为每个尽力而为的作业分配一个默认优先级流。 MPS 是计算能力 3.5 或更高的 NVIDIA GPU 中的一项功能，它允许多个进程在空间上共享 GPU。</p>
+<p>我们还与最先进的 REE-N进行比较，该规则根据内核的大小（SM 数量）和预期延迟来调度内核。根据与 REEF 作者的讨论，我们使用 12 个内核的软件队列大小。虽然 REEF 主要设计用于并置推理作业（因为训练作业包括更新模型状态的非幂等内核），但 REEF-N 可以安全地用于训练作业，因为内核执行永远不会被抢占。因此，我们将 Orion 与 REEF-N 策略的所有搭配用例进行比较。（没有抢占如何凸显reef的有点？）</p>
+<p>对于训练作业搭配（训练-训练），我们将 Orion 与 Tick-Tock [94] 进行比较，后者抵消了训练小批量迭代的前向和后向传递，以最大限度地减少聚合内存使用并减少干扰。 Zico [67]也实现了这种方法。由于这两个系统都没有可用的 PyTorch 开源实现，因此我们根据论文实现了该方法。作为性能上限，我们测量专用 GPU 上每个工作负载的延迟和吞吐量。理想基线的延迟等于高优先级作业的延迟，没有搭配，吞吐量等于高优先级作业和尽力而为作业的专用 GPU 吞吐量之和。该基线是延迟的下限和吞吐量的上限。</p>
+<h3 id="实验主体"><a href="#实验主体" class="headerlink" title="实验主体"></a>实验主体</h3><h4 id="推理-训练"><a href="#推理-训练" class="headerlink" title="推理-训练"></a>推理-训练</h4><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106111902249.png" alt="image-20241106111902249"></p>
+<p>问题：这吞吐量哪里好了？</p>
+<p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106134538057.png" alt="image-20241106134538057"></p>
+<p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106134607263.png" alt="image-20241106134607263"></p>
+<h4 id="训练-训练"><a href="#训练-训练" class="headerlink" title="训练-训练"></a>训练-训练</h4><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106140615287.png" alt="image-20241106140615287"></p>
+<p>Orion训练的时间成本花费也是最少的。</p>
+<h4 id="训练-推理"><a href="#训练-推理" class="headerlink" title="训练-推理"></a>训练-推理</h4><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106141246063.png" alt="image-20241106141246063">好像没有吞吐量的图？但其实吞吐量结果也不错。</p>
+<h4 id="更多的GPU和客户端"><a href="#更多的GPU和客户端" class="headerlink" title="更多的GPU和客户端"></a>更多的GPU和客户端</h4><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106141420118.png" alt="image-20241106141420118"></p>
+<h4 id="消融实验"><a href="#消融实验" class="headerlink" title="消融实验"></a>消融实验</h4><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106141446617.png" alt="image-20241106141446617"></p>
+<p>我们首先将每个客户端分配给不同的 CUDA 流，每个流都具有默认优先级。图 14 中的 GPU 流栏显示此方法具有较高的延迟。流优先级基线显示，对高优先级推理作业的流使用最高 CUDA 优先级有助于将 p95 延迟减少高达 25%。添加 Orion 策略的第一个组件（根据计算内存资源配置文件调度 besteffort 作业内核）可将 p95 延迟额外减少 48%。最后，考虑到内核的大小（SM 数量），除了计算&#x2F;内存之外，延迟还可减少高达 54%。因此，计算&#x2F;内存感知和大小感知调度大致同等重要。</p>
+<p>然后，在应用计算&#x2F;内存配置文件和基于内核大小的调度后，我们检查流优先级对于 Orion 系统是否至关重要。流优先级机制目前仅具有微小的改进，因此 Orion 也可以用于 GPU 硬件不支持流优先级的设置（例如，在 MPS 模式下 [46]）。我们还调整了 DUR_THRESHOLD。我们发现 Orion 在 DUR_THRESHOLD 值低于 3% 时具有稳定的性能。由于尽力而为内核的限制较少，DUR_THRESHOLD 的线性增加超过 3% 会导致高优先级作业性能近似线性下降。例如，将 ResNet101 推理与尽力训练结合使用时，对于 DUR_THRESHOLD 值为 10%、15% 和 20%，推理延迟分别为 23ms、26ms 和 30ms，而尽力训练吞吐量为 8.7、9.26 和9.75 次迭代&#x2F;秒。用户可以根据高优先级作业服务级别目标调整 DUR_THRESHOLD。我们在实验中使用 2.5%。</p>
+<h4 id="开销"><a href="#开销" class="headerlink" title="开销"></a>开销</h4><p>内核启动拦截。我们使用 Orion 的内核拦截机制直接调度内核来测量专用 GPU 上每个推理和训练作业的执行时间。与原生 PyTorch 相比，Orion 在所有作业中的开销仍然低于 1%。内核资源分析。我们使用 NVIDIA 的 Nsight Systems (NSYS) 和 Nsight Compute (NCU) 工具来分析训练作业的前 10 个小批量或推理作业的 10 个请求。 Nsys 工具在迭代时间中增加了高达 5% 的开销。 NCU 工具对每个内核执行更详细的资源分析（例如缓存未命中、warp 调度程序统计信息），并且分析时间与内核数量成正比。在我们的实验中，每个内核需要 ∼2-5 秒。由于分析是离线的，因此这些工具不会影响实际的作业执行。</p>
+<h2 id="改进方向"><a href="#改进方向" class="headerlink" title="改进方向"></a>改进方向</h2><p><strong>集群管理器协同设计。</strong> Orion 目前是作为每 GPU 调度程序实现的。未来，我们计划探索集群管理的协同设计。通过使用每个作业的计算和内存强度内核配置文件，集群管理器可以将具有互补资源配置文件的作业放置在同一 GPU 上，以最大限度地提高资源利用率并减少干扰。</p>
+<p><strong>软件&#x2F;硬件协同设计。</strong>由于 GPU 硬件目前向主机软件公开的接口有限，优化 GPU 利用率和性能具有挑战性。我们从 OpenSSD [59] 平台中汲取灵感，该平台通过向软件公开较低级别的接口来支持闪存存储设备控制器硬件和主机软件协同设计的研究。与软件&#x2F;硬件协同设计如何最大限度地减少对共享 SSD 的干扰 类似，启用 GPU 调度的软件&#x2F;硬件协同设计（例如，控制 SM 上 GPU 内核的放置）可以允许应用程序调整共享 GPU 上的端到端性能。随着 GPU 编程的最新趋势越来越多地将越来越多的调度任务转移到 GPU 硬件，这一点尤其重要。例如，CUDA 图 [6] 通过单个 CUDA API 调用来调度 GPU 中的整个内核图，以减少 CPU 启动开销。在这种情况下，Orion 的调度策略可以在 GPU 驱动程序或 GPU 调度程序级别实现，以交错来自多个图的内核，同时最大限度地减少干扰。</p>
+<p><strong>GPU 缓存干扰。</strong>我们目前不考虑 GPU 缓存干扰。 NVIDIA 工具提供缓存未命中统计数据 [26]，可用于推断更具体的内核配置文件并更准确地模拟干扰。</p>
+<p><strong>安全。</strong>我们假设共享 GPU 的客户端位于同一信任域中，这在同一组织运营的 DNN 集群中是合理的假设 [98, 99]。因此，Orion 最大限度地减少了性能干扰，但不能保证共享 GPU 的不受信任客户端之间的安全隔离。异构硬件的可信执行环境是一个活跃的研究领域[93]。</p>
+<p><strong>对大型语言模型 (LLM) 的适用性</strong>。我们计划进一步研究 Orion 对大型语言模型的适用性 [38, 90]。之前的工作 [55, 60] 表明，LLM 推理的令牌生成阶段（一个令牌接一个令牌）顺序发生，是受内存限制的，同时未充分利用 GPU 的计算吞吐量和 SM。因此，我们可以采用 Orion 的资源感知调度策略将 LLM 推理与计算密集型工作负载并置。然而，LLM [38] 的大尺寸以及用于加速令牌生成的键值缓存 [81] 显着增加了 LLM 推理的内存需求。因此，当与其他工作负载并置时，必须采用额外的内存交换机制。如第 5.1.3 节所述，我们计划通过现有的 DNN 交换机制来增强 Orion。其中一种机制是 PagedAttention [60]，它为 LLM 推理提供动态分配和交换，并且可以与 Orion 无缝集成</p>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="GPU架构"><a href="#GPU架构" class="headerlink" title="GPU架构"></a>GPU架构</h3><p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106094035422.png" alt="image-20241106094035422"></p>
+<h4 id="GPU编程抽象"><a href="#GPU编程抽象" class="headerlink" title="GPU编程抽象"></a>GPU编程抽象</h4><p>开发人员将他们的 DNN 应用程序定义为在 PyTorch或 TensorFlow框架中使用高级 API 的操作集合。应用程序框架为目标 GPU 架构编译这些操作（例如，卷积、批量归一化），并将操作作为 CUDA 计算内核提交给 GPU，和分配、初始化和释放 GPU 内存的 CUDA 内存管理操作行为类似。提交内核涉的流程及指定其资源需求（例如，线程块，寄存器、每块线程的数量以及所需的共享内存）。应用程序将每个内核启动和内存操作与特定的 CUDA 流相关联。流是保证按顺序执行的一系列操作。每个应用程序进程都有自己的默认流。为了增加并发性，应用程序可以创建额外的流（可以选择具有不同的优先级[15]）并跨流提交内核</p>
+<h4 id="GPU硬件调度。"><a href="#GPU硬件调度。" class="headerlink" title="GPU硬件调度。"></a>GPU硬件调度。</h4><p>GPU 将每个 CUDA 流的内核缓冲在设备上的单独工作队列中。大多数 GPU不允许用户在提交后抢占内核 。 GPU 硬件调度程序根据<strong>流优先级</strong>从每个工作队列中的内核调度线程块。当满足线程块的数据依赖性并且具有足够资源的SM可用时，调度程序将线程块分配给SM。</p>
+<p>尽管研究人员针对流行的 GPU 架构进行了逆向工程硬件调度策略，但用户无法控制哪个 SM 将执行特定的线程块。</p>
+<p>当线程块被分配给 SM 时，SM 将调度并执行该块中的所有线程wrap。 SM 可以从属于不同内核和流的线程块同时执行多个 warp。</p>
+<p>然而，如果任何 warp 使 SM 上的资源（例如寄存器数量）饱和，则 SM 的 warp 调度程序将等到没有资源饱和后再调度任何其他 warp，即使 SM 上的还有其他可用资源（例如计算单元或共享内存）。</p>
+<h4 id="GPU利用率"><a href="#GPU利用率" class="headerlink" title="GPU利用率"></a>GPU利用率</h4><p>GPU 利用率指标。最常见的 GPU 利用率指标是 SM 利用率，即执行至少一个wrap的SM的比例。 SM 利用率并不能完全捕获 GPU 利用率，因为在执行wrap时即使只使用一小部分资源，SM 也会被视为繁忙。</p>
+<p>计算吞吐量利用率是SM计算单元的利用率，例如FP32、FP64、FP16、FMA单元、张量核等。使用 NVIDIA Nsight 计算工具 ，我们可以获得有关每个单独组件的利用率的信息。报告的利用率是所有不同组件利用率的最大值。内存容量利用率是 GPU 上分配的内存的百分比。内存带宽利用率是消耗的峰值 GPU 内部内存带宽所占的百分比。</p>
+<h3 id="DNN-GPU-利用率"><a href="#DNN-GPU-利用率" class="headerlink" title="DNN-GPU 利用率"></a>DNN-GPU 利用率</h3><p>尽管 DNN 应用程序通常具有较高的计算和内存强度，但它们经常未充分利用 GPU 资。之前的工作已经确定了 GPU 利用率低的原因并提出了解决方案。主机 CPU 上的输入数据预处理瓶颈可能会使 GPU 在等待摄取数据时处于空闲状态 。我们可以通过分解和扩展数据预处理来缓解输入停顿。节点之间的通信会限制分布式训练吞吐量和空闲 GPU 。积极的流水线技术、梯度压缩、异步更新、网络内聚合有助于隐藏通信停顿。多 GPU 集群中的组调度可能会使一些 GPU 空闲，而其他 GPU 可用。最近的 DNN 系统通过弹性 GPU 分配解决了这个问题 。</p>
+<p>但即使不考虑数据通信和预处理，GPU利用率仍然存在瓶颈。面向大吞吐量作业，需要使用批量较大的数据训练，但是较大批量也会降低训练收益。而且各个技术是特定于模型的，需要大量的专业知识和特化调整。 </p>
+<p><img src="/./../images/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241106102811657.png" alt="image-20241106102811657"></p>
+<p>最近，大型语言模型 (LLM) 因其在各种任务中的高性能而变得非常流行。由于 LLM 具有异常大的内存容量要求，因此在 LLM 工作负载之间共享 GPU 的机会更加有限。因此，LLM 不是我们 GPU 共享的目标工作负载。尽管如此，在第 7 节中，我们讨论了 LLM 的 GPU 共享机会，因为 LLM 推理的顺序令牌生成阶段受内存限制，并且未充分利用 GPU 的计算吞吐量和 SM。</p>
+<h4 id="分析-DNN-作业的-GPU-利用率"><a href="#分析-DNN-作业的-GPU-利用率" class="headerlink" title="分析 DNN 作业的 GPU 利用率"></a>分析 DNN 作业的 GPU 利用率</h4><p>GPU 计算吞吐量和内存带宽利用率是突发性的，并且平均较低。 GPU 计算利用率峰值通常发生在与内存利用率峰值不同的时间点。内核通常执行 10 到 100 μs（用于推理）或 100 到1000 μs（用于训练）。由于单个 DNN 作业的内核由于数据依赖性而按顺序执行，因此当内核使 GPU 计算或内存带宽饱和时，它通常会导致其他 GPU 资源短时间空闲。</p>
+<h4 id="GPU内核搭配探索"><a href="#GPU内核搭配探索" class="headerlink" title="GPU内核搭配探索"></a>GPU内核搭配探索</h4><p>小实验证明，将C重内核和M重内核搭配可以提高GPU空间利用率。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
+<li><strong>时间共享。</strong>时间共享技术通过多个作业之间的上下文切换对 GPU 进行时间切片，以提高利用率。先前的系统专注于在每个 GPU 上复用多个 DNN 模型，这些模型的集体状态不适合 GPU 内存。因此，这些系统解决的主要挑战是在特定模型的请求到达时有效地交换状态。 Gandiva [102] 使用挂起并重新启动机制在上下文切换期间在主机和 GPU 内存之间传输状态。 Salus [104] 通过优化 GPU 上应保留的状态来减少上下文切换。 Clockwork [49] 通过根据加载&#x2F;卸载 DNN 状态和运行推理的预期时间预先确定 GPU 是否能够满足请求截止日期，为每个 GPU 提供数千个具有可预测延迟的 DNN。 Antman [103] 动态调整作业内存分配，以实现每个 GPU 更高效的集群级作业配置，以实现时间共享。透明 GPU 共享 (TGS) [100] 为容器化工作负载提供与应用程序无关的临时 GPU 共享<strong>。然而，这些系统仍然一次执行一项作业。正如第 3 节中所讨论的，这未充分利用 GPU，因为单个 DNN 作业的内核通常不会消耗所有 GPU 计算单元和内存。</strong>我们细粒度、干扰感知共享的目标是为此类作业填补空闲的 GPU 容量。我们的工作补充了上述方法，有效地交换状态以适应每个 GPU 的更多模型。</li>
+<li><strong>空间共享。</strong>空间共享机制使作业能够同时使用 GPU 的不同区域[106]。 NVIDIA 多实例 GPU (MIG) [12] 提供粗粒度 GPU 分区，但缺乏机会性地收集短时间段内未充分利用的资源的灵活性。创建新分区后，MIG 分区需要花费 100 毫秒的时间才能创建，模型需要 10 秒的时间才能从检查点恢复执行 [65]。 NVIDIA 多进程服务 (MPS) [25] 允许多个进程在 GPU 上并行运行，但会导致高干扰，因为进程可以自由共享缓存、计算和内存资源（见图 2）。 REEF [50] 根据内核的大小和优先级以细粒度调度内核，旨在并置高优先级和低优先级的推理作业。 Zico [67] 和 Tick-Tock [94] 通过调度前向和后向传递来在 GPU 上配置训练作业，以最大限度地减少总内存消耗。然而，<strong>这些方法都没有根据其计算和内存配置文件来共同调度内核，这对于最大限度地减少干扰同时最大化 GPU 利用率至关重要</strong>，我们在第 3 节中展示了这一点。</li>
+</ul>
+
     </div>
 
     
@@ -258,6 +407,10 @@
     
 
     <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GPU/" rel="tag"># GPU</a>
+              <a href="/tags/%E7%A7%91%E7%A0%94/" rel="tag"># 科研</a>
+          </div>
 
         
 
@@ -301,13 +454,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">33k</span>
+    <span title="Word count total">44k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">30 mins.</span>
+    <span title="Reading time total">40 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">

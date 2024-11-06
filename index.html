@@ -317,6 +317,22 @@
 
       <time title="Created: 2024-11-01 10:42:51" itemprop="dateCreated datePublished" datetime="2024-11-01T10:42:51+08:00">2024-11-01</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-11-06 14:18:49" itemprop="dateModified" datetime="2024-11-06T14:18:49+08:00">2024-11-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
 
   
     <span class="post-meta-break"></span>
@@ -325,14 +341,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>0</span>
+      <span>11k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>1 mins.</span>
+      <span>10 mins.</span>
     </span>
 </div>
 
@@ -343,7 +359,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          
+          <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>GPU 对于最大化深度神经网络 (DNN) 应用的每瓦吞吐量至关重要。然而，DNN 应用程序经常未充分利用 GPU，即使使用大批量大小并消除输入数据处理或通信停顿也是如此。 DNN 工作负载由依赖于数据的算子组成，具有不同的计算和内存要求。虽然算子可能会使 GPU 计算单元或内存带宽饱和，但它通常会使其他 GPU 资源闲置。尽管 GPU 共享技术很流行，但当前的方法还不够细粒度或干扰感知，无法最大限度地提高 GPU 利用率，同时最大限度地减少 10 μs 粒度的干扰。我们提出了 Orion，这是一个可以透明地<strong>拦截</strong>共享 GPU 的多个客户端的 GPU 内核启动的系统。 Orion 以各个<strong>算子的粒度</strong>安排 GPU 上的工作，并通过考虑每个算子的计算和内存需求来最大限度地减少干扰。我们将 Orion 集成到 PyTorch 中，并在各种 DNN 工作负载搭配用例中展示其优势。与高优先级推理作业的最先进基线相比，Orion 显着改善了<strong>尾部延迟</strong>，同时搭配尽力而为推理作业，将每个 GPU 请求吞吐量提高高达 7.3 倍，或者搭配 DNN 训练时，节省高达 1.49 倍× 与<strong>专用 GPU</strong> 分配相比，训练成本降低。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -405,7 +429,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-10-29 16:56:22" itemprop="dateModified" datetime="2024-10-29T16:56:22+08:00">2024-10-29</time>
+      <time title="Modified: 2024-11-06 09:37:22" itemprop="dateModified" datetime="2024-11-06T09:37:22+08:00">2024-11-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -786,13 +810,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">33k</span>
+    <span title="Word count total">44k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">30 mins.</span>
+    <span title="Reading time total">40 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">
