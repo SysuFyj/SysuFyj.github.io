@@ -214,7 +214,7 @@
       <span class="post-meta-item-text">Posted on</span>
       
 
-      <time title="Created: 2025-02-21 13:06:58 / Modified: 17:19:00" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
+      <time title="Created: 2025-02-21 13:06:58 / Modified: 17:30:16" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -256,13 +256,13 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>[TOC]</p>
-<h2 id="Transformer基本结构"><a href="#Transformer基本结构" class="headerlink" title="Transformer基本结构"></a>Transformer基本结构</h2><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png" alt="Transformer,_full_architecture"></p>
+<h2 id="Transformer基本结构"><a href="#Transformer基本结构" class="headerlink" title="Transformer基本结构"></a>Transformer基本结构</h2><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png" alt="Transformer,_full_architecture"></p>
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/338817680">https://zhuanlan.zhihu.com/p/338817680</a></p>
 <h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><p>可以被看作是一定层的encoder+decoder</p>
 <ol>
 <li>词的向量化</li>
 </ol>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r.png" alt="v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r.png" alt="v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r"></p>
 <ul>
 <li>词Embedding包括查词表等方式，把词语本身转化为向量，位置embedding加入了词再序列中的位置信息，简单相加可得到输出。</li>
 </ul>
@@ -282,36 +282,36 @@
 <ol start="2">
 <li>位置embedding</li>
 </ol>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-8b442ffd03ea0f103e9acc37a1db910a_1440w.png" alt="v2-8b442ffd03ea0f103e9acc37a1db910a_1440w"></p>
-<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f6380627207ff4d1e72addfafeaff0bb_r.png" alt="v2-f6380627207ff4d1e72addfafeaff0bb_r"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-8b442ffd03ea0f103e9acc37a1db910a_1440w.png" alt="v2-8b442ffd03ea0f103e9acc37a1db910a_1440w"></p>
+<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f6380627207ff4d1e72addfafeaff0bb_r.png" alt="v2-f6380627207ff4d1e72addfafeaff0bb_r"></p>
 <h4 id="公式计算"><a href="#公式计算" class="headerlink" title="公式计算"></a>公式计算</h4><p>通过输入X乘以对应的权重矩阵得到具体的Q K V</p>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1.png" alt="v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1.png" alt="v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1"></p>
 <p>之后可以计算出注意力输出</p>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9699a37b96c2b62d22b312b5e1863acd_r.png" alt="v2-9699a37b96c2b62d22b312b5e1863acd_r"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9699a37b96c2b62d22b312b5e1863acd_r.png" alt="v2-9699a37b96c2b62d22b312b5e1863acd_r"></p>
 <p>计算Q和K中每一行向量的内积，QKT相乘后的n*n矩阵中n为单词数，这个矩阵可以表示<strong>单词之间</strong>的attention的强度，最后再使用softmax归一化，每一行的和都变成1.再和V相乘得到最终不同的attenton分数</p>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9caab2c9a00f6872854fb89278f13ee1_r.png" alt="v2-9caab2c9a00f6872854fb89278f13ee1_r"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9caab2c9a00f6872854fb89278f13ee1_r.png" alt="v2-9caab2c9a00f6872854fb89278f13ee1_r"></p>
 <ul>
 <li>这里Q和K^T相乘，相当于把单词之间的注意力分数都算了出来。</li>
 <li>d_k可以避免分数过大导致的梯度消失问题，因此使用根号d_k稳定方差和数值范围（应该是向正态分布靠拢）</li>
 <li>Q和K表达的是词之间互相的关注程度，乘以V相当于加入了句子的输入信息。Q相当于当前的计算目标，k相当于其他目标。</li>
 </ul>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-27822b2292cd6c38357803093bea5d0e_r.png" alt="v2-27822b2292cd6c38357803093bea5d0e_r"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-27822b2292cd6c38357803093bea5d0e_r.png" alt="v2-27822b2292cd6c38357803093bea5d0e_r"></p>
 <ul>
 <li>最终输出的计算从语义上，而非从矩阵乘法的计算上得到的是每个单词对应的V的行信息乘以对应的注意力分数。</li>
 </ul>
 <h4 id="多头注意力"><a href="#多头注意力" class="headerlink" title="多头注意力"></a>多头注意力</h4><p>已经知道怎么通过 Self-Attention 计算得到输出矩阵 Z，而 Multi-Head Attention 是由多个 Self-Attention 组合形成的，下图是论文中 Multi-Head Attention 的结构图。</p>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-6bdaf739fd6b827b2087b4e151c560f4_1440w.png" alt="v2-6bdaf739fd6b827b2087b4e151c560f4_1440w"><br>计算出h个Z之后，多头注意力机制将其拼接后传入线形层，得到最终的输出Z，这时输出的Z与输入的X维度一致。</p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-6bdaf739fd6b827b2087b4e151c560f4_1440w.png" alt="v2-6bdaf739fd6b827b2087b4e151c560f4_1440w"><br>计算出h个Z之后，多头注意力机制将其拼接后传入线形层，得到最终的输出Z，这时输出的Z与输入的X维度一致。</p>
 <ul>
 <li>为什么拼接但不相加？这样保留了更多语义没有把不同的头进行混合，效果更好。（tokenembdding混合形成的时候不相加是因为这样就太大了）</li>
 </ul>
-<h3 id="encoder结构"><a href="#encoder结构" class="headerlink" title="encoder结构"></a>encoder结构</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0203e83066913b53ec6f5482be092aa1_1440w.png" alt="v2-0203e83066913b53ec6f5482be092aa1_1440w"></p>
-<h4 id="Add-Norm"><a href="#Add-Norm" class="headerlink" title="Add&amp;Norm"></a>Add&amp;Norm</h4><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-a4b35db50f882522ee52f61ddd411a5a_1440w.png" alt="v2-a4b35db50f882522ee52f61ddd411a5a_1440w"></p>
+<h3 id="encoder结构"><a href="#encoder结构" class="headerlink" title="encoder结构"></a>encoder结构</h3><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0203e83066913b53ec6f5482be092aa1_1440w.png" alt="v2-0203e83066913b53ec6f5482be092aa1_1440w"></p>
+<h4 id="Add-Norm"><a href="#Add-Norm" class="headerlink" title="Add&amp;Norm"></a>Add&amp;Norm</h4><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-a4b35db50f882522ee52f61ddd411a5a_1440w.png" alt="v2-a4b35db50f882522ee52f61ddd411a5a_1440w"></p>
 <p>其中 <strong>X</strong>表示 Multi-Head Attention 或者 Feed Forward 的输入，MultiHeadAttention(<strong>X</strong>) 和 FeedForward(<strong>X</strong>) 表示输出 (输出与输入 <strong>X</strong> 维度是一样的，所以可以相加)。</p>
 <ul>
 <li>Add这种方式类似残差连接，让网络只关注到当前差异的部分，解决遗忘的问题。</li>
 <li>Norm将神经元的输入转化成均值方差都为0和1的形式，可以加快收敛。（<strong>在每个样本的同一层神经元上计算均值和标准差</strong>，然后对其进行归一化，使其具有<strong>零均值</strong>和<strong>单位方差</strong>。）</li>
 </ul>
-<h4 id="FFN层"><a href="#FFN层" class="headerlink" title="FFN层"></a>FFN层</h4><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r.png" alt="v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r"></p>
+<h4 id="FFN层"><a href="#FFN层" class="headerlink" title="FFN层"></a>FFN层</h4><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r.png" alt="v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r"></p>
 <ul>
 <li><p><strong>x</strong>：输入（通常是注意力机制的输出）。</p>
 </li>
@@ -323,7 +323,7 @@
 </li>
 </ul>
 <p>作用类似CNN，提取非线性+高维特征</p>
-<h3 id="decoder结构"><a href="#decoder结构" class="headerlink" title="decoder结构"></a>decoder结构</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w.png" alt="v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w"></p>
+<h3 id="decoder结构"><a href="#decoder结构" class="headerlink" title="decoder结构"></a>decoder结构</h3><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w.png" alt="v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w"></p>
 <p>上图红色部分为 Transformer 的 Decoder block 结构，与 Encoder block 相似，但是存在一些区别：</p>
 <ul>
 <li>包含两个 Multi-Head Attention 层。</li>
@@ -331,7 +331,7 @@
 <li>第二个 Multi-Head Attention 层的<strong>K, V</strong>矩阵使用 Encoder 的<strong>编码信息矩阵C</strong>进行计算，而<strong>Q</strong>使用上一个 Decoder block 的输出计算。</li>
 <li>最后有一个 Softmax 层计算下一个翻译单词的概率。</li>
 </ul>
-<h4 id="第一个多头注意力"><a href="#第一个多头注意力" class="headerlink" title="第一个多头注意力"></a>第一个多头注意力</h4><p>Decoder block 的第一个 Multi-Head Attention 采用了 Masked  操作，因为在翻译的过程中是顺序翻译的，即翻译完第 i 个单词，才可以翻译第 i+1 个单词。通过 Masked 操作可以防止第 i 个单词知道  i+1 个单词之后的信息。同时可以利用teaching forcing传入正确答案。<br><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-58f916c806a6981e296a7a699151af87_1440w.png" alt="v2-58f916c806a6981e296a7a699151af87_1440w"></p>
+<h4 id="第一个多头注意力"><a href="#第一个多头注意力" class="headerlink" title="第一个多头注意力"></a>第一个多头注意力</h4><p>Decoder block 的第一个 Multi-Head Attention 采用了 Masked  操作，因为在翻译的过程中是顺序翻译的，即翻译完第 i 个单词，才可以翻译第 i+1 个单词。通过 Masked 操作可以防止第 i 个单词知道  i+1 个单词之后的信息。同时可以利用teaching forcing传入正确答案。<br><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-58f916c806a6981e296a7a699151af87_1440w.png" alt="v2-58f916c806a6981e296a7a699151af87_1440w"></p>
 <h4 id="第二个多头注意力"><a href="#第二个多头注意力" class="headerlink" title="第二个多头注意力"></a>第二个多头注意力</h4><p>Decoder block 第二个 Multi-Head Attention 变化不大， 主要的区别在于其中 Self-Attention 的 <strong>K, V</strong>矩阵不是使用 上一个 Decoder block 的输出计算的，而是使用 <strong>Encoder 的编码信息矩阵 C</strong> 计算的。</p>
 <p>根据 Encoder 的输出 <strong>C</strong>计算得到 <strong>K, V</strong>，根据上一个 Decoder block 的输出 <strong>Z</strong> 计算 <strong>Q</strong> (如果是第一个 Decoder block 则使用输入矩阵 <strong>X</strong> 进行计算)，后续的计算方法与之前描述的一致。</p>
 <p>这样做的好处是在 Decoder 的时候，每一位单词都可以利用到 Encoder 所有单词的信息 (这些信息无需 <strong>Mask</strong>)。</p>
@@ -340,8 +340,8 @@
 <li>直接作为输入X去乘以各个独立的Wq</li>
 </ul>
 <h4 id="最终信息"><a href="#最终信息" class="headerlink" title="最终信息"></a>最终信息</h4><p>Decoder block 最后的部分是利用 Softmax 预测下一个单词，在之前的网络层我们可以得到一个最终的输出 Z，因为 Mask 的存在，使得单词 0 的输出 Z0 只包含单词 0 的信息，如下：</p>
-<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-335cfa1b345bdd5cf1e212903bb9b185_1440w.png" alt="v2-335cfa1b345bdd5cf1e212903bb9b185_1440w"></p>
-<p>得到最终结果：<br><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0938aa45a288b5d6bef6487efe53bd9d_1440w.png" alt="v2-0938aa45a288b5d6bef6487efe53bd9d_1440w"></p>
+<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-335cfa1b345bdd5cf1e212903bb9b185_1440w.png" alt="v2-335cfa1b345bdd5cf1e212903bb9b185_1440w"></p>
+<p>得到最终结果：<br><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0938aa45a288b5d6bef6487efe53bd9d_1440w.png" alt="v2-0938aa45a288b5d6bef6487efe53bd9d_1440w"></p>
 
       
     </div>
