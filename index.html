@@ -148,17 +148,17 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories">
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -184,7 +184,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -202,7 +202,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Inducer论文笔记</a>
+          <a href="/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">Transformer+cuda学习</a>
         </h2>
 
         <div class="post-meta-container">
@@ -212,8 +212,22 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
+      
 
-      <time title="Created: 2024-12-18 12:13:05" itemprop="dateCreated datePublished" datetime="2024-12-18T12:13:05+08:00">2024-12-18</time>
+      <time title="Created: 2025-02-21 13:06:58 / Modified: 17:19:00" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">cuda学习</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/Transformer/" itemprop="url" rel="index"><span itemprop="name">Transformer</span></a>
+        </span>
     </span>
 
   
@@ -223,14 +237,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>0</span>
+      <span>2.3k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>1 mins.</span>
+      <span>2 mins.</span>
     </span>
 </div>
 
@@ -241,7 +255,293 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          
+          <p>[TOC]</p>
+<h2 id="Transformer基本结构"><a href="#Transformer基本结构" class="headerlink" title="Transformer基本结构"></a>Transformer基本结构</h2><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png" alt="Transformer,_full_architecture"></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/338817680">https://zhuanlan.zhihu.com/p/338817680</a></p>
+<h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><p>可以被看作是一定层的encoder+decoder</p>
+<ol>
+<li>词的向量化</li>
+</ol>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r.png" alt="v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r"></p>
+<ul>
+<li>词Embedding包括查词表等方式，把词语本身转化为向量，位置embedding加入了词再序列中的位置信息，简单相加可得到输出。</li>
+</ul>
+<ol start="2">
+<li>传入encoder之后，输出维度一致的编码矩阵</li>
+</ol>
+<ul>
+<li>encoder主要是通过FFN和多头注意力表示提取出词的位置信息。</li>
+</ul>
+<ol start="3">
+<li>输出decoder中，decoder依据翻译过的单词1~i预测i+1</li>
+</ol>
+<h3 id="Transformer输入"><a href="#Transformer输入" class="headerlink" title="Transformer输入"></a>Transformer输入</h3><ol>
+<li>单词embedding</li>
+</ol>
+<p>单词的 Embedding 有很多种方式可以获取，例如可以采用 Word2Vec、Glove 等算法预训练得到，也可以在 Transformer 中训练得到。</p>
+<ol start="2">
+<li>位置embedding</li>
+</ol>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-8b442ffd03ea0f103e9acc37a1db910a_1440w.png" alt="v2-8b442ffd03ea0f103e9acc37a1db910a_1440w"></p>
+<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f6380627207ff4d1e72addfafeaff0bb_r.png" alt="v2-f6380627207ff4d1e72addfafeaff0bb_r"></p>
+<h4 id="公式计算"><a href="#公式计算" class="headerlink" title="公式计算"></a>公式计算</h4><p>通过输入X乘以对应的权重矩阵得到具体的Q K V</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1.png" alt="v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1"></p>
+<p>之后可以计算出注意力输出</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9699a37b96c2b62d22b312b5e1863acd_r.png" alt="v2-9699a37b96c2b62d22b312b5e1863acd_r"></p>
+<p>计算Q和K中每一行向量的内积，QKT相乘后的n*n矩阵中n为单词数，这个矩阵可以表示<strong>单词之间</strong>的attention的强度，最后再使用softmax归一化，每一行的和都变成1.再和V相乘得到最终不同的attenton分数</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9caab2c9a00f6872854fb89278f13ee1_r.png" alt="v2-9caab2c9a00f6872854fb89278f13ee1_r"></p>
+<ul>
+<li>这里Q和K^T相乘，相当于把单词之间的注意力分数都算了出来。</li>
+<li>d_k可以避免分数过大导致的梯度消失问题，因此使用根号d_k稳定方差和数值范围（应该是向正态分布靠拢）</li>
+<li>Q和K表达的是词之间互相的关注程度，乘以V相当于加入了句子的输入信息。Q相当于当前的计算目标，k相当于其他目标。</li>
+</ul>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-27822b2292cd6c38357803093bea5d0e_r.png" alt="v2-27822b2292cd6c38357803093bea5d0e_r"></p>
+<ul>
+<li>最终输出的计算从语义上，而非从矩阵乘法的计算上得到的是每个单词对应的V的行信息乘以对应的注意力分数。</li>
+</ul>
+<h4 id="多头注意力"><a href="#多头注意力" class="headerlink" title="多头注意力"></a>多头注意力</h4><p>已经知道怎么通过 Self-Attention 计算得到输出矩阵 Z，而 Multi-Head Attention 是由多个 Self-Attention 组合形成的，下图是论文中 Multi-Head Attention 的结构图。</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-6bdaf739fd6b827b2087b4e151c560f4_1440w.png" alt="v2-6bdaf739fd6b827b2087b4e151c560f4_1440w"><br>计算出h个Z之后，多头注意力机制将其拼接后传入线形层，得到最终的输出Z，这时输出的Z与输入的X维度一致。</p>
+<ul>
+<li>为什么拼接但不相加？这样保留了更多语义没有把不同的头进行混合，效果更好。（tokenembdding混合形成的时候不相加是因为这样就太大了）</li>
+</ul>
+<h3 id="encoder结构"><a href="#encoder结构" class="headerlink" title="encoder结构"></a>encoder结构</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0203e83066913b53ec6f5482be092aa1_1440w.png" alt="v2-0203e83066913b53ec6f5482be092aa1_1440w"></p>
+<h4 id="Add-Norm"><a href="#Add-Norm" class="headerlink" title="Add&amp;Norm"></a>Add&amp;Norm</h4><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-a4b35db50f882522ee52f61ddd411a5a_1440w.png" alt="v2-a4b35db50f882522ee52f61ddd411a5a_1440w"></p>
+<p>其中 <strong>X</strong>表示 Multi-Head Attention 或者 Feed Forward 的输入，MultiHeadAttention(<strong>X</strong>) 和 FeedForward(<strong>X</strong>) 表示输出 (输出与输入 <strong>X</strong> 维度是一样的，所以可以相加)。</p>
+<ul>
+<li>Add这种方式类似残差连接，让网络只关注到当前差异的部分，解决遗忘的问题。</li>
+<li>Norm将神经元的输入转化成均值方差都为0和1的形式，可以加快收敛。（<strong>在每个样本的同一层神经元上计算均值和标准差</strong>，然后对其进行归一化，使其具有<strong>零均值</strong>和<strong>单位方差</strong>。）</li>
+</ul>
+<h4 id="FFN层"><a href="#FFN层" class="headerlink" title="FFN层"></a>FFN层</h4><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r.png" alt="v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r"></p>
+<ul>
+<li><p><strong>x</strong>：输入（通常是注意力机制的输出）。</p>
+</li>
+<li><p><strong>W1,b1W_1, b_1W1,b1</strong>：第一层的权重和偏置，作用是将输入从 <strong>dmodeld_{\text{model}}dmodel</strong> 维度扩展到 <strong>更高的维度（通常是 4 倍）</strong>。</p>
+</li>
+<li><p><strong>W2,b2W_2, b_2W2,b2</strong>：第二层的权重和偏置，作用是把数据降维回 dmodeld_{\text{model}}dmodel 维度。</p>
+</li>
+<li><p><strong>ReLU（或 GELU）</strong>：非线性激活函数，引入非线性能力，使模型能学习更复杂的特征。</p>
+</li>
+</ul>
+<p>作用类似CNN，提取非线性+高维特征</p>
+<h3 id="decoder结构"><a href="#decoder结构" class="headerlink" title="decoder结构"></a>decoder结构</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w.png" alt="v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w"></p>
+<p>上图红色部分为 Transformer 的 Decoder block 结构，与 Encoder block 相似，但是存在一些区别：</p>
+<ul>
+<li>包含两个 Multi-Head Attention 层。</li>
+<li>第一个 Multi-Head Attention 层采用了 Masked 操作。</li>
+<li>第二个 Multi-Head Attention 层的<strong>K, V</strong>矩阵使用 Encoder 的<strong>编码信息矩阵C</strong>进行计算，而<strong>Q</strong>使用上一个 Decoder block 的输出计算。</li>
+<li>最后有一个 Softmax 层计算下一个翻译单词的概率。</li>
+</ul>
+<h4 id="第一个多头注意力"><a href="#第一个多头注意力" class="headerlink" title="第一个多头注意力"></a>第一个多头注意力</h4><p>Decoder block 的第一个 Multi-Head Attention 采用了 Masked  操作，因为在翻译的过程中是顺序翻译的，即翻译完第 i 个单词，才可以翻译第 i+1 个单词。通过 Masked 操作可以防止第 i 个单词知道  i+1 个单词之后的信息。同时可以利用teaching forcing传入正确答案。<br><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-58f916c806a6981e296a7a699151af87_1440w.png" alt="v2-58f916c806a6981e296a7a699151af87_1440w"></p>
+<h4 id="第二个多头注意力"><a href="#第二个多头注意力" class="headerlink" title="第二个多头注意力"></a>第二个多头注意力</h4><p>Decoder block 第二个 Multi-Head Attention 变化不大， 主要的区别在于其中 Self-Attention 的 <strong>K, V</strong>矩阵不是使用 上一个 Decoder block 的输出计算的，而是使用 <strong>Encoder 的编码信息矩阵 C</strong> 计算的。</p>
+<p>根据 Encoder 的输出 <strong>C</strong>计算得到 <strong>K, V</strong>，根据上一个 Decoder block 的输出 <strong>Z</strong> 计算 <strong>Q</strong> (如果是第一个 Decoder block 则使用输入矩阵 <strong>X</strong> 进行计算)，后续的计算方法与之前描述的一致。</p>
+<p>这样做的好处是在 Decoder 的时候，每一位单词都可以利用到 Encoder 所有单词的信息 (这些信息无需 <strong>Mask</strong>)。</p>
+<ul>
+<li><strong>在训练时，模型依赖于正确的前 i个单词，并通过 Mask 限制未来的信息</strong>，这使得 Teacher Forcing 和 Mask 可以同时生效。测试的时候只有mask。</li>
+<li>直接作为输入X去乘以各个独立的Wq</li>
+</ul>
+<h4 id="最终信息"><a href="#最终信息" class="headerlink" title="最终信息"></a>最终信息</h4><p>Decoder block 最后的部分是利用 Softmax 预测下一个单词，在之前的网络层我们可以得到一个最终的输出 Z，因为 Mask 的存在，使得单词 0 的输出 Z0 只包含单词 0 的信息，如下：</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-335cfa1b345bdd5cf1e212903bb9b185_1440w.png" alt="v2-335cfa1b345bdd5cf1e212903bb9b185_1440w"></p>
+<p>得到最终结果：<br><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0938aa45a288b5d6bef6487efe53bd9d_1440w.png" alt="v2-0938aa45a288b5d6bef6487efe53bd9d_1440w"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-12-09 15:56:33" itemprop="dateCreated datePublished" datetime="2024-12-09T15:56:33+08:00">2024-12-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2024-12-18 12:17:40" itemprop="dateModified" datetime="2024-12-18T12:17:40+08:00">2024-12-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">大模型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>9.2k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>8 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>为大型语言模型 (LLM) 提供推理服务是在人们的日常生活中释放其潜力的关键。然而，LLM大规模推理服务在今天仍然具有挑战性，因为由于应用程序的多样化和LLM的动态执行性质：请求本质上是异构的，并且在资源和延迟要求方面是不可预测的。现有系统在处理这些特征方面从根本上受到限制，并导致严重的排队延迟、尾部延迟差和 SLO 违规等问题。</p>
+<p>我们引入了 Llumnix，这是一个 LLM 服务系统，它通过跨多个模型实例的运行时重新调度来响应此类异构且不可预测的请求。与现代操作系统中跨 CPU 内核的上下文切换类似，Llumnix 重新安排请求以改善负载平衡和隔离、减少资源碎片并区分请求优先级和 SLO。 Llumnix 通过高效且可扩展的实时迁移机制来实现请求及其内存状态的重新调度，并在动态调度策略中利用它，优雅地统一了多种重新调度场景。我们的评估表明，与最先进的 LLM 服务系统相比，Llumnix 将尾部延迟提高了一个数量级，将高优先级请求加速高达 1.5 倍，并在实现类似尾部延迟的同时节省高达 36% 的成本。 Llumnix 已在 <a target="_blank" rel="noopener" href="https://github.com/AlibabaPAI/llumnix">https://github.com/AlibabaPAI/llumnix</a> 上公开提供。</p>
+<h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>大语言模型本身的性质：</p>
+<ul>
+<li>工作负载异构性：不同推理请求的长度、预期延迟都是不一致的。</li>
+<li>执行不可预测性：不像DNN，对于类似服务，LLM生成的token的多少、执行时间和资源需求都是不可预测的。</li>
+</ul>
+<p>这些特征标志着LLM本质上一个多租户和动态环境，与可预测和稳定的DNN不同，我们发现法学硕士更类似于现代操作系统托管进程，具有动态工作集和多核上的不同优先级。现有的推理系统专注于最大化单个实例中的吞吐量的唯一目标，跨实例的请求调度受到的关注相对较少；如今的常见做法仍然是使用从传统 DNN 时代继承的通用调度系统或策略。如此明显的差距在以下对于多租户环境和在线服务至关重要的方面带来了挑战：</p>
+<ul>
+<li>隔离性：内存争用导致性能干扰，导致高度不稳定的延迟和SLO违规。</li>
+<li>碎片化：不同长度和内存需求的请求会导致实例之间的内存碎片，对正在运行的请求的负载均衡会跨实例分配空闲内存空间，导致碎片以及较长的排队延迟。</li>
+<li>优先级：不同请求有不同延迟目标，因此需要区分优先级。</li>
+</ul>
+<p>我们引入了 Llumnix，这是一种用于 LLM 服务的新调度系统，它通过跨模型实例的请求的运行时重新调度来解决上述挑战。类似于操作系统进程管理中跨 CPU 内核的上下文切换，重新调度使 Llumnix 能够在运行时对不可预测的工作负载动态做出反应，而不必通过一次性分派请求来解决所有复杂的调度问题和权衡。 </p>
+<p>Llumnix 出于多种目的重新安排请求：用于减少抢占和干扰的负载平衡、用于减轻排队延迟的碎片整理、通过创建更高程度的隔离来确定紧急请求的优先级、在自动扩展期间更快地饱和或耗尽实例。</p>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241209161345490.png" alt="image-20241209161345490"></p>
+<p>Llumnix 通过高效且可扩展的实时迁移机制重新安排请求以及跨实例的 GPU 内存状态。直接的调度可能会给重新安排的请求会加强尤其是长序列的延迟。相比之下，Llumnix 通过仔细协调计算和内存传输来隐藏成本，引入了接近于零的停机时间，停机时间与序列长度无关。</p>
+<p>为了利用迁移所带来的极大调度灵活性，Llumnix 采用了一种分布式调度架构，使得能够实现具有高度可扩展性的持续重调度。在此架构下，Llumnix 进一步引入了一种动态调度策略，以优雅的方式统一了具有不同目标的所有重调度场景。 这种统一通过一个名为“虚拟使用量”（virtual usage）的概念实现：Llumnix 只需要为不同场景中的请求定义一组设置 GPU 内存虚拟使用量的规则，然后基于这些虚拟使用量使用一个简单的负载均衡策略即可。</p>
+<p>我们将 Llumnix 实现为推理引擎之上的调度层。 Llumnix 目前支持一个代表性系统 vLLM [34] 作为底层引擎。使用实际工作负载对 16-GPU 集群进行的评估表明，与最先进的调度程序 INFaaS 相比，Llumnix 将 P99 第一个令牌延迟降低了 15 倍，将 P99 每个令牌生成延迟降低了 2 倍 [ 53]。 Llumnix 还将高优先级请求加速了 1.5 倍，并在提供类似尾部延迟时节省了 36% 的成本。</p>
+<ul>
+<li>我们揭示了大语言模型（LLM）服务中的独特特性和调度挑战，这些挑战需要新的调度目标，例如隔离、碎片整理和优先级管理。</li>
+<li>我们提出将请求重调度作为实现这些目标的关键措施，并通过一种高效的请求及其 GPU 内存状态迁移机制加以实现。</li>
+<li>我们设计了一种分布式调度架构及其配套的调度策略，利用请求迁移以统一的方式实现多个调度目标。</li>
+<li>我们实现并评估了 Llumnix，展示了其相较于当前最先进推理服务系统的优势。</li>
+</ul>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>大语言模型的多样性：随着GPT提示学习与微调的思想，任务种类变得多样化，因而服务需求也变得多样化：主要包括序列长度和预期延迟两个方面。</p>
+<p><strong>自回归：</strong>最先进的 LLM 的推理是自回归的：模型迭代地接受输入序列加上所有先前的输出标记以生成下一个输出标记，直到生成“序列结束”（EOS）标记。生成第一个令牌的阶段和随后生成每个新令牌的阶段通常分别称为预填充和解码。 LLM 服务通常以流方式返回生成的令牌。因此，<strong>预填充和解码延迟</strong>都是用户可感知的，并且对用户体验很重要。预填充延迟决定了开始接收响应所需的时间，这可以由排队延迟决定。解码延迟决定了随后接收后续令牌的速度。中间结果对于每个令牌都参与所有后续令牌的生成。因此，推理引擎通常将这些状态存储在 GPU 内存中以供重用，称为 KV 缓存 。</p>
+<p><strong>批处理和内存管理：</strong>最先进的推理引擎应用连续批处理技术来处理不同的序列长度和动态到达的请求。也就是说，新的&#x2F;已完成的请求可以立即加入&#x2F;离开正在运行的批处理，而不是等待所有正在运行的请求完成。批处理还引发了对 KV 缓存内存管理的担忧。</p>
+<p>由于KV缓存的内存需求是未知的，如果内存被保留到最大长度，那么它会明显限制批大小和批处理的好处。例如，LLaMA-213B [58] 模型支持高达 4k 的序列长度，这相当于单个请求的 3.2 GB KV 缓存；而当前 GPU 的内存仍然是数十 GB，更不用说模型权重的空间了（LLaMA-2-13B 为 26 GB）。因此，最近的工作（vLLM [34]）提出了 KV 缓存的动态内存分配，以增加批量大小和吞吐量，这通过一种名为 PagedAttention 的技术来实现：随着 KV 缓存的增长，KV 缓存张量存储在动态分配的块中。图 2 展示了使用连续批处理和动态内存分配的示例。运行的请求是根据空闲内存块来选择的，因此在第 N 次迭代时会出现一个排队请求（灰色的），因为内存不足。在下一次迭代中，系统将耗尽内存来容纳正在运行的请求的新块。因此，系统会抢占某些正在运行的请求（蓝色请求），然后该请求返回队列。</p>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241209165007570.png" alt="image-20241209165007570"></p>
+<h2 id="MOtivation"><a href="#MOtivation" class="headerlink" title="MOtivation"></a>MOtivation</h2><ul>
+<li>不可预测的内存需求和抢占。在动态内存分配中，由于内存需求不可预测，请求抢占是不可避免的，这会显着增加被抢占请求的延迟。</li>
+</ul>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241212191413903.png" alt="image-20241212191413903"></p>
+<ul>
+<li><p>由于 GPU 计算和内存带宽资源上的资源竞争，批量请求之间存在着性能干扰。</p>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241212191513202.png" alt="image-20241212191513202"></p>
+</li>
+<li><p>内存碎片：考虑到上述问题，最好将请求分散到实例之间，以减少抢占和干扰。然而，这种分散会使集群的可用内存同时在多个实例之间产生碎片。像 PagedAttention [34] 这样的动态分配技术可以在解码阶段消除外部碎片，在解码阶段一次分配一个块。然而，外部碎片仍然是预填充阶段的一个重要问题，这需要一次分配中实例上的许多块来容纳输入中所有令牌的 KV 缓存。因此，外部碎片会导致新请求的排队延迟较长。</p>
+</li>
+</ul>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241212191832046.png" alt="image-20241212191832046"></p>
+<ul>
+<li>请求具有不同紧急情况和优先级</li>
+</ul>
+<p>上述motivation导向的功能：请求跨实例重新安排。本文探讨了当前 LLM 服务系统中缺失的一个新维度：部署的多个模型实例【实例是啥意思】及其交互。一个简单的直觉是，当某个实例出现上述问题时，整个集群仍然有足够的空间来避免抢占请求、容纳新请求或减轻干扰。这也是跨实例的不同请求长度和内存负载的自然结果。然而，现有系统无法利用其他实例上的此类可用空间，因为一旦在整个自回归执行过程中进行调度，请求就会绑定在同一实例上。 Llumnix 统一了请求调度组件和模型推理引擎，以探索推理实例之间细粒度协调的潜力。</p>
+<h2 id="系统设计"><a href="#系统设计" class="headerlink" title="系统设计"></a>系统设计</h2><h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><strong>目标1-负载均衡：</strong>第一个目标是负载平衡，以减少请求抢占和对高负载实例的干扰。尽管调度还可以考虑内存使用的负载平衡，但由于输出长度的不可预测性，请求的最终内存使用在到达时是未知的，因此它可能不是最佳的。<strong>重新调度</strong>通过对请求的实际使用增长做出反应来对其进行补充。同时，如前所述，负载平衡还可能导致更高的内存碎片和长输入的更长的排队延迟。因此，Llumnix 还重新安排碎片整理请求 (1-b)，即通过将请求移动到其他实例上来在实例上创建连续空间。另一个目标是通过重新安排位于同一位置的请求以降低负载并避免干扰来对某些请求进行优先级排序 (1-c)。另一个目标是通过重新安排位于同一位置的请求以降低负载并避免干扰来对某些请求进行优先级排序 (1-c)。这种重新调度动态地为高优先级请求提供“专用”资源，而无需静态预留机器。最后，Llumnix 还会在自动扩展期间重新安排请求，例如，耗尽要终止的实例 (1-d) 或更快地使新实例饱和。</p>
+<p>考虑到大型请求上下文状态（即 KV 缓存），有效地实现这种高度动态的重新调度具有挑战性。简单的解决方案包括重新计算或复制重新安排的请求的 KV 缓存，但是计算停顿和停机时间较高，达到解码成本的 50 倍以上（第 6.2 节）。更重要的是，KV缓存状态随着序列长度的增加而增加，限制了上下文长度增长趋势下的调度灵活性。生成下一个令牌时如此高的推理延迟极大地降低了 LLM 服务的用户体验，从而禁止请求重新调度。 Llumnix 通过实时迁移机制解决了这一挑战，该机制可以管道化和协调 KV 缓存复制和令牌生成计算，从而带来的停机时间可以忽略不计。【复制时间太久了，且token越长越久】</p>
+<p>为了利用迁移的好处，Llumnix 采用了一种可扩展的架构，该架构结合了全局和本地调度来分散调度决策和协调迁移操作，从而促进大规模的连续<strong>重新调度</strong>（§4.3）。在此架构下，我们进一步设计了一种高效的启发式调度策略，该策略以<strong>虚拟</strong>使用概念为中心，以统一的方式抽象不同调度目标的需求（§4.4）</p>
+<h3 id="LLM请求的实时迁移请求"><a href="#LLM请求的实时迁移请求" class="headerlink" title="LLM请求的实时迁移请求"></a>LLM请求的实时迁移请求</h3><p>在任务重新调度（rescheduling，例如任务从一个 GPU 转移到另一个 GPU）时，管理这些缓存状态可能会产生较大的开销（成本高）和服务停滞（serving stalls），因为需要移动或重建这些缓存数据。KV 缓存是“append-only”，即每次推理迭代只会在已有缓存后追加新计算结果，而不会修改已存在的数据。</p>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241213105306433.png" alt="image-20241213105306433"></p>
+<p>Llumnix的实时迁移机制利用KV缓存固有的仅附加特性，将KV缓存复制与解码计算流水线化。由于已经生成的 KV 缓存在接下来的迭代中不会被修改，因此 Llumnix 可以安全地复制先前令牌的 KV 缓存，同时计算新令牌。通过这种方式，Llumnix 可以实现重新安排的请求的近乎零且持续的停机时间。</p>
+<p>如图6所示，当迁移开始时，源实例开始复制已完成迭代的KV缓存块，并同时继续计算（阶段0）。当先前的 KV 缓存块的复制完成后，将在阶段 0 中计算更多的迭代（即图 6 中的块）。然后切换到stage 1，复制stage 0生成的KV缓存，同时继续后面的计算。新块的数量通常很小，因此复制通常比计算快得多，因此我们可以在很短的时间内复制它们。到最后，KV缓存迁移仅进行一次计算迭代（即第N阶段）。Llumnix 通过将请求从当前批次中清空并复制剩余块来暂停该请求的计算，这会导致该请求的停机时间。完成后，迁移完成并且请求在目标实例上恢复。虽然整个序列的总复制时长取决于序列长度，但请求的停机时间只是复制一次迭代生成的KV缓存的时间。</p>
+<p>Llumnix 的请求迁移方法借鉴了虚拟机（VM）实时迁移中的关键概念，即通过逐渐减少工作集来最小化停机时间。与虚拟机迁移不同，Llumnix 不需要追踪脏页，因为其工作集（即 KV 缓存）是追加式的，在迁移过程中不会发生变化。然而，LLM（大语言模型）服务引入了额外的挑战。</p>
+<ul>
+<li>首先，由于源实例和目标实例都在持续处理请求，迁移过程中可能会出现内存不足的情况。</li>
+<li>其次，迁移过程中请求可能会在中途完成，因为执行是不可预测的（即生成 EOS token），并且批处理是持续进行的。</li>
+</ul>
+<p>为了应对这些异常并确保异步计算和内存复制过程中的正确性，Llumnix 引入了精细化的协调机制，通过握手过程在参与实例之间进行同步。在每个阶段之前，源实例会发出预分配请求，告知目标实例需要迁移的数据块数量，确保目标实例有足够的空间。目标实例会尝试分配并保留这些块，如果成功或失败，目标会通知源实例继续迁移或中止迁移并清理状态。类似地，每个阶段结束后，源实例也会检查迁移请求是否已经完成或被抢占，如果已完成，源实例会通知目标实例中止并释放保留的块；否则，源实例会继续执行下一阶段。如果目标实例失败，源或目标实例会中止迁移。最后，在最终阶段完成后，源实例释放本地数据块，并通知目标实例提交迁移并恢复请求执行。</p>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241213111942009.png" alt="image-20241213111942009"></p>
+<p>Llumnix 的请求迁移方法借鉴了虚拟机实时迁移的概念，通过逐步减少工作集来减少停机时间。与虚拟机迁移不同，Llumnix 不需要脏页跟踪，因为其工作集（KV 缓存）是追加式的，迁移过程中不会变化。LLM 服务引入了额外的挑战，例如源和目标实例可能会在迁移过程中出现内存不足，或请求在迁移中途完成。为应对这些问题，Llumnix 引入了精细的协调机制，使用握手过程确保正确性。在每个阶段前，源实例会发出预分配请求，目标实例尝试分配空间并通知源实例继续或中止迁移。每个阶段后，源实例检查请求是否已完成或被抢占，决定是否继续迁移。最终，源实例释放本地数据并通知目标实例完成迁移，继续请求执行。</p>
+<h3 id="分布式调度框架"><a href="#分布式调度框架" class="headerlink" title="分布式调度框架"></a>分布式调度框架</h3><p>Lliumnix需要持续跟踪和重新安排集群中正在运行的请求，因此调度的数量和频率更高。</p>
+<p>本文设计了一种名叫llumlets的调度系统。全局调度器并不直接跟踪或调度正在运行的请求；相反，它根据实例的<strong>内存负载</strong>做出面向实例的所有调度决策。这样，全局调度程序的复杂性保持独立于运行请求，从而保持与没有动态调度的调度程序类似的可扩展性。 llumlet 根据请求状态和 Llumnix 的调度策略定期报告负载。<strong>全局调度器不跟踪具体请求的状态或执行进度</strong>，而是关注每个实例的内存使用情况。<strong>实例的内存负载</strong>是调度决策的主要依据。例如，调度器会选择内存负载较低的实例来执行新的请求，避免内存过载。<strong>llumlets</strong>（Llumnix 的执行单元）会周期性地报告它们的负载信息，这些负载报告包括了请求的状态和 Llumnix 的调度策略。</p>
+<p>全局调度程序仅根据负载对源实例和目标实例进行配对，并将它们标记为相应的状态以触发迁移。</p>
+<p>每个实例的 <strong>llumlet</strong> 由一个本地调度器和一个迁移协调器组成。除了类似于现有系统中常见角色（如队列管理、批处理和块管理）的功能外，本地调度器的一个重要新任务是计算实例的内存负载。负载不仅仅是指物理内存的使用情况；它实际上是请求的“虚拟使用量”的总和（见第4.4节）。本地调度器还负责在触发时决定需要迁移的请求。根据选择的请求，迁移协调器将与本地调度器和其他实例进行协调，并指示模型执行器进行内存复制，如前所述。</p>
+<p><img src="/./../images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241213113752107.png" alt="image-20241213113752107"></p>
+<h3 id="分布式调度策略"><a href="#分布式调度策略" class="headerlink" title="分布式调度策略"></a>分布式调度策略</h3><p>Llumnix 的调度策略旨在实现以下目标：</p>
+<ul>
+<li>第一个是通过减少排队延迟、抢占和干扰来改善预填充和解码延迟。</li>
+<li>第二个目标是负载适应性，处理不同的集群负载并提高成本效率。 Llumnix 结合了实例自动缩放功能，以保持适当的集群负载，从而节省成本并最大限度地提高重新调度的好处。</li>
+<li>第三个目标是区分不同请求的优先级。</li>
+</ul>
+<h4 id="虚拟"><a href="#虚拟" class="headerlink" title="虚拟"></a>虚拟</h4><p>为了在分布式调度架构下实现上述多个目标，Llumnix需要一个可以使用简单的实例级指标来表达这些目标的调度策略，以提高全局调度器的效率和可扩展性。</p>
+<p>上述重新调度场景分为两类：负载平衡和在一个实例上创建可用空间（碎片整理、优先级排序和实例扩展和消耗）。我们发现，通过在实例上假设虚拟负载，可以将它们统一为负载均衡：要在实例上创建空闲空间，我们只需设置某些请求的虚拟使用量，使实例虚拟过载，然后制定负载均衡策略将触发将请求迁移到其他实例。【创建空闲空间的方式是假装过载出发负载均衡】这一观察结果使我们得出了一种以负载均衡为基础的简单启发式方法，并结合了一组用于在不同情况下设置请求虚拟使用情况的规则。我们总结了算法 1 中 CalcVirtualUsage 函数中的规则，并在图 9 中说明了示例场景。在正常情况下，<strong>请求的虚拟使用量只是其物理内存使用量</strong>【存在部分特殊场景需要通过虚拟使用量来触发负载均衡策略】，以实现例行负载平衡，如图 9(a) 所示。我们讨论其他情况的规则如下。</p>
+<p><strong>排队：</strong>对于排队的请求，尤其是排队队头的请求，虚拟使用量被赋予一个正值，即使物理使用量为零。这样，即使请求尚未开始执行，它的虚拟使用量也会增加实例的总虚拟使用量。系统会根据虚拟使用量来触发负载均衡策略，避免因队列中请求的积压导致的资源碎片化问题。【提前进行调度和分配，避免挤出碎片】为了平衡减少排队延迟和负载均衡之间的权衡，虚拟使用量可以 <strong>逐步增加</strong>。例如，可以根据请求在队列中的等待时间或优先级逐步增加其虚拟使用量，直到它达到真实的内存需求。这种方式避免了过度调度负载均衡操作，从而优化了系统的响应时间。</p>
+<p><strong>执行优先级</strong>：对于具有高执行优先级的请求，Llumnix 会通过保留内存空间作为净空来尝试防止正在运行该请求的实例超过给定的实际负载级别，如图 9(c) 所示。这是通过在高优先级请求的物理使用量上添加这样的余量来获得虚拟使用量（第 8 行）来实现的。当一个实例上有多个高优先级请求时，此空间将在它们之间分配（第 10 行）。高优先级请求的余量当前定义为保持理想解码速度（即没有可见干扰）所需的余量，这是通过分析获得的。正常请求的余量为 0。Llumnix 还可以通过指定余量的大小来支持更多执行优先级。当高优先级请求的空间耗尽时，其他正常请求将被负载均衡策略迁移走，因为实例在总虚拟使用量方面已过载。</p>
+<p><strong>自动缩放</strong>。当一个新实例启动时，Llumnix 的负载均衡策略会自动将请求从其他实例迁移到该实例，从而使其饱和。当一个实例终止时，我们人为地添加一个虚拟使用量为无穷大的假请求（第7行），然后剩余的请求将被迁移到其他实例，如图9（d）所示。</p>
+<h4 id="调度策略"><a href="#调度策略" class="headerlink" title="调度策略"></a>调度策略</h4><p><strong>调度：</strong>Llumnix 首先调度具有较高调度优先级的新请求。在同一优先级内，采用简单的先到先得的顺序。在每个实例上，请求都按相同的顺序进行安排。 Llumnix 使用负载平衡策略将每个请求分派到最空闲的实例。我们引入了一个衡量实例空闲度的指标，定义为 F &#x3D; (M − ΣV )&#x2F;B，其中 M 是总内存，V 是每个请求的虚拟使用量，B 是批量大小。虽然 (M − ΣV ) 已经测量了可用空间，但我们将其除以批量大小，因为它决定了消耗速度，即每次迭代的新令牌数量。因此，该指标表明该批次仍可以运行多少次迭代。然后，Llumnix 将每个传入请求分派给空闲率最高的实例。由于请求的虚拟使用量可能大于物理使用量，因此 F 可能为负值，例如，当存在排队请求或高优先级请求时。这种负自由度值有助于 Llumnix 自动将此类实例视为过载，并更愿意将请求分派到其他实例。自由度指标还指导迁移和自动缩放，如下所示。</p>
+<p><strong>迁移。</strong> Llumnix 定期触发迁移策略。在每一轮中，Llumnix 通过分别选择释放的资源值小于或大于给定阈值的实例来选择源实例和目标实例的候选集。 Llumnix 通过重复选择具有最低和最高自由度值的两个实例来对两个集合中的实例进行配对，然后将它们设置为相应的状态。然后，每个源实例的 llumlet 开始连续将请求迁移到目标，直到不再设置为源状态。 llumlet 在选择要迁移的请求时会优先选择<strong>优先级较低且序列长度较短</strong>的请求。在下一轮中，如果迁移过程中的实例不再超出阈值，Llumnix将取消设置迁移状态，迁移将停止。</p>
+<p><strong>自动缩放。</strong> Llumnix 根据集群负载（即跨实例的正常优先级的平均空闲度）来缩放实例。该策略将平均空闲度维持在 [x, y] 范围内，并在一段时间内空闲度小于 x 或大于 y 时分别添加或终止实例。 Llumnix 选择运行请求最少的实例进行终止。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p><strong>多实例服务。</strong> Llumnix 将后端的多个实例和其他组件实例化为 Ray [42] actor。 Ray 的 Python 原生分布式运行时能够以简单高效的方式在这些参与者之间进行细粒度的协调。 Llumnix 还启动了一组请求前端参与者，公开 OpenAI 风格的 API 端点 [48]。虽然请求可以跨后端实例迁移，但生成的令牌总会被转发到前端，然后返回给最终用户，从而保证 API 服务的稳定。</p>
+<p><strong>KV缓存传输</strong>。我们使用 Gloo 集体通信库 [5]（Send&#x2F;Recv 原语）在迁移期间进行 KV 缓存传输。一个潜在的替代方案是 NCCL [1]，它在 GPU 上通常比 Gloo 更快，但已在分布式推理通信中采用。然而，Llumnix 需要在推理的同时迁移请求，以最大程度地减少停机时间，但已知 <strong>NCCL 的并发调用是不安全的</strong> [45]。流水线迁移设计使我们能够使用 Gloo，同时保持可忽略不计的停机时间。使用Gloo需要在CPU和GPU内存之间复制KV缓存，这是在另一个CUDA流中完成的，以避免阻塞推理计算。请注意，在典型的部署中，通信密集型张量并行性仅限于单台机器的高速传输[44]。在这种情况下，实例（机器）之间的迁移不会干扰张量并行推理。</p>
+<p><strong>容错性。</strong> Llumnix为每个组件提供容错能力，以保证服务的高可用性。当全局调度器发生故障时，Llumnix 会暂时回退到调度器绕过模式，从而不会影响服务可用性：即请求前端使用简单的规则直接将请求分派到某些实例，并且禁用迁移。当实例（或并置的 llumlet）失败时，在其上运行的请求将被中止。特别是，失败实例上正在进行的迁移也将被中止（正在迁移的请求不一定会中止，具体取决于其源实例是否健康），这是由握手过程处理的。这些失败的 Actor 将由 Ray 自动重新启动，之后服务可以恢复到正常状态。</p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>我们使用真实模型和各种工作负载在 16-GPU 集群上评估 Llumnix。总体而言，我们的主要发现包括： </p>
+<ul>
+<li><p>Llumnix 为正在迁移的请求引入了近乎零的停机时间，为其他正在运行的请求带来了近乎零的开销。</p>
+</li>
+<li><p>Llumnix 通过碎片整理，在 16 个 LLaMA-7B 实例上将预填充延迟比 INFaaS 提高了 15 倍&#x2F;7.7 倍（P99&#x2F;平均）</p>
+</li>
+<li><p>Llumnix 还通过减少抢占将 P99 解码延迟提高了 2 倍。 </p>
+</li>
+<li><p>Llumnix 通过减少排队延迟和加速执行，将高优先级请求的延迟提高高达 1.5 倍，同时保持普通请求类似的性能。</p>
+</li>
+<li><p>Llumnix 可节省高达 36% 的成本，同时通过高效的自动扩展保持类似的 P99 延迟。</p>
+</li>
+</ul>
+
       
     </div>
 
@@ -745,6 +1045,13 @@
 
       <time title="Created: 2024-10-23 17:31:29" itemprop="dateCreated datePublished" datetime="2024-10-23T17:31:29+08:00">2024-10-23</time>
     </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-01-29 22:28:32" itemprop="dateModified" datetime="2025-01-29T22:28:32+08:00">2025-01-29</time>
+    </span>
 
   
     <span class="post-meta-break"></span>
@@ -753,7 +1060,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>0</span>
+      <span>113</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
@@ -771,7 +1078,19 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          
+          <h3 id="hexo操作小结"><a href="#hexo操作小结" class="headerlink" title="hexo操作小结"></a>hexo操作小结</h3><ul>
+<li><code>hexo clean &amp;&amp; hexo g &amp;&amp; hexo d</code>清理现有缓存-生成新内容-部署</li>
+<li><code>hexo new</code>新建页面</li>
+</ul>
+<h3 id="页面排版"><a href="#页面排版" class="headerlink" title="页面排版"></a>页面排版</h3><p>示例：</p>
+<p>categories:</p>
+<ul>
+<li>[论文,大模型]<br>tags:</li>
+<li>调度系统  </li>
+<li>科研  </li>
+<li>大模型</li>
+</ul>
+
       
     </div>
 
@@ -1012,7 +1331,7 @@
 
   <div class="copyright">
     &copy; 
-    <span itemprop="copyrightYear">2024</span>
+    <span itemprop="copyrightYear">2025</span>
     <span class="with-love">
       <i class="fa fa-heart"></i>
     </span>
@@ -1023,13 +1342,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">48k</span>
+    <span title="Word count total">59k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">43 mins.</span>
+    <span title="Reading time total">54 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">

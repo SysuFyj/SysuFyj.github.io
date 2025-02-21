@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="[TOC] Transformer基本结构 https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;338817680 整体架构可以被看作是一定层的encoder+decoder  词的向量化    词Embedding包括查词表等方式，把词语本身转化为向量，位置embedding加入了词再序列中的位置信息，简单相加可得到输出。   传入encoder之后，输出维度一致的编码矩阵   encod">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Transformer+cuda学习">
+<meta property="og:url" content="http://example.com/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Ringo的博客">
+<meta property="og:description" content="[TOC] Transformer基本结构 https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;338817680 整体架构可以被看作是一定层的encoder+decoder  词的向量化    词Embedding包括查词表等方式，把词语本身转化为向量，位置embedding加入了词再序列中的位置信息，简单相加可得到输出。   传入encoder之后，输出维度一致的编码矩阵   encod">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-8b442ffd03ea0f103e9acc37a1db910a_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f6380627207ff4d1e72addfafeaff0bb_r.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9699a37b96c2b62d22b312b5e1863acd_r.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9caab2c9a00f6872854fb89278f13ee1_r.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-27822b2292cd6c38357803093bea5d0e_r.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-6bdaf739fd6b827b2087b4e151c560f4_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0203e83066913b53ec6f5482be092aa1_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-a4b35db50f882522ee52f61ddd411a5a_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-58f916c806a6981e296a7a699151af87_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-335cfa1b345bdd5cf1e212903bb9b185_1440w.png">
+<meta property="og:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0938aa45a288b5d6bef6487efe53bd9d_1440w.png">
+<meta property="article:published_time" content="2025-02-21T05:06:58.000Z">
+<meta property="article:modified_time" content="2025-02-21T09:19:00.338Z">
+<meta property="article:author" content="Ringo.fu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png">
+
+
+<link rel="canonical" href="http://example.com/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/","path":"2025/02/21/Transformer-cuda学习/","title":"Transformer+cuda学习"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Transformer+cuda学习 | Ringo的博客</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ringo的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">Archives</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">Categories</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Transformer%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">Transformer基本结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">整体架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Transformer%E8%BE%93%E5%85%A5"><span class="nav-number">1.2.</span> <span class="nav-text">Transformer输入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="nav-number">1.3.</span> <span class="nav-text">自注意力机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%AC%E5%BC%8F%E8%AE%A1%E7%AE%97"><span class="nav-number">1.3.1.</span> <span class="nav-text">公式计算</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="nav-number">1.3.2.</span> <span class="nav-text">多头注意力</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#encoder%E7%BB%93%E6%9E%84"><span class="nav-number">1.4.</span> <span class="nav-text">encoder结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Add-Norm"><span class="nav-number">1.4.1.</span> <span class="nav-text">Add&amp;Norm</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FFN%E5%B1%82"><span class="nav-number">1.4.2.</span> <span class="nav-text">FFN层</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#decoder%E7%BB%93%E6%9E%84"><span class="nav-number">1.5.</span> <span class="nav-text">decoder结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="nav-number">1.5.1.</span> <span class="nav-text">第一个多头注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="nav-number">1.5.2.</span> <span class="nav-text">第二个多头注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E7%BB%88%E4%BF%A1%E6%81%AF"><span class="nav-number">1.5.3.</span> <span class="nav-text">最终信息</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ringo.fu</p>
+  <div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Transformer+cuda学习 | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Transformer+cuda学习
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-02-21 13:06:58 / Modified: 17:19:00" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">cuda学习</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/Transformer/" itemprop="url" rel="index"><span itemprop="name">Transformer</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>2.3k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>2 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>[TOC]</p>
+<h2 id="Transformer基本结构"><a href="#Transformer基本结构" class="headerlink" title="Transformer基本结构"></a>Transformer基本结构</h2><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png" alt="Transformer,_full_architecture"></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/338817680">https://zhuanlan.zhihu.com/p/338817680</a></p>
+<h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><p>可以被看作是一定层的encoder+decoder</p>
+<ol>
+<li>词的向量化</li>
+</ol>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r.png" alt="v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r"></p>
+<ul>
+<li>词Embedding包括查词表等方式，把词语本身转化为向量，位置embedding加入了词再序列中的位置信息，简单相加可得到输出。</li>
+</ul>
+<ol start="2">
+<li>传入encoder之后，输出维度一致的编码矩阵</li>
+</ol>
+<ul>
+<li>encoder主要是通过FFN和多头注意力表示提取出词的位置信息。</li>
+</ul>
+<ol start="3">
+<li>输出decoder中，decoder依据翻译过的单词1~i预测i+1</li>
+</ol>
+<h3 id="Transformer输入"><a href="#Transformer输入" class="headerlink" title="Transformer输入"></a>Transformer输入</h3><ol>
+<li>单词embedding</li>
+</ol>
+<p>单词的 Embedding 有很多种方式可以获取，例如可以采用 Word2Vec、Glove 等算法预训练得到，也可以在 Transformer 中训练得到。</p>
+<ol start="2">
+<li>位置embedding</li>
+</ol>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-8b442ffd03ea0f103e9acc37a1db910a_1440w.png" alt="v2-8b442ffd03ea0f103e9acc37a1db910a_1440w"></p>
+<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f6380627207ff4d1e72addfafeaff0bb_r.png" alt="v2-f6380627207ff4d1e72addfafeaff0bb_r"></p>
+<h4 id="公式计算"><a href="#公式计算" class="headerlink" title="公式计算"></a>公式计算</h4><p>通过输入X乘以对应的权重矩阵得到具体的Q K V</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1.png" alt="v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1"></p>
+<p>之后可以计算出注意力输出</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9699a37b96c2b62d22b312b5e1863acd_r.png" alt="v2-9699a37b96c2b62d22b312b5e1863acd_r"></p>
+<p>计算Q和K中每一行向量的内积，QKT相乘后的n*n矩阵中n为单词数，这个矩阵可以表示<strong>单词之间</strong>的attention的强度，最后再使用softmax归一化，每一行的和都变成1.再和V相乘得到最终不同的attenton分数</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9caab2c9a00f6872854fb89278f13ee1_r.png" alt="v2-9caab2c9a00f6872854fb89278f13ee1_r"></p>
+<ul>
+<li>这里Q和K^T相乘，相当于把单词之间的注意力分数都算了出来。</li>
+<li>d_k可以避免分数过大导致的梯度消失问题，因此使用根号d_k稳定方差和数值范围（应该是向正态分布靠拢）</li>
+<li>Q和K表达的是词之间互相的关注程度，乘以V相当于加入了句子的输入信息。Q相当于当前的计算目标，k相当于其他目标。</li>
+</ul>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-27822b2292cd6c38357803093bea5d0e_r.png" alt="v2-27822b2292cd6c38357803093bea5d0e_r"></p>
+<ul>
+<li>最终输出的计算从语义上，而非从矩阵乘法的计算上得到的是每个单词对应的V的行信息乘以对应的注意力分数。</li>
+</ul>
+<h4 id="多头注意力"><a href="#多头注意力" class="headerlink" title="多头注意力"></a>多头注意力</h4><p>已经知道怎么通过 Self-Attention 计算得到输出矩阵 Z，而 Multi-Head Attention 是由多个 Self-Attention 组合形成的，下图是论文中 Multi-Head Attention 的结构图。</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-6bdaf739fd6b827b2087b4e151c560f4_1440w.png" alt="v2-6bdaf739fd6b827b2087b4e151c560f4_1440w"><br>计算出h个Z之后，多头注意力机制将其拼接后传入线形层，得到最终的输出Z，这时输出的Z与输入的X维度一致。</p>
+<ul>
+<li>为什么拼接但不相加？这样保留了更多语义没有把不同的头进行混合，效果更好。（tokenembdding混合形成的时候不相加是因为这样就太大了）</li>
+</ul>
+<h3 id="encoder结构"><a href="#encoder结构" class="headerlink" title="encoder结构"></a>encoder结构</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0203e83066913b53ec6f5482be092aa1_1440w.png" alt="v2-0203e83066913b53ec6f5482be092aa1_1440w"></p>
+<h4 id="Add-Norm"><a href="#Add-Norm" class="headerlink" title="Add&amp;Norm"></a>Add&amp;Norm</h4><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-a4b35db50f882522ee52f61ddd411a5a_1440w.png" alt="v2-a4b35db50f882522ee52f61ddd411a5a_1440w"></p>
+<p>其中 <strong>X</strong>表示 Multi-Head Attention 或者 Feed Forward 的输入，MultiHeadAttention(<strong>X</strong>) 和 FeedForward(<strong>X</strong>) 表示输出 (输出与输入 <strong>X</strong> 维度是一样的，所以可以相加)。</p>
+<ul>
+<li>Add这种方式类似残差连接，让网络只关注到当前差异的部分，解决遗忘的问题。</li>
+<li>Norm将神经元的输入转化成均值方差都为0和1的形式，可以加快收敛。（<strong>在每个样本的同一层神经元上计算均值和标准差</strong>，然后对其进行归一化，使其具有<strong>零均值</strong>和<strong>单位方差</strong>。）</li>
+</ul>
+<h4 id="FFN层"><a href="#FFN层" class="headerlink" title="FFN层"></a>FFN层</h4><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r.png" alt="v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r"></p>
+<ul>
+<li><p><strong>x</strong>：输入（通常是注意力机制的输出）。</p>
+</li>
+<li><p><strong>W1,b1W_1, b_1W1,b1</strong>：第一层的权重和偏置，作用是将输入从 <strong>dmodeld_{\text{model}}dmodel</strong> 维度扩展到 <strong>更高的维度（通常是 4 倍）</strong>。</p>
+</li>
+<li><p><strong>W2,b2W_2, b_2W2,b2</strong>：第二层的权重和偏置，作用是把数据降维回 dmodeld_{\text{model}}dmodel 维度。</p>
+</li>
+<li><p><strong>ReLU（或 GELU）</strong>：非线性激活函数，引入非线性能力，使模型能学习更复杂的特征。</p>
+</li>
+</ul>
+<p>作用类似CNN，提取非线性+高维特征</p>
+<h3 id="decoder结构"><a href="#decoder结构" class="headerlink" title="decoder结构"></a>decoder结构</h3><p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w.png" alt="v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w"></p>
+<p>上图红色部分为 Transformer 的 Decoder block 结构，与 Encoder block 相似，但是存在一些区别：</p>
+<ul>
+<li>包含两个 Multi-Head Attention 层。</li>
+<li>第一个 Multi-Head Attention 层采用了 Masked 操作。</li>
+<li>第二个 Multi-Head Attention 层的<strong>K, V</strong>矩阵使用 Encoder 的<strong>编码信息矩阵C</strong>进行计算，而<strong>Q</strong>使用上一个 Decoder block 的输出计算。</li>
+<li>最后有一个 Softmax 层计算下一个翻译单词的概率。</li>
+</ul>
+<h4 id="第一个多头注意力"><a href="#第一个多头注意力" class="headerlink" title="第一个多头注意力"></a>第一个多头注意力</h4><p>Decoder block 的第一个 Multi-Head Attention 采用了 Masked  操作，因为在翻译的过程中是顺序翻译的，即翻译完第 i 个单词，才可以翻译第 i+1 个单词。通过 Masked 操作可以防止第 i 个单词知道  i+1 个单词之后的信息。同时可以利用teaching forcing传入正确答案。<br><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-58f916c806a6981e296a7a699151af87_1440w.png" alt="v2-58f916c806a6981e296a7a699151af87_1440w"></p>
+<h4 id="第二个多头注意力"><a href="#第二个多头注意力" class="headerlink" title="第二个多头注意力"></a>第二个多头注意力</h4><p>Decoder block 第二个 Multi-Head Attention 变化不大， 主要的区别在于其中 Self-Attention 的 <strong>K, V</strong>矩阵不是使用 上一个 Decoder block 的输出计算的，而是使用 <strong>Encoder 的编码信息矩阵 C</strong> 计算的。</p>
+<p>根据 Encoder 的输出 <strong>C</strong>计算得到 <strong>K, V</strong>，根据上一个 Decoder block 的输出 <strong>Z</strong> 计算 <strong>Q</strong> (如果是第一个 Decoder block 则使用输入矩阵 <strong>X</strong> 进行计算)，后续的计算方法与之前描述的一致。</p>
+<p>这样做的好处是在 Decoder 的时候，每一位单词都可以利用到 Encoder 所有单词的信息 (这些信息无需 <strong>Mask</strong>)。</p>
+<ul>
+<li><strong>在训练时，模型依赖于正确的前 i个单词，并通过 Mask 限制未来的信息</strong>，这使得 Teacher Forcing 和 Mask 可以同时生效。测试的时候只有mask。</li>
+<li>直接作为输入X去乘以各个独立的Wq</li>
+</ul>
+<h4 id="最终信息"><a href="#最终信息" class="headerlink" title="最终信息"></a>最终信息</h4><p>Decoder block 最后的部分是利用 Softmax 预测下一个单词，在之前的网络层我们可以得到一个最终的输出 Z，因为 Mask 的存在，使得单词 0 的输出 Z0 只包含单词 0 的信息，如下：</p>
+<p><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-335cfa1b345bdd5cf1e212903bb9b185_1440w.png" alt="v2-335cfa1b345bdd5cf1e212903bb9b185_1440w"></p>
+<p>得到最终结果：<br><img src="/./source/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0938aa45a288b5d6bef6487efe53bd9d_1440w.png" alt="v2-0938aa45a288b5d6bef6487efe53bd9d_1440w"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="prev" title="Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记">
+                  <i class="fa fa-angle-left"></i> Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="Word count total">59k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">54 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
