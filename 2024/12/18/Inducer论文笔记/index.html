@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="[TOC] 论文1 目前基于提示的一个缺点是难以搜索正确的提示。为了打开“提示”的黑匣子，在这项工作中，我们建议将提示（无论是硬提示（明确、固定的输入）还是软提示（隐含的向量权重））视为核方法中的“诱导变量”。  这个内核视角解释了前缀调优的潜在机制，并激发了一种新方法——诱导调优。具体来说，与其他基于提示的方法一样，inducertuning 会冻结 PLM 中的所有原始参数；当计算每层中某个输">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Inducer论文笔记">
+<meta property="og:url" content="http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Ringo的博客">
+<meta property="og:description" content="[TOC] 论文1 目前基于提示的一个缺点是难以搜索正确的提示。为了打开“提示”的黑匣子，在这项工作中，我们建议将提示（无论是硬提示（明确、固定的输入）还是软提示（隐含的向量权重））视为核方法中的“诱导变量”。  这个内核视角解释了前缀调优的潜在机制，并激发了一种新方法——诱导调优。具体来说，与其他基于提示的方法一样，inducertuning 会冻结 PLM 中的所有原始参数；当计算每层中某个输">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134651623.png">
+<meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134814480.png">
+<meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218161702839.png">
+<meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218162629774.png">
+<meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163341410.png">
+<meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163830228.png">
+<meta property="article:published_time" content="2024-12-18T04:13:05.000Z">
+<meta property="article:modified_time" content="2025-02-21T09:34:48.218Z">
+<meta property="article:author" content="Ringo.fu">
+<meta property="article:tag" content="前缀调优">
+<meta property="article:tag" content="nlp">
+<meta property="article:tag" content="GPT2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134651623.png">
+
+
+<link rel="canonical" href="http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/","path":"2024/12/18/Inducer论文笔记/","title":"Inducer论文笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Inducer论文笔记 | Ringo的博客</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ringo的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">Archives</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">Categories</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%871"><span class="nav-number">1.</span> <span class="nav-text">论文1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.1.</span> <span class="nav-text">相关工作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Transformer%E5%B1%82%E9%A2%84%E7%9F%A5%E8%AF%86"><span class="nav-number">1.1.1.</span> <span class="nav-text">Transformer层预知识</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E9%AB%98%E6%95%88%E7%9A%84%E8%AF%B1%E5%AF%BC%E5%99%A8%E8%B0%83%E6%95%B4"><span class="nav-number">1.2.</span> <span class="nav-text">参数高效的诱导器调整</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%9C%E4%B8%BA%E6%A0%B8%E4%BC%B0%E8%AE%A1%E5%99%A8%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="nav-number">1.2.1.</span> <span class="nav-text">作为核估计器的注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BC%80%E8%B0%83%E4%BC%98%E5%92%8C%E8%AF%B1%E5%AF%BC%E5%8F%98%E9%87%8F%E7%9A%84%E5%BC%95%E5%85%A5"><span class="nav-number">1.2.2.</span> <span class="nav-text">前缀调优和诱导变量的引入</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AF%B1%E5%AF%BC%E7%82%B9%E6%96%B9%E6%B3%95%E4%B8%AD%E8%89%AF%E5%A5%BD%E5%BC%95%E5%AF%BC%E6%8E%A8%E7%90%86%E8%BE%93%E5%87%BA%E7%9A%84%E6%9C%BA%E5%88%B6"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">诱导点方法中良好引导推理输出的机制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">1.3.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%82%E5%BA%94%E6%80%A7Inducer%E3%80%90%E5%88%9B%E6%96%B0%E7%82%B9%E3%80%91"><span class="nav-number">1.3.1.</span> <span class="nav-text">适应性Inducer【创新点】</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#adapter-inducer%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.3.2.</span> <span class="nav-text">adapter-inducer设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#adapter-%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.3.</span> <span class="nav-text">adapter-结构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%A4%A7%E5%80%BC%E7%9A%84%E8%8C%83%E5%9B%B4%E3%80%90%E5%88%9B%E6%96%B0%E7%82%B9%E3%80%91"><span class="nav-number">1.4.</span> <span class="nav-text">扩大值的范围【创新点】</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E7%A4%BA%E7%9A%84%E6%BD%9C%E5%9C%A8%E5%B1%80%E9%99%90%E6%80%A7%E3%80%90%E5%88%9B%E6%96%B0%E7%82%B9%E3%80%91"><span class="nav-number">1.5.</span> <span class="nav-text">提示的潜在局限性【创新点】</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E7%BB%88%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.6.</span> <span class="nav-text">最终模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">1.7.</span> <span class="nav-text">实验</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ringo.fu</p>
+  <div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Inducer论文笔记 | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Inducer论文笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-12-18 12:13:05" itemprop="dateCreated datePublished" datetime="2024-12-18T12:13:05+08:00">2024-12-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-02-21 17:34:48" itemprop="dateModified" datetime="2025-02-21T17:34:48+08:00">2025-02-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>4 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>[TOC]</p>
+<h2 id="论文1"><a href="#论文1" class="headerlink" title="论文1"></a>论文1</h2><ul>
+<li>目前基于提示的一个缺点是难以搜索正确的提示。为了打开“提示”的黑匣子，在这项工作中，我们建议将提示（无论是硬提示（明确、固定的输入）还是软提示（隐含的向量权重））视为核方法中的“诱导变量”。</li>
+</ul>
+<p>这个内核视角解释了前缀调优的潜在机制，并激发了一种新方法——诱导调优。具体来说，与其他基于提示的方法一样，inducertuning 会冻结 PLM 中的所有原始参数；当计算每层中某个输入标记的注意力输出时，诱导器调整利用靠近查询向量的点作为“诱导器”。这种独特的“软提示”简化了对适当提示的搜索，并在“提示”和“适配器调整”之间建立了新的联系。总之，这项工作的贡献有三方面： 1 我们解释了前缀调整作为内核学习中的诱导变量的基本机制。 2 我们提出了一种新的参数高效自适应技术，即诱导器调整，以进一步改进前缀调整。 3 通过全面的实证研究，我们验证了我们提出的方法可以缩小相对较小的 PLM 上“前缀调整”和“微调”之间的差距，并为连续提示调整的潜力提供更严格的下限。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><p>adapter tunning：在模型前加入一个可训练的MLP层</p>
+<p>prompt-tuning：提示将特定于任务的指令添加到任务输入之前，最初在 Brown 等人中进行了演示。 （2020）。由于手动提示依赖于反复试验，其他人建议搜索算法来指定词汇表中所有标记之间的提示。 Prompt-tuning (Lester et al., 2021) 和 P-tuning (Liu et al., 2021b) 通过使用可训练的“软提示”消除了提示的词汇限制。</p>
+<p>上述方法中的提示仅插入到PLM的底部嵌入层中，而Prefix-tuning（Li和Liang，2021；Liu等人，2021a）则在所有Transformer层中添加软提示，以进一步提高提示能力。尽管有效，但软提示的正确初始化仍然具有挑战性。为了缓解这个问题，Li and Liang (2021) 使用了额外的 MLP 来重新参数化每层中的提示，从而添加更多需要训练的参数；</p>
+<p>相比之下，尽管适配器具有与前缀调整类似的表达形式（He et al., 2021a），但适配器调整只需要常规初始化。我们推测适配器的残差形式可以缓解初始化问题，因为新模型中每一层的输出将以冻结 PLM 中的输出为中心，并且残差形式有助于梯度反向传播，就像跳跃连接一样。我们依靠这种直觉并利用适配器的上述优点来指导我们提出的感应器调谐的设计</p>
+<h4 id="Transformer层预知识"><a href="#Transformer层预知识" class="headerlink" title="Transformer层预知识"></a>Transformer层预知识</h4><p>根据输入得到Q K V ，再根据Q K V计算总的注意力。</p>
+<h3 id="参数高效的诱导器调整"><a href="#参数高效的诱导器调整" class="headerlink" title="参数高效的诱导器调整"></a>参数高效的诱导器调整</h3><p>核函数：将低维特征映射到高维空间，以更好地完成分类等任务。【<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1059190%E3%80%91">https://cloud.tencent.com/developer/article/1059190】</a></p>
+<h4 id="作为核估计器的注意力"><a href="#作为核估计器的注意力" class="headerlink" title="作为核估计器的注意力"></a>作为核估计器的注意力</h4><p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134651623.png" alt="image-20241218134651623"></p>
+<p>注意力表示可以看作是通过支持点{Kj}jn&#x3D;1将输入查询向量Qi修改为f(Qi)</p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134814480.png" alt="image-20241218134814480"></p>
+<p>k为核函数</p>
+<h4 id="前缀调优和诱导变量的引入"><a href="#前缀调优和诱导变量的引入" class="headerlink" title="前缀调优和诱导变量的引入"></a>前缀调优和诱导变量的引入</h4><p>前缀调整改变每一层的注意力输出。具体来说，它将长度为 l 的前缀向量 Pk, Pv ∈ Rl×p 分别添加到 K 和 V 之前；对于某个查询标记 Qi（查询矩阵 Q 的第 i 行），其注意力输出 f (Qi) :&#x3D; Attn(Qi, K, V ) 更新为 f (Qi) 和 Attn( Qi, Pk, Pv)。</p>
+<p>这两类虚拟token扮演着不同的角色。虚拟向量 Pk 适用于经验核矩阵部分，并且可以改变注意力分数（从而改变 Attn(Qi, Pk, Pv) 的权重）；而Pv在value部分生效。前缀调整对这两个虚拟向量进行建模可能不是最佳选择。在第 4.3 节中，我们将展示诱导器调整如何通过不同的残差形式解决这两个部分。</p>
+<p>我们建议可以通过内核学习文献中引入变诱导量的概念来进一步理解前缀调整的机制。核学习中的许多计算方法利用一小组支持点（诱导变量）来提高推理性能（Musco 和 Musco，2017；Chen 和 Yang，2021）。 Snelson 和 Ghahramani (2005) 特别将诱导变量视为辅助伪输入，并使用连续优化来推断它们，这与前缀调整类似。我们强调，从表面上看，支持点方法的主<strong>要特点是通过少量的点来表示大量的训练样本，从而降低计算成本</strong>；然而，这里我们的目标是<strong>利用诱导变量的机制来很好地引导估</strong>计：我们试图实现的目标是通过使前缀更好地调节注意力输出来加强前缀调整。（通过前缀（类似于诱导点）调整模型的注意力输出，使得模型能够更好地对上下文进行建模。）</p>
+<h5 id="诱导点方法中良好引导推理输出的机制"><a href="#诱导点方法中良好引导推理输出的机制" class="headerlink" title="诱导点方法中良好引导推理输出的机制"></a>诱导点方法中良好引导推理输出的机制</h5><p>从概念上讲，归纳变量有助于推理，因为它们可以表示查询输入的分布并引导内核方法，而无需更改正在使用的内核。特别是，我们考虑无约束诱导点 XM 的分布模式（Snelson 和 Ghahramani，2005，图 1）。我们观察到它们中的大多数都接近测试示例 X*，并且在新的估计中（Snelson 和 Ghahramani，2005，方程（8）），诱导器 XM 将通过核方法中的权重分配机制获得很大的权重（核方法可以分配样本的权重作为注意力（Choromanski et al., 2020; Chen et al., 2021; Tsai et al., 2019）；为了诱导变量接近查询，它们会自动受到更多关注），从而有效地调节输出。</p>
+<p><strong>翻译：</strong>靠近测试点的诱导点可以得到更大的权重（并由核函数进行分配），距离测试点越近的诱导点，权重越高。通过少量的诱导点，可以降低计算成本，同时保持推断的质量。（这不是拿测试集投入训练吗）</p>
+<p>从这个机制中，我们得出一个归纳结论“<strong>前缀应该接近查询</strong>”（这在之前的前缀调优方法中没有强制执行），并相应地提出 Inducer-Tuning。我们注意到，由于我们并不追求引入变量的最初目标，即降低计算成本，而是进一步利用诱导变量的机制并改进前缀调整。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>Inducer-tuning 遵循与 prefix-tuning 相同的设计原则，通过插入虚拟标记（向量）来调节注意力输出。然而，与前缀调整不同，我们的虚拟token不在输入序列之间共享。Inducer-tuning 还结合了残差形式的优点，以简化初始化并消除前缀调整中的重新参数化技巧。</p>
+<p>具体来说，我们进行以下修改： </p>
+<ol>
+<li>“inducer”适应并针对每个输入标记进行定制，以增强新注意力输出的表达能力。（创新点1）</li>
+<li>我们建议将虚拟向量以残差形式建模为适配器，这使得最终的注意力输出也是残差形式。我们现在深入讨论修改背后的直觉。（创新点2）</li>
+</ol>
+<h4 id="适应性Inducer【创新点】"><a href="#适应性Inducer【创新点】" class="headerlink" title="适应性Inducer【创新点】"></a>适应性Inducer【创新点】</h4><p>固定的prefix-tuning有以下缺点：</p>
+<p><strong>输入查询分布的动态变化</strong>：</p>
+<ul>
+<li>固定的前缀可能无法涵盖所有输入查询分布，导致前缀在一些输入场景中失去有效性。</li>
+<li>这意味着固定前缀无法始终像核方法中的诱导变量那样高效调节推断输出。</li>
+</ul>
+<p><strong>长输入的特殊挑战</strong>：</p>
+<ul>
+<li>对于长输入，可能存在某些查询向量（query vectors）与固定前缀中的虚拟向量（virtual vectors）距离较远（以 L2 距离为度量）。</li>
+<li>这种距离差异会导致固定前缀无法有效调节注意力输出（attention output），从而影响模型的性能。</li>
+</ul>
+<h4 id="adapter-inducer设计"><a href="#adapter-inducer设计" class="headerlink" title="adapter-inducer设计"></a>adapter-inducer设计</h4><p>为了缓解固定前缀的局限性，提出了一种新的方法：对于每个查询Q_i，选取一个与其接近的虚拟key向量作为前缀。这种自适应建模希望能提高模型在推断时的表现，尤其是在处理动态查询和长输入时。</p>
+<p>虚拟的K和V的设计机制与内核估计器一致：值 V 独立于查询序列 Q 并与支持点 K 相关。具体来说，考虑到我们上面的设计，虚拟K向量接近 Qi（我们将虚拟K向量作为输入查询向量 Qi 的变换），我们建议将虚拟V向量相应地建模为 Qi 的映射，这意味着虚拟V向量也自适应输入的Q向量。</p>
+<h4 id="adapter-结构"><a href="#adapter-结构" class="headerlink" title="adapter-结构"></a>adapter-结构</h4><p>为了稳定训练过程，我们建议将适配器结构合并到虚拟K&#x2F;V向量的建模中。具体来说，对于第i个标记Qi（在某个头部），我们分别将相应的虚拟拟K&#x2F;V向量表示为</p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218161702839.png" alt="image-20241218161702839"></p>
+<p>其中 MLPk&#x2F;v 都将返回与输入 Qi 具有相同维度的向量。</p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218162629774.png" alt="image-20241218162629774"></p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163341410.png" alt="image-20241218163341410"><br>这里面额度Pkj和Pvi是根据Q动态定制的，而非一组固定的共享变量。</p>
+<h3 id="扩大值的范围【创新点】"><a href="#扩大值的范围【创新点】" class="headerlink" title="扩大值的范围【创新点】"></a>扩大值的范围【创新点】</h3><p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163830228.png" alt="image-20241218163830228"></p>
+<p>将前缀向量 Pv,i’s 与 V (h)W (h) o 中的行对齐，而不是像前缀调整中那样仅使用 V (h) 。扩展 Pv,i 的详细实现在附录 B.3 中提供。我们可以通过第 6.2 节中的<strong>消融研究来验证此扩展的改进</strong>。</p>
+<h3 id="提示的潜在局限性【创新点】"><a href="#提示的潜在局限性【创新点】" class="headerlink" title="提示的潜在局限性【创新点】"></a>提示的潜在局限性【创新点】</h3><p>基于提示的方法的潜在限制来自于冻结的权重矩阵 Wq 和 Wk（线性变换矩阵）。对于头部中的所有 n(n + l) 对查询&#x2F;键向量，大多数对（对应于 QKT 中的元素）具有不变性。在提示调优（prompt-based methods）中，这些矩阵通常在预训练阶段已经学习好，并在下游任务中保持<strong>冻结</strong>，即不更新。</p>
+<p>在注意力机制中，查询和键的交互（通过 QK^T 计算）决定了注意力分布。冻结 Wq和 Wk 意味着下游任务无法调整这些交互的规则，所有查询 &#x2F; 键向量对的交互模式是固定的。</p>
+<p>在每个注意力头中，有 n(n+l) 个查询 &#x2F; 键向量对（其中 n 是查询序列长度，l是前缀长度）。由于 Wq和 Wk冻结，这些向量对的<strong>位置交互关系</strong>（pairwise positional interactions）是<strong>不变的</strong>。</p>
+<p>数据集通常与预训练任务不同，导致查询向量 Q 和键向量 K 的分布发生显著变化。另外，提示调优引入的虚拟标记（virtual tokens）也会改变输入的特性。冻结的 Wq 和 Wk无法适应这些变化，不一定能有效地反映下游任务中查询和键的关系。冻结权重的设计没有办法确保 Q,K的交互模式在新的任务中依然合理。</p>
+<p>这段话建议通过 LoRA 机制对 WqW_qWq 进行补充，使其在训练时具有一定的调节能力。</p>
+<ul>
+<li><p><strong>LoRA 的公式</strong>：</p>
+<ul>
+<li><p>LoRA 提出的更新形式为：</p>
+<p>Wq←Wq+BA</p>
+<p>其中：</p>
+<ul>
+<li>Wq：预训练得到的查询向量生成矩阵，保持冻结，不会被直接训练。</li>
+<li>B∈RNhp×r：一个低秩矩阵，可训练。</li>
+<li>A∈Rr×Nhp：另一个低秩矩阵，可训练。</li>
+<li>rrr：一个远小于 NhpN_{\text{hp}}Nhp 的秩，确保额外引入的参数规模较小。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>核心思想</strong>：<br>LoRA 通过将训练限制在 B 和 A 这两个小矩阵上，以低秩形式对 Wq​ 进行调整。这种方式既保留了原始 Wq​ 的大部分结构，又引入了适应性调节能力。</p>
+</li>
+</ul>
+<h3 id="最终模型"><a href="#最终模型" class="headerlink" title="最终模型"></a>最终模型</h3><p>最终模型。我们最终提出的模型进行如下推理： </p>
+<ol>
+<li>在每一层中，我们首先应用方程（10）来更新 Wq，然后再获得 Q、K、V ；</li>
+<li>构造诱导子矩阵 Pk &#x3D; Q + MLPk(Q)，并计算第 i 个分量的向量 ai &#x3D; ⟨Qi, Pk,i⟩；基于Q这个询问的诱导信号。</li>
+<li>计算矩阵乘积[a; QKT ]&#x2F;√p，然后对乘积执行softmax——第一列（表示为p）是等式（7）中的权重λi； </li>
+<li>得到 ̄ f (Q) 如式（9）所示，并返回 ̄ f (Q) + diag(p)MLPv(Q) （对应于式（8））作为完整的注意力输出。</li>
+</ol>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>主要进行自然语言生成实验。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%89%8D%E7%BC%80%E8%B0%83%E4%BC%98/" rel="tag"># 前缀调优</a>
+              <a href="/tags/nlp/" rel="tag"># nlp</a>
+              <a href="/tags/GPT2/" rel="tag"># GPT2</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="prev" title="Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记">
+                  <i class="fa fa-angle-left"></i> Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" rel="next" title="cuda基础">
+                  cuda基础 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="Word count total">70k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">1:04</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

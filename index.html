@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives">
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -158,7 +158,7 @@
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -212,9 +212,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2025-02-21 13:06:58 / Modified: 17:30:16" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
+      <time title="Created: 2025-02-21 13:06:58" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-03-03 20:54:29" itemprop="dateModified" datetime="2025-03-03T20:54:29+08:00">2025-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -256,93 +262,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>[TOC]</p>
-<h2 id="Transformer基本结构"><a href="#Transformer基本结构" class="headerlink" title="Transformer基本结构"></a>Transformer基本结构</h2><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png" alt="Transformer,_full_architecture"></p>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/338817680">https://zhuanlan.zhihu.com/p/338817680</a></p>
-<h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><p>可以被看作是一定层的encoder+decoder</p>
-<ol>
-<li>词的向量化</li>
-</ol>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r.png" alt="v2-7dd39c44b0ae45d31a3ae7f39d3f883f_r"></p>
-<ul>
-<li>词Embedding包括查词表等方式，把词语本身转化为向量，位置embedding加入了词再序列中的位置信息，简单相加可得到输出。</li>
-</ul>
-<ol start="2">
-<li>传入encoder之后，输出维度一致的编码矩阵</li>
-</ol>
-<ul>
-<li>encoder主要是通过FFN和多头注意力表示提取出词的位置信息。</li>
-</ul>
-<ol start="3">
-<li>输出decoder中，decoder依据翻译过的单词1~i预测i+1</li>
-</ol>
-<h3 id="Transformer输入"><a href="#Transformer输入" class="headerlink" title="Transformer输入"></a>Transformer输入</h3><ol>
-<li>单词embedding</li>
-</ol>
-<p>单词的 Embedding 有很多种方式可以获取，例如可以采用 Word2Vec、Glove 等算法预训练得到，也可以在 Transformer 中训练得到。</p>
-<ol start="2">
-<li>位置embedding</li>
-</ol>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-8b442ffd03ea0f103e9acc37a1db910a_1440w.png" alt="v2-8b442ffd03ea0f103e9acc37a1db910a_1440w"></p>
-<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f6380627207ff4d1e72addfafeaff0bb_r.png" alt="v2-f6380627207ff4d1e72addfafeaff0bb_r"></p>
-<h4 id="公式计算"><a href="#公式计算" class="headerlink" title="公式计算"></a>公式计算</h4><p>通过输入X乘以对应的权重矩阵得到具体的Q K V</p>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1.png" alt="v2-4f4958704952dcf2c4b652a1cd38f32e_1440w-1"></p>
-<p>之后可以计算出注意力输出</p>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9699a37b96c2b62d22b312b5e1863acd_r.png" alt="v2-9699a37b96c2b62d22b312b5e1863acd_r"></p>
-<p>计算Q和K中每一行向量的内积，QKT相乘后的n*n矩阵中n为单词数，这个矩阵可以表示<strong>单词之间</strong>的attention的强度，最后再使用softmax归一化，每一行的和都变成1.再和V相乘得到最终不同的attenton分数</p>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-9caab2c9a00f6872854fb89278f13ee1_r.png" alt="v2-9caab2c9a00f6872854fb89278f13ee1_r"></p>
-<ul>
-<li>这里Q和K^T相乘，相当于把单词之间的注意力分数都算了出来。</li>
-<li>d_k可以避免分数过大导致的梯度消失问题，因此使用根号d_k稳定方差和数值范围（应该是向正态分布靠拢）</li>
-<li>Q和K表达的是词之间互相的关注程度，乘以V相当于加入了句子的输入信息。Q相当于当前的计算目标，k相当于其他目标。</li>
-</ul>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-27822b2292cd6c38357803093bea5d0e_r.png" alt="v2-27822b2292cd6c38357803093bea5d0e_r"></p>
-<ul>
-<li>最终输出的计算从语义上，而非从矩阵乘法的计算上得到的是每个单词对应的V的行信息乘以对应的注意力分数。</li>
-</ul>
-<h4 id="多头注意力"><a href="#多头注意力" class="headerlink" title="多头注意力"></a>多头注意力</h4><p>已经知道怎么通过 Self-Attention 计算得到输出矩阵 Z，而 Multi-Head Attention 是由多个 Self-Attention 组合形成的，下图是论文中 Multi-Head Attention 的结构图。</p>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-6bdaf739fd6b827b2087b4e151c560f4_1440w.png" alt="v2-6bdaf739fd6b827b2087b4e151c560f4_1440w"><br>计算出h个Z之后，多头注意力机制将其拼接后传入线形层，得到最终的输出Z，这时输出的Z与输入的X维度一致。</p>
-<ul>
-<li>为什么拼接但不相加？这样保留了更多语义没有把不同的头进行混合，效果更好。（tokenembdding混合形成的时候不相加是因为这样就太大了）</li>
-</ul>
-<h3 id="encoder结构"><a href="#encoder结构" class="headerlink" title="encoder结构"></a>encoder结构</h3><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0203e83066913b53ec6f5482be092aa1_1440w.png" alt="v2-0203e83066913b53ec6f5482be092aa1_1440w"></p>
-<h4 id="Add-Norm"><a href="#Add-Norm" class="headerlink" title="Add&amp;Norm"></a>Add&amp;Norm</h4><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-a4b35db50f882522ee52f61ddd411a5a_1440w.png" alt="v2-a4b35db50f882522ee52f61ddd411a5a_1440w"></p>
-<p>其中 <strong>X</strong>表示 Multi-Head Attention 或者 Feed Forward 的输入，MultiHeadAttention(<strong>X</strong>) 和 FeedForward(<strong>X</strong>) 表示输出 (输出与输入 <strong>X</strong> 维度是一样的，所以可以相加)。</p>
-<ul>
-<li>Add这种方式类似残差连接，让网络只关注到当前差异的部分，解决遗忘的问题。</li>
-<li>Norm将神经元的输入转化成均值方差都为0和1的形式，可以加快收敛。（<strong>在每个样本的同一层神经元上计算均值和标准差</strong>，然后对其进行归一化，使其具有<strong>零均值</strong>和<strong>单位方差</strong>。）</li>
-</ul>
-<h4 id="FFN层"><a href="#FFN层" class="headerlink" title="FFN层"></a>FFN层</h4><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r.png" alt="v2-47b39ca4cc3cd0be157d6803c8c8e0a1_r"></p>
-<ul>
-<li><p><strong>x</strong>：输入（通常是注意力机制的输出）。</p>
-</li>
-<li><p><strong>W1,b1W_1, b_1W1,b1</strong>：第一层的权重和偏置，作用是将输入从 <strong>dmodeld_{\text{model}}dmodel</strong> 维度扩展到 <strong>更高的维度（通常是 4 倍）</strong>。</p>
-</li>
-<li><p><strong>W2,b2W_2, b_2W2,b2</strong>：第二层的权重和偏置，作用是把数据降维回 dmodeld_{\text{model}}dmodel 维度。</p>
-</li>
-<li><p><strong>ReLU（或 GELU）</strong>：非线性激活函数，引入非线性能力，使模型能学习更复杂的特征。</p>
-</li>
-</ul>
-<p>作用类似CNN，提取非线性+高维特征</p>
-<h3 id="decoder结构"><a href="#decoder结构" class="headerlink" title="decoder结构"></a>decoder结构</h3><p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w.png" alt="v2-f5049e8711c3abe8f8938ced9e7fc3da_1440w"></p>
-<p>上图红色部分为 Transformer 的 Decoder block 结构，与 Encoder block 相似，但是存在一些区别：</p>
-<ul>
-<li>包含两个 Multi-Head Attention 层。</li>
-<li>第一个 Multi-Head Attention 层采用了 Masked 操作。</li>
-<li>第二个 Multi-Head Attention 层的<strong>K, V</strong>矩阵使用 Encoder 的<strong>编码信息矩阵C</strong>进行计算，而<strong>Q</strong>使用上一个 Decoder block 的输出计算。</li>
-<li>最后有一个 Softmax 层计算下一个翻译单词的概率。</li>
-</ul>
-<h4 id="第一个多头注意力"><a href="#第一个多头注意力" class="headerlink" title="第一个多头注意力"></a>第一个多头注意力</h4><p>Decoder block 的第一个 Multi-Head Attention 采用了 Masked  操作，因为在翻译的过程中是顺序翻译的，即翻译完第 i 个单词，才可以翻译第 i+1 个单词。通过 Masked 操作可以防止第 i 个单词知道  i+1 个单词之后的信息。同时可以利用teaching forcing传入正确答案。<br><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-58f916c806a6981e296a7a699151af87_1440w.png" alt="v2-58f916c806a6981e296a7a699151af87_1440w"></p>
-<h4 id="第二个多头注意力"><a href="#第二个多头注意力" class="headerlink" title="第二个多头注意力"></a>第二个多头注意力</h4><p>Decoder block 第二个 Multi-Head Attention 变化不大， 主要的区别在于其中 Self-Attention 的 <strong>K, V</strong>矩阵不是使用 上一个 Decoder block 的输出计算的，而是使用 <strong>Encoder 的编码信息矩阵 C</strong> 计算的。</p>
-<p>根据 Encoder 的输出 <strong>C</strong>计算得到 <strong>K, V</strong>，根据上一个 Decoder block 的输出 <strong>Z</strong> 计算 <strong>Q</strong> (如果是第一个 Decoder block 则使用输入矩阵 <strong>X</strong> 进行计算)，后续的计算方法与之前描述的一致。</p>
-<p>这样做的好处是在 Decoder 的时候，每一位单词都可以利用到 Encoder 所有单词的信息 (这些信息无需 <strong>Mask</strong>)。</p>
-<ul>
-<li><strong>在训练时，模型依赖于正确的前 i个单词，并通过 Mask 限制未来的信息</strong>，这使得 Teacher Forcing 和 Mask 可以同时生效。测试的时候只有mask。</li>
-<li>直接作为输入X去乘以各个独立的Wq</li>
-</ul>
-<h4 id="最终信息"><a href="#最终信息" class="headerlink" title="最终信息"></a>最终信息</h4><p>Decoder block 最后的部分是利用 Softmax 预测下一个单词，在之前的网络层我们可以得到一个最终的输出 Z，因为 Mask 的存在，使得单词 0 的输出 Z0 只包含单词 0 的信息，如下：</p>
-<p><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-335cfa1b345bdd5cf1e212903bb9b185_1440w.png" alt="v2-335cfa1b345bdd5cf1e212903bb9b185_1440w"></p>
-<p>得到最终结果：<br><img src="/./../images/Transformer-cuda%E5%AD%A6%E4%B9%A0/v2-0938aa45a288b5d6bef6487efe53bd9d_1440w.png" alt="v2-0938aa45a288b5d6bef6487efe53bd9d_1440w"></p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -404,7 +331,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-02-21 17:33:59" itemprop="dateModified" datetime="2025-02-21T17:33:59+08:00">2025-02-21</time>
+      <time title="Modified: 2025-03-03 20:54:08" itemprop="dateModified" datetime="2025-03-03T20:54:08+08:00">2025-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -427,14 +354,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>4.7k</span>
+      <span>6.7k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>4 mins.</span>
+      <span>6 mins.</span>
     </span>
 </div>
 
@@ -445,7 +372,9 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
+          <span id="more"></span>
+
+<h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
 <p>GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。</p>
 <p>经典老图</p>
 <p><img src="/./../images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png" alt="image-20250129222901101"></p>
@@ -485,7 +414,64 @@
 
 
 
-<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3><h3 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h3><p><strong>前序配置：</strong></p>
+<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3><p>在冯诺依曼架构下，ALU需要从内存中取数，计算后写回，因此速度主要受到计算&#x2F;访存的限制。CPU运算单元少，且有多级缓存，因此主要是computed-bound，GPU核心规模大，但内存带宽有限，主要是memory-bound。</p>
+<p>为了估测一个cuda-kernel的性能瓶颈，可以计算算存比：即计算次数&#x2F;访存次数。</p>
+<p>如果一个 Kernel 是 Memory-bound  的，那么就优化它的访存次数（哪怕这样可能需要多进行一些计算），反之则要减少其计算次数。一般来说，Compute-bound 的 Kernel  不太常见（毕竟算存比得过百才能达到 Compute-bound）（常见的 Compute-bound 的 Kernel  可能只有矩阵乘法与卷积核比较大的卷积），所以下面我们主要关注如何优化访存。</p>
+<ol>
+<li><code>__restrict__</code></li>
+</ol>
+<p>指针别名：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">(<span class="type">int</span>* x, <span class="type">int</span>* y)</span> </span>&#123;</span><br><span class="line">    *x += *y;</span><br><span class="line">  *x += *y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">(<span class="type">int</span>* x, <span class="type">int</span>* y)</span> </span>&#123;</span><br><span class="line">    *x += <span class="number">2</span>*(*y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>假设x和y指向相同的内存，上面输出4（<em>x），下面输出3（</em>x），由于编译器无法假定该情况发生，因此无法将f1优化为f2，因此需要通过__restrict__关键字把指针指向的值放在寄存器里，而不是一次又一次访存从而影响性能。（即人工保证——这两个变量不会指向同一块内存，请编译器放心优化吧）</p>
+<ol start="2">
+<li>Memory Coalescing</li>
+</ol>
+<p>gpu内部以warp为基本调度单位，每个时钟周期内，同一个warp中的线程都会执行相同的指令。</p>
+<p>在访存的时候，gpu会把请求打包成尽可能少的Transaction，以尽量减少访存次数等。出于gpu的访存规定限制：</p>
+<p>Transaction 需要满足：</p>
+<ul>
+<li>长度为 32 个 Byte【一种假定，也是可以调的】</li>
+<li>开始地址是 32 的倍数【每个transaction只能从32的整数倍开始获取32B的数据量】</li>
+</ul>
+<p>也即：如果一个 Warp 中的第 i 个 Thread 要访问地址为 4i∼4i+3 的内存，那么一共需要 4 个 Transaction 才能读完所有的数据；如果一个 Warp 中的第 i 个 Thread 要访问地址为 4i+1∼4i+4 的内存，那么需要 5 个 Transaction 才能读取所有的数据；如果第 i 个 Warp 要访问地址为 32i∼32i+3 的内存，那么就需要 32 次 Transaction 才能完成读取了。</p>
+<p>所以可以通过内存手动对齐，保证访问是可以被coalescing等方法进行性能优化。</p>
+<ol start="3">
+<li>Shared Memory</li>
+</ol>
+<p><img src="/./source/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/memory-hierarchy-in-gpus-1.png" alt="memory-hierarchy-in-gpus-1"></p>
+<p>Cuda中大致的内存类型包括：</p>
+<ul>
+<li>Global Memory：俗称显存，位于 GPU 核心外部，很大（比如 A100 有 80GB），但是带宽很有限</li>
+<li>L2 Cache：位于 GPU 核心内部，是显存的缓存，程序不能直接使用</li>
+<li>Register：寄存器，位于 GPU 核心内部，Thread 可以直接调用</li>
+<li>Shared memory：位于 GPU 核心内部，每个 Thread block 中的所有 Thread 共用同一块 Shared  memory（因此，Shared memory 可以用来在同一个 Thread block 的不同 Thread  之间共享数据），并且带宽极高（因此，Shared memory 可以用来优化性能）。</li>
+</ul>
+<p>如何利用shared memory优化性能？访存次数计算：</p>
+<ol>
+<li>加载 A：<ul>
+<li>每次计算一个元素 C(i,j)，都需要读取 k个不同的 A(i,p)。</li>
+<li>总共计算 C的 n×m个元素，每个访问 k次 A(i,p)，所以 A的访存总次数为： n×m×k</li>
+</ul>
+</li>
+<li>加载 B：<ul>
+<li>每次计算 C(i,j) 需要读取 k 个不同的 B(p,j)。</li>
+<li>同理，总访存次数为： n×m×k</li>
+</ul>
+</li>
+</ol>
+<p>Tilling方法主要对矩阵进行分块，每个block负责计算C的一个子矩阵，每次在计算C的子矩阵的时候，都把A和B的一部分加载到shared memory中共享存储读取。</p>
+<p>当对矩阵进行分块Tilling的时候，每次加载TxT(实际乘的时候只要用到Txk和kxT)的矩阵，每轮访存2*TT，总轮数为k&#x2F;T</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/342103911">https://zhuanlan.zhihu.com/p/342103911</a></p>
+<ol start="4">
+<li>Profilling Tools</li>
+</ol>
+<p>在优化 CUDA Kernel 的时候，除了依照经验与惯用套路（比如 Memory coalescing），我们也可以使用专业的 Profiling 工具来测试一个 Kernel 或者一个程序的性能瓶颈。常用的 Profiling 工具包括：</p>
+<ul>
+<li>NVIDIA Nsight System: 它可以对整个应用程序进行 Profile，可以得到各个 Kernel 的耗时，以及究竟是 CPU 还是 GPU 拖慢了整体的执行速度。</li>
+<li>NVIDIA Nsight Compute: 它可以对单个 CUDA Kernel 进行 Profiling，进而得到该 CUDA Kernel  的瓶颈所在。它会提供许多的详细信息（比如，内存带宽占用率、CUDA Core 活跃时间比、活跃的 SM 比例等等）来帮助你更加细致地优化  CUDA Kernel。</li>
+</ul>
+<h3 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h3><p><strong>前序配置：</strong></p>
 <p>下载cuda与cudnn、安装并配置相应的visual studio文件的路径：<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2089949">https://cloud.tencent.com/developer/article/2089949</a></p>
 <p>常见库介绍：</p>
 <ul>
@@ -493,6 +479,183 @@
 <li>tensor core：矩阵乘法计算单元</li>
 </ul>
 <h4 id="step-0-示例代码部署"><a href="#step-0-示例代码部署" class="headerlink" title="step 0 示例代码部署"></a>step 0 示例代码部署</h4><p>克隆</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ringo.fu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ringo的博客">
+      <meta itemprop="description" content="乌拉呀哈咿呀哈">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ringo的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Inducer论文笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2024-12-18 12:13:05" itemprop="dateCreated datePublished" datetime="2024-12-18T12:13:05+08:00">2024-12-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-02-21 17:34:48" itemprop="dateModified" datetime="2025-02-21T17:34:48+08:00">2025-02-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>4 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>[TOC]</p>
+<h2 id="论文1"><a href="#论文1" class="headerlink" title="论文1"></a>论文1</h2><ul>
+<li>目前基于提示的一个缺点是难以搜索正确的提示。为了打开“提示”的黑匣子，在这项工作中，我们建议将提示（无论是硬提示（明确、固定的输入）还是软提示（隐含的向量权重））视为核方法中的“诱导变量”。</li>
+</ul>
+<p>这个内核视角解释了前缀调优的潜在机制，并激发了一种新方法——诱导调优。具体来说，与其他基于提示的方法一样，inducertuning 会冻结 PLM 中的所有原始参数；当计算每层中某个输入标记的注意力输出时，诱导器调整利用靠近查询向量的点作为“诱导器”。这种独特的“软提示”简化了对适当提示的搜索，并在“提示”和“适配器调整”之间建立了新的联系。总之，这项工作的贡献有三方面： 1 我们解释了前缀调整作为内核学习中的诱导变量的基本机制。 2 我们提出了一种新的参数高效自适应技术，即诱导器调整，以进一步改进前缀调整。 3 通过全面的实证研究，我们验证了我们提出的方法可以缩小相对较小的 PLM 上“前缀调整”和“微调”之间的差距，并为连续提示调整的潜力提供更严格的下限。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><p>adapter tunning：在模型前加入一个可训练的MLP层</p>
+<p>prompt-tuning：提示将特定于任务的指令添加到任务输入之前，最初在 Brown 等人中进行了演示。 （2020）。由于手动提示依赖于反复试验，其他人建议搜索算法来指定词汇表中所有标记之间的提示。 Prompt-tuning (Lester et al., 2021) 和 P-tuning (Liu et al., 2021b) 通过使用可训练的“软提示”消除了提示的词汇限制。</p>
+<p>上述方法中的提示仅插入到PLM的底部嵌入层中，而Prefix-tuning（Li和Liang，2021；Liu等人，2021a）则在所有Transformer层中添加软提示，以进一步提高提示能力。尽管有效，但软提示的正确初始化仍然具有挑战性。为了缓解这个问题，Li and Liang (2021) 使用了额外的 MLP 来重新参数化每层中的提示，从而添加更多需要训练的参数；</p>
+<p>相比之下，尽管适配器具有与前缀调整类似的表达形式（He et al., 2021a），但适配器调整只需要常规初始化。我们推测适配器的残差形式可以缓解初始化问题，因为新模型中每一层的输出将以冻结 PLM 中的输出为中心，并且残差形式有助于梯度反向传播，就像跳跃连接一样。我们依靠这种直觉并利用适配器的上述优点来指导我们提出的感应器调谐的设计</p>
+<h4 id="Transformer层预知识"><a href="#Transformer层预知识" class="headerlink" title="Transformer层预知识"></a>Transformer层预知识</h4><p>根据输入得到Q K V ，再根据Q K V计算总的注意力。</p>
+<h3 id="参数高效的诱导器调整"><a href="#参数高效的诱导器调整" class="headerlink" title="参数高效的诱导器调整"></a>参数高效的诱导器调整</h3><p>核函数：将低维特征映射到高维空间，以更好地完成分类等任务。【<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1059190%E3%80%91">https://cloud.tencent.com/developer/article/1059190】</a></p>
+<h4 id="作为核估计器的注意力"><a href="#作为核估计器的注意力" class="headerlink" title="作为核估计器的注意力"></a>作为核估计器的注意力</h4><p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134651623.png" alt="image-20241218134651623"></p>
+<p>注意力表示可以看作是通过支持点{Kj}jn&#x3D;1将输入查询向量Qi修改为f(Qi)</p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218134814480.png" alt="image-20241218134814480"></p>
+<p>k为核函数</p>
+<h4 id="前缀调优和诱导变量的引入"><a href="#前缀调优和诱导变量的引入" class="headerlink" title="前缀调优和诱导变量的引入"></a>前缀调优和诱导变量的引入</h4><p>前缀调整改变每一层的注意力输出。具体来说，它将长度为 l 的前缀向量 Pk, Pv ∈ Rl×p 分别添加到 K 和 V 之前；对于某个查询标记 Qi（查询矩阵 Q 的第 i 行），其注意力输出 f (Qi) :&#x3D; Attn(Qi, K, V ) 更新为 f (Qi) 和 Attn( Qi, Pk, Pv)。</p>
+<p>这两类虚拟token扮演着不同的角色。虚拟向量 Pk 适用于经验核矩阵部分，并且可以改变注意力分数（从而改变 Attn(Qi, Pk, Pv) 的权重）；而Pv在value部分生效。前缀调整对这两个虚拟向量进行建模可能不是最佳选择。在第 4.3 节中，我们将展示诱导器调整如何通过不同的残差形式解决这两个部分。</p>
+<p>我们建议可以通过内核学习文献中引入变诱导量的概念来进一步理解前缀调整的机制。核学习中的许多计算方法利用一小组支持点（诱导变量）来提高推理性能（Musco 和 Musco，2017；Chen 和 Yang，2021）。 Snelson 和 Ghahramani (2005) 特别将诱导变量视为辅助伪输入，并使用连续优化来推断它们，这与前缀调整类似。我们强调，从表面上看，支持点方法的主<strong>要特点是通过少量的点来表示大量的训练样本，从而降低计算成本</strong>；然而，这里我们的目标是<strong>利用诱导变量的机制来很好地引导估</strong>计：我们试图实现的目标是通过使前缀更好地调节注意力输出来加强前缀调整。（通过前缀（类似于诱导点）调整模型的注意力输出，使得模型能够更好地对上下文进行建模。）</p>
+<h5 id="诱导点方法中良好引导推理输出的机制"><a href="#诱导点方法中良好引导推理输出的机制" class="headerlink" title="诱导点方法中良好引导推理输出的机制"></a>诱导点方法中良好引导推理输出的机制</h5><p>从概念上讲，归纳变量有助于推理，因为它们可以表示查询输入的分布并引导内核方法，而无需更改正在使用的内核。特别是，我们考虑无约束诱导点 XM 的分布模式（Snelson 和 Ghahramani，2005，图 1）。我们观察到它们中的大多数都接近测试示例 X*，并且在新的估计中（Snelson 和 Ghahramani，2005，方程（8）），诱导器 XM 将通过核方法中的权重分配机制获得很大的权重（核方法可以分配样本的权重作为注意力（Choromanski et al., 2020; Chen et al., 2021; Tsai et al., 2019）；为了诱导变量接近查询，它们会自动受到更多关注），从而有效地调节输出。</p>
+<p><strong>翻译：</strong>靠近测试点的诱导点可以得到更大的权重（并由核函数进行分配），距离测试点越近的诱导点，权重越高。通过少量的诱导点，可以降低计算成本，同时保持推断的质量。（这不是拿测试集投入训练吗）</p>
+<p>从这个机制中，我们得出一个归纳结论“<strong>前缀应该接近查询</strong>”（这在之前的前缀调优方法中没有强制执行），并相应地提出 Inducer-Tuning。我们注意到，由于我们并不追求引入变量的最初目标，即降低计算成本，而是进一步利用诱导变量的机制并改进前缀调整。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>Inducer-tuning 遵循与 prefix-tuning 相同的设计原则，通过插入虚拟标记（向量）来调节注意力输出。然而，与前缀调整不同，我们的虚拟token不在输入序列之间共享。Inducer-tuning 还结合了残差形式的优点，以简化初始化并消除前缀调整中的重新参数化技巧。</p>
+<p>具体来说，我们进行以下修改： </p>
+<ol>
+<li>“inducer”适应并针对每个输入标记进行定制，以增强新注意力输出的表达能力。（创新点1）</li>
+<li>我们建议将虚拟向量以残差形式建模为适配器，这使得最终的注意力输出也是残差形式。我们现在深入讨论修改背后的直觉。（创新点2）</li>
+</ol>
+<h4 id="适应性Inducer【创新点】"><a href="#适应性Inducer【创新点】" class="headerlink" title="适应性Inducer【创新点】"></a>适应性Inducer【创新点】</h4><p>固定的prefix-tuning有以下缺点：</p>
+<p><strong>输入查询分布的动态变化</strong>：</p>
+<ul>
+<li>固定的前缀可能无法涵盖所有输入查询分布，导致前缀在一些输入场景中失去有效性。</li>
+<li>这意味着固定前缀无法始终像核方法中的诱导变量那样高效调节推断输出。</li>
+</ul>
+<p><strong>长输入的特殊挑战</strong>：</p>
+<ul>
+<li>对于长输入，可能存在某些查询向量（query vectors）与固定前缀中的虚拟向量（virtual vectors）距离较远（以 L2 距离为度量）。</li>
+<li>这种距离差异会导致固定前缀无法有效调节注意力输出（attention output），从而影响模型的性能。</li>
+</ul>
+<h4 id="adapter-inducer设计"><a href="#adapter-inducer设计" class="headerlink" title="adapter-inducer设计"></a>adapter-inducer设计</h4><p>为了缓解固定前缀的局限性，提出了一种新的方法：对于每个查询Q_i，选取一个与其接近的虚拟key向量作为前缀。这种自适应建模希望能提高模型在推断时的表现，尤其是在处理动态查询和长输入时。</p>
+<p>虚拟的K和V的设计机制与内核估计器一致：值 V 独立于查询序列 Q 并与支持点 K 相关。具体来说，考虑到我们上面的设计，虚拟K向量接近 Qi（我们将虚拟K向量作为输入查询向量 Qi 的变换），我们建议将虚拟V向量相应地建模为 Qi 的映射，这意味着虚拟V向量也自适应输入的Q向量。</p>
+<h4 id="adapter-结构"><a href="#adapter-结构" class="headerlink" title="adapter-结构"></a>adapter-结构</h4><p>为了稳定训练过程，我们建议将适配器结构合并到虚拟K&#x2F;V向量的建模中。具体来说，对于第i个标记Qi（在某个头部），我们分别将相应的虚拟拟K&#x2F;V向量表示为</p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218161702839.png" alt="image-20241218161702839"></p>
+<p>其中 MLPk&#x2F;v 都将返回与输入 Qi 具有相同维度的向量。</p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218162629774.png" alt="image-20241218162629774"></p>
+<p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163341410.png" alt="image-20241218163341410"><br>这里面额度Pkj和Pvi是根据Q动态定制的，而非一组固定的共享变量。</p>
+<h3 id="扩大值的范围【创新点】"><a href="#扩大值的范围【创新点】" class="headerlink" title="扩大值的范围【创新点】"></a>扩大值的范围【创新点】</h3><p><img src="/./../images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163830228.png" alt="image-20241218163830228"></p>
+<p>将前缀向量 Pv,i’s 与 V (h)W (h) o 中的行对齐，而不是像前缀调整中那样仅使用 V (h) 。扩展 Pv,i 的详细实现在附录 B.3 中提供。我们可以通过第 6.2 节中的<strong>消融研究来验证此扩展的改进</strong>。</p>
+<h3 id="提示的潜在局限性【创新点】"><a href="#提示的潜在局限性【创新点】" class="headerlink" title="提示的潜在局限性【创新点】"></a>提示的潜在局限性【创新点】</h3><p>基于提示的方法的潜在限制来自于冻结的权重矩阵 Wq 和 Wk（线性变换矩阵）。对于头部中的所有 n(n + l) 对查询&#x2F;键向量，大多数对（对应于 QKT 中的元素）具有不变性。在提示调优（prompt-based methods）中，这些矩阵通常在预训练阶段已经学习好，并在下游任务中保持<strong>冻结</strong>，即不更新。</p>
+<p>在注意力机制中，查询和键的交互（通过 QK^T 计算）决定了注意力分布。冻结 Wq和 Wk 意味着下游任务无法调整这些交互的规则，所有查询 &#x2F; 键向量对的交互模式是固定的。</p>
+<p>在每个注意力头中，有 n(n+l) 个查询 &#x2F; 键向量对（其中 n 是查询序列长度，l是前缀长度）。由于 Wq和 Wk冻结，这些向量对的<strong>位置交互关系</strong>（pairwise positional interactions）是<strong>不变的</strong>。</p>
+<p>数据集通常与预训练任务不同，导致查询向量 Q 和键向量 K 的分布发生显著变化。另外，提示调优引入的虚拟标记（virtual tokens）也会改变输入的特性。冻结的 Wq 和 Wk无法适应这些变化，不一定能有效地反映下游任务中查询和键的关系。冻结权重的设计没有办法确保 Q,K的交互模式在新的任务中依然合理。</p>
+<p>这段话建议通过 LoRA 机制对 WqW_qWq 进行补充，使其在训练时具有一定的调节能力。</p>
+<ul>
+<li><p><strong>LoRA 的公式</strong>：</p>
+<ul>
+<li><p>LoRA 提出的更新形式为：</p>
+<p>Wq←Wq+BA</p>
+<p>其中：</p>
+<ul>
+<li>Wq：预训练得到的查询向量生成矩阵，保持冻结，不会被直接训练。</li>
+<li>B∈RNhp×r：一个低秩矩阵，可训练。</li>
+<li>A∈Rr×Nhp：另一个低秩矩阵，可训练。</li>
+<li>rrr：一个远小于 NhpN_{\text{hp}}Nhp 的秩，确保额外引入的参数规模较小。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>核心思想</strong>：<br>LoRA 通过将训练限制在 B 和 A 这两个小矩阵上，以低秩形式对 Wq​ 进行调整。这种方式既保留了原始 Wq​ 的大部分结构，又引入了适应性调节能力。</p>
+</li>
+</ul>
+<h3 id="最终模型"><a href="#最终模型" class="headerlink" title="最终模型"></a>最终模型</h3><p>最终模型。我们最终提出的模型进行如下推理： </p>
+<ol>
+<li>在每一层中，我们首先应用方程（10）来更新 Wq，然后再获得 Q、K、V ；</li>
+<li>构造诱导子矩阵 Pk &#x3D; Q + MLPk(Q)，并计算第 i 个分量的向量 ai &#x3D; ⟨Qi, Pk,i⟩；基于Q这个询问的诱导信号。</li>
+<li>计算矩阵乘积[a; QKT ]&#x2F;√p，然后对乘积执行softmax——第一列（表示为p）是等式（7）中的权重λi； </li>
+<li>得到 ̄ f (Q) 如式（9）所示，并返回 ̄ f (Q) + diag(p)MLPv(Q) （对应于式（8））作为完整的注意力输出。</li>
+</ol>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>主要进行自然语言生成实验。</p>
 
       
     </div>
@@ -1370,109 +1533,9 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/21/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/10/21/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-10-21 15:24:04" itemprop="dateCreated datePublished" datetime="2024-10-21T15:24:04+08:00">2024-10-21</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-10-23 15:16:23" itemprop="dateModified" datetime="2024-10-23T15:16:23+08:00">2024-10-23</time>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>367</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>1 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
 
 </div>
   </main>
@@ -1493,13 +1556,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">64k</span>
+    <span title="Word count total">70k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">58 mins.</span>
+    <span title="Reading time total">1:04</span>
   </span>
 </div>
 <div class="busuanzi-count">

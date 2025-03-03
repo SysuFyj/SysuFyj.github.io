@@ -19,17 +19,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Vertex">
+    <meta name="description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Verte">
 <meta property="og:type" content="article">
 <meta property="og:title" content="cuda基础">
 <meta property="og:url" content="http://example.com/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/index.html">
 <meta property="og:site_name" content="Ringo的博客">
-<meta property="og:description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Vertex">
+<meta property="og:description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Verte">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png">
 <meta property="og:image" content="http://example.com/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/kernel-execution-on-gpu-1.png">
+<meta property="og:image" content="http://example.com/source/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/memory-hierarchy-in-gpus-1.png">
 <meta property="article:published_time" content="2025-01-29T14:24:28.000Z">
-<meta property="article:modified_time" content="2025-02-21T09:33:59.015Z">
+<meta property="article:modified_time" content="2025-03-03T12:54:08.846Z">
 <meta property="article:author" content="Ringo.fu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png">
@@ -154,7 +155,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives">
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -164,7 +165,7 @@
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -227,7 +228,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-02-21 17:33:59" itemprop="dateModified" datetime="2025-02-21T17:33:59+08:00">2025-02-21</time>
+      <time title="Modified: 2025-03-03 20:54:08" itemprop="dateModified" datetime="2025-03-03T20:54:08+08:00">2025-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -257,14 +258,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>4.7k</span>
+      <span>6.7k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>4 mins.</span>
+      <span>6 mins.</span>
     </span>
 </div>
 
@@ -274,7 +275,9 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
+    <div class="post-body" itemprop="articleBody"><span id="more"></span>
+
+<h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
 <p>GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。</p>
 <p>经典老图</p>
 <p><img src="/./../images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png" alt="image-20250129222901101"></p>
@@ -314,7 +317,64 @@
 
 
 
-<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3><h3 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h3><p><strong>前序配置：</strong></p>
+<h3 id="性能分析"><a href="#性能分析" class="headerlink" title="性能分析"></a>性能分析</h3><p>在冯诺依曼架构下，ALU需要从内存中取数，计算后写回，因此速度主要受到计算&#x2F;访存的限制。CPU运算单元少，且有多级缓存，因此主要是computed-bound，GPU核心规模大，但内存带宽有限，主要是memory-bound。</p>
+<p>为了估测一个cuda-kernel的性能瓶颈，可以计算算存比：即计算次数&#x2F;访存次数。</p>
+<p>如果一个 Kernel 是 Memory-bound  的，那么就优化它的访存次数（哪怕这样可能需要多进行一些计算），反之则要减少其计算次数。一般来说，Compute-bound 的 Kernel  不太常见（毕竟算存比得过百才能达到 Compute-bound）（常见的 Compute-bound 的 Kernel  可能只有矩阵乘法与卷积核比较大的卷积），所以下面我们主要关注如何优化访存。</p>
+<ol>
+<li><code>__restrict__</code></li>
+</ol>
+<p>指针别名：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">(<span class="type">int</span>* x, <span class="type">int</span>* y)</span> </span>&#123;</span><br><span class="line">    *x += *y;</span><br><span class="line">  *x += *y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">(<span class="type">int</span>* x, <span class="type">int</span>* y)</span> </span>&#123;</span><br><span class="line">    *x += <span class="number">2</span>*(*y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>假设x和y指向相同的内存，上面输出4（<em>x），下面输出3（</em>x），由于编译器无法假定该情况发生，因此无法将f1优化为f2，因此需要通过__restrict__关键字把指针指向的值放在寄存器里，而不是一次又一次访存从而影响性能。（即人工保证——这两个变量不会指向同一块内存，请编译器放心优化吧）</p>
+<ol start="2">
+<li>Memory Coalescing</li>
+</ol>
+<p>gpu内部以warp为基本调度单位，每个时钟周期内，同一个warp中的线程都会执行相同的指令。</p>
+<p>在访存的时候，gpu会把请求打包成尽可能少的Transaction，以尽量减少访存次数等。出于gpu的访存规定限制：</p>
+<p>Transaction 需要满足：</p>
+<ul>
+<li>长度为 32 个 Byte【一种假定，也是可以调的】</li>
+<li>开始地址是 32 的倍数【每个transaction只能从32的整数倍开始获取32B的数据量】</li>
+</ul>
+<p>也即：如果一个 Warp 中的第 i 个 Thread 要访问地址为 4i∼4i+3 的内存，那么一共需要 4 个 Transaction 才能读完所有的数据；如果一个 Warp 中的第 i 个 Thread 要访问地址为 4i+1∼4i+4 的内存，那么需要 5 个 Transaction 才能读取所有的数据；如果第 i 个 Warp 要访问地址为 32i∼32i+3 的内存，那么就需要 32 次 Transaction 才能完成读取了。</p>
+<p>所以可以通过内存手动对齐，保证访问是可以被coalescing等方法进行性能优化。</p>
+<ol start="3">
+<li>Shared Memory</li>
+</ol>
+<p><img src="/./source/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/memory-hierarchy-in-gpus-1.png" alt="memory-hierarchy-in-gpus-1"></p>
+<p>Cuda中大致的内存类型包括：</p>
+<ul>
+<li>Global Memory：俗称显存，位于 GPU 核心外部，很大（比如 A100 有 80GB），但是带宽很有限</li>
+<li>L2 Cache：位于 GPU 核心内部，是显存的缓存，程序不能直接使用</li>
+<li>Register：寄存器，位于 GPU 核心内部，Thread 可以直接调用</li>
+<li>Shared memory：位于 GPU 核心内部，每个 Thread block 中的所有 Thread 共用同一块 Shared  memory（因此，Shared memory 可以用来在同一个 Thread block 的不同 Thread  之间共享数据），并且带宽极高（因此，Shared memory 可以用来优化性能）。</li>
+</ul>
+<p>如何利用shared memory优化性能？访存次数计算：</p>
+<ol>
+<li>加载 A：<ul>
+<li>每次计算一个元素 C(i,j)，都需要读取 k个不同的 A(i,p)。</li>
+<li>总共计算 C的 n×m个元素，每个访问 k次 A(i,p)，所以 A的访存总次数为： n×m×k</li>
+</ul>
+</li>
+<li>加载 B：<ul>
+<li>每次计算 C(i,j) 需要读取 k 个不同的 B(p,j)。</li>
+<li>同理，总访存次数为： n×m×k</li>
+</ul>
+</li>
+</ol>
+<p>Tilling方法主要对矩阵进行分块，每个block负责计算C的一个子矩阵，每次在计算C的子矩阵的时候，都把A和B的一部分加载到shared memory中共享存储读取。</p>
+<p>当对矩阵进行分块Tilling的时候，每次加载TxT(实际乘的时候只要用到Txk和kxT)的矩阵，每轮访存2*TT，总轮数为k&#x2F;T</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/342103911">https://zhuanlan.zhihu.com/p/342103911</a></p>
+<ol start="4">
+<li>Profilling Tools</li>
+</ol>
+<p>在优化 CUDA Kernel 的时候，除了依照经验与惯用套路（比如 Memory coalescing），我们也可以使用专业的 Profiling 工具来测试一个 Kernel 或者一个程序的性能瓶颈。常用的 Profiling 工具包括：</p>
+<ul>
+<li>NVIDIA Nsight System: 它可以对整个应用程序进行 Profile，可以得到各个 Kernel 的耗时，以及究竟是 CPU 还是 GPU 拖慢了整体的执行速度。</li>
+<li>NVIDIA Nsight Compute: 它可以对单个 CUDA Kernel 进行 Profiling，进而得到该 CUDA Kernel  的瓶颈所在。它会提供许多的详细信息（比如，内存带宽占用率、CUDA Core 活跃时间比、活跃的 SM 比例等等）来帮助你更加细致地优化  CUDA Kernel。</li>
+</ul>
+<h3 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h3><p><strong>前序配置：</strong></p>
 <p>下载cuda与cudnn、安装并配置相应的visual studio文件的路径：<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2089949">https://cloud.tencent.com/developer/article/2089949</a></p>
 <p>常见库介绍：</p>
 <ul>
@@ -335,8 +395,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="prev" title="Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记">
-                  <i class="fa fa-angle-left"></i> Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记
+                <a href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="prev" title="Inducer论文笔记">
+                  <i class="fa fa-angle-left"></i> Inducer论文笔记
                 </a>
             </div>
             <div class="post-nav-item">
@@ -373,13 +433,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">64k</span>
+    <span title="Word count total">70k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">58 mins.</span>
+    <span title="Reading time total">1:04</span>
   </span>
 </div>
 <div class="busuanzi-count">
