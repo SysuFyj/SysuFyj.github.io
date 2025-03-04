@@ -28,7 +28,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241120144347053.png">
 <meta property="article:published_time" content="2024-11-20T06:04:01.000Z">
-<meta property="article:modified_time" content="2024-11-21T03:05:50.771Z">
+<meta property="article:modified_time" content="2025-03-04T03:06:32.714Z">
 <meta property="article:author" content="Ringo.fu">
 <meta property="article:tag" content="计算机网络">
 <meta property="article:tag" content="分布式系统">
@@ -228,7 +228,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-11-21 11:05:50" itemprop="dateModified" datetime="2024-11-21T11:05:50+08:00">2024-11-21</time>
+      <time title="Modified: 2025-03-04 11:06:32" itemprop="dateModified" datetime="2025-03-04T11:06:32+08:00">2025-03-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -272,6 +272,8 @@
     
     
     <div class="post-body" itemprop="articleBody"><h1 id="论文1-中文综述"><a href="#论文1-中文综述" class="headerlink" title="论文1-中文综述"></a>论文1-中文综述</h1><p>摘要：人工智能利用各种优化技术从海量训练样本中学习关键特征或知识，以提较高的质量量，这对训练训练方法提出了更高的要求。然而，传统单机训练无法满足存储与计算性因此，利用多个计算节点协同的分布式训练系统成为热点研究方向之一。本文首先阐述了单机训练面临的主要挑战。其次、分解析了分布训练系统系统预急需解决的三个关键问题（<strong>分区、通信、聚合</strong>），基于上述问题总结了一套训练系统的通用框架与四个核心组件。在此基础上，总结了基于随机随机陡峭下降算法的中心化与去中心化架构构研分支，并对各研研分支优化算法与应用进行综述.最后,提出了未来可能的研究方向.</p>
+<span id="more"></span>
+
 <h2 id="概论"><a href="#概论" class="headerlink" title="概论"></a>概论</h2><p>划分组件负责数据或模型的拆分任务，并将拆分后的子数据集或子模型部署到相应计算节点．优化组件提供各类优化算法供各计算节点调用．通信组件负责各计算节点间数据传输与信息同步．聚合组件负责将各计算节点产生的中间训练结果进行聚合 ，并输出训练任务的全局解 ．上述四个组件各司其职 ，协同完成训练任务.</p>
 <p><img src="/./../images/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241120144347053.png" alt="image-20241120144347053"></p>
 <h2 id="划分组件"><a href="#划分组件" class="headerlink" title="划分组件"></a>划分组件</h2><p>数据并行、模型并行、混合并行（和网络关系不大）</p>
