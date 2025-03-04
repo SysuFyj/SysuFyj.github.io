@@ -19,18 +19,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Verte">
+    <meta name="description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Vertex">
 <meta property="og:type" content="article">
 <meta property="og:title" content="cuda基础">
 <meta property="og:url" content="http://example.com/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/index.html">
 <meta property="og:site_name" content="Ringo的博客">
-<meta property="og:description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Verte">
+<meta property="og:description" content="GPU结构GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。 GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。 经典老图  对于3D画面的渲染管线：包含Vertex">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png">
 <meta property="og:image" content="http://example.com/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/kernel-execution-on-gpu-1.png">
 <meta property="og:image" content="http://example.com/source/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/memory-hierarchy-in-gpus-1.png">
 <meta property="article:published_time" content="2025-01-29T14:24:28.000Z">
-<meta property="article:modified_time" content="2025-03-04T03:03:09.787Z">
+<meta property="article:modified_time" content="2025-03-04T03:04:08.488Z">
 <meta property="article:author" content="Ringo.fu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png">
@@ -228,7 +228,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-04 11:03:09" itemprop="dateModified" datetime="2025-03-04T11:03:09+08:00">2025-03-04</time>
+      <time title="Modified: 2025-03-04 11:04:08" itemprop="dateModified" datetime="2025-03-04T11:04:08+08:00">2025-03-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -275,13 +275,13 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><span id="more"></span>
-
-<h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
+    <div class="post-body" itemprop="articleBody"><h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
 <p>GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。</p>
 <p>经典老图</p>
 <p><img src="/./../images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png" alt="image-20250129222901101"></p>
 <p>对于3D画面的渲染管线：包含Vertex Mapping, Fragment Generation 与 Fragment Merging三个部分。一般来说让各个电路负责不同的部分，但这样容易在各个部分形成瓶颈。Nvidia在2006年退出Telsa架构，用流处理器负责某个步骤的处理，每个SM都像一个小型CPU一样可以执行其支持的指令集中的任何程序。并引申到通用计算部分。</p>
+<span id="more"></span>
+
 <h3 id="cuda介绍"><a href="#cuda介绍" class="headerlink" title="cuda介绍"></a>cuda介绍</h3><p>cuda的设计思想为给显卡提交对应任务，cuda kernel相当于用于在显卡上运行的函数。</p>
 <h4 id="cuda-kernel的创建与调用"><a href="#cuda-kernel的创建与调用" class="headerlink" title="cuda kernel的创建与调用"></a>cuda kernel的创建与调用</h4><p>cuda C++中有三类函数：（似乎相当于规定了域）</p>
 <ul>
