@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://example.com/images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241213111942009.png">
 <meta property="og:image" content="http://example.com/images/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241213113752107.png">
 <meta property="article:published_time" content="2024-12-09T07:56:33.000Z">
-<meta property="article:modified_time" content="2024-12-18T04:17:40.961Z">
+<meta property="article:modified_time" content="2025-03-04T03:03:01.853Z">
 <meta property="article:author" content="Ringo.fu">
 <meta property="article:tag" content="科研">
 <meta property="article:tag" content="调度系统">
@@ -236,7 +236,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-12-18 12:17:40" itemprop="dateModified" datetime="2024-12-18T12:17:40+08:00">2024-12-18</time>
+      <time title="Modified: 2025-03-04 11:03:01" itemprop="dateModified" datetime="2025-03-04T11:03:01+08:00">2025-03-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -285,6 +285,8 @@
     
     <div class="post-body" itemprop="articleBody"><p>为大型语言模型 (LLM) 提供推理服务是在人们的日常生活中释放其潜力的关键。然而，LLM大规模推理服务在今天仍然具有挑战性，因为由于应用程序的多样化和LLM的动态执行性质：请求本质上是异构的，并且在资源和延迟要求方面是不可预测的。现有系统在处理这些特征方面从根本上受到限制，并导致严重的排队延迟、尾部延迟差和 SLO 违规等问题。</p>
 <p>我们引入了 Llumnix，这是一个 LLM 服务系统，它通过跨多个模型实例的运行时重新调度来响应此类异构且不可预测的请求。与现代操作系统中跨 CPU 内核的上下文切换类似，Llumnix 重新安排请求以改善负载平衡和隔离、减少资源碎片并区分请求优先级和 SLO。 Llumnix 通过高效且可扩展的实时迁移机制来实现请求及其内存状态的重新调度，并在动态调度策略中利用它，优雅地统一了多种重新调度场景。我们的评估表明，与最先进的 LLM 服务系统相比，Llumnix 将尾部延迟提高了一个数量级，将高优先级请求加速高达 1.5 倍，并在实现类似尾部延迟的同时节省高达 36% 的成本。 Llumnix 已在 <a target="_blank" rel="noopener" href="https://github.com/AlibabaPAI/llumnix">https://github.com/AlibabaPAI/llumnix</a> 上公开提供。</p>
+<span id="more"></span>
+
 <h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>大语言模型本身的性质：</p>
 <ul>
 <li>工作负载异构性：不同推理请求的长度、预期延迟都是不一致的。</li>

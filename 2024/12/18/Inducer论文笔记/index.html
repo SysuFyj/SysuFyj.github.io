@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163341410.png">
 <meta property="og:image" content="http://example.com/images/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241218163830228.png">
 <meta property="article:published_time" content="2024-12-18T04:13:05.000Z">
-<meta property="article:modified_time" content="2025-02-21T09:34:48.218Z">
+<meta property="article:modified_time" content="2025-03-04T03:02:52.574Z">
 <meta property="article:author" content="Ringo.fu">
 <meta property="article:tag" content="前缀调优">
 <meta property="article:tag" content="nlp">
@@ -234,7 +234,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-02-21 17:34:48" itemprop="dateModified" datetime="2025-02-21T17:34:48+08:00">2025-02-21</time>
+      <time title="Modified: 2025-03-04 11:02:52" itemprop="dateModified" datetime="2025-03-04T11:02:52+08:00">2025-03-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -282,6 +282,8 @@
 <li>目前基于提示的一个缺点是难以搜索正确的提示。为了打开“提示”的黑匣子，在这项工作中，我们建议将提示（无论是硬提示（明确、固定的输入）还是软提示（隐含的向量权重））视为核方法中的“诱导变量”。</li>
 </ul>
 <p>这个内核视角解释了前缀调优的潜在机制，并激发了一种新方法——诱导调优。具体来说，与其他基于提示的方法一样，inducertuning 会冻结 PLM 中的所有原始参数；当计算每层中某个输入标记的注意力输出时，诱导器调整利用靠近查询向量的点作为“诱导器”。这种独特的“软提示”简化了对适当提示的搜索，并在“提示”和“适配器调整”之间建立了新的联系。总之，这项工作的贡献有三方面： 1 我们解释了前缀调整作为内核学习中的诱导变量的基本机制。 2 我们提出了一种新的参数高效自适应技术，即诱导器调整，以进一步改进前缀调整。 3 通过全面的实证研究，我们验证了我们提出的方法可以缩小相对较小的 PLM 上“前缀调整”和“微调”之间的差距，并为连续提示调整的潜力提供更严格的下限。</p>
+<span id="more"></span>
+
 <h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><p>adapter tunning：在模型前加入一个可训练的MLP层</p>
 <p>prompt-tuning：提示将特定于任务的指令添加到任务输入之前，最初在 Brown 等人中进行了演示。 （2020）。由于手动提示依赖于反复试验，其他人建议搜索算法来指定词汇表中所有标记之间的提示。 Prompt-tuning (Lester et al., 2021) 和 P-tuning (Liu et al., 2021b) 通过使用可训练的“软提示”消除了提示的词汇限制。</p>
 <p>上述方法中的提示仅插入到PLM的底部嵌入层中，而Prefix-tuning（Li和Liang，2021；Liu等人，2021a）则在所有Transformer层中添加软提示，以进一步提高提示能力。尽管有效，但软提示的正确初始化仍然具有挑战性。为了缓解这个问题，Li and Liang (2021) 使用了额外的 MLP 来重新参数化每层中的提示，从而添加更多需要训练的参数；</p>
