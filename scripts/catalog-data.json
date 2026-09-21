@@ -1,0 +1,13 @@
+[
+  {"slug":"Hardware-Compute-Partitioning-on-NVIDIA-GPUs-论文笔记","topic":"GPU 系统与资源调度","summary":"梳理 NVIDIA GPU 的 TPC/SM 空间分区、硬件调度管线与 libsmctrl，记录分区策略、YOLOv2 实验和 GPU 架构知识。","keywords":["GPU","空间分区","TPC","SM","libsmctrl"],"note":"保留文中关于流内顺序与分区收益的个人疑问。"},
+  {"slug":"Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference论文笔记","topic":"GPU 系统与资源调度","summary":"记录 USHER 的资源需求估计、干扰感知调度和算子图合并，关注批量大小、模型复制、SLO 与计算/内存利用率之间的关系。","keywords":["GPU","推理服务","干扰感知","SLO","批量大小"],"note":"论文效果数字沿用原笔记，未重新核对论文原文。"},
+  {"slug":"Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences论文笔记","topic":"GPU 系统与资源调度","summary":"整理 REEF 的微秒级抢占与动态内核填充，覆盖实时/尽力而为任务、内核幂等性、队列重置、实验及 CUDA/C++ 补充知识。","keywords":["GPU","REEF","抢占","实时推理","内核填充"],"note":"内容包括论文笔记及后续基础知识补充；保留个人疑问和未完成的表述。"},
+  {"slug":"Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications论文笔记","topic":"GPU 系统与资源调度","summary":"梳理 Orion 的算子级 GPU 共享、内核拦截、干扰感知调度及 PyTorch 集成，并记录工作负载分析、实验和改进方向。","keywords":["GPU","Orion","算子调度","干扰感知","PyTorch"],"note":"摘要有翻译重复，作为待校对项保留，不改写研究结论。"},
+  {"slug":"Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving论文笔记","topic":"大模型服务与参数调优","summary":"记录 Llumnix 的 LLM 请求实时迁移、分布式重调度及虚拟使用量策略，讨论负载均衡、内存碎片、请求优先级与延迟目标。","keywords":["LLM","Llumnix","请求迁移","调度系统","KV Cache"],"note":"原文有将 LLM 误译为“法学硕士”等文字，留待依据论文原文校对。"},
+  {"slug":"Inducer论文笔记","topic":"大模型服务与参数调优","summary":"从核方法和诱导变量理解前缀调优，整理查询自适应的 Inducer-Tuning、残差适配器、值向量扩展、LoRA 与实验观察。","keywords":["NLP","前缀调优","Inducer-Tuning","Adapter","LoRA"],"note":"修复重复粘贴的公式符号；保留对诱导点与测试集关系的个人疑问。"},
+  {"slug":"cuda基础操作","topic":"CUDA 与 Transformer 基础","summary":"记录 GPU 架构、CUDA kernel、内存管理、线程组织、性能分析及代码实例，包含用于说明 CPU/GPU 内存区别的报错示例。","keywords":["CUDA","GPU 架构","kernel","内存管理","性能分析"],"note":"缺少 memory-hierarchy-in-gpus-1.png，已用缺图说明替代；报错示例为原文教学内容，保留。"},
+  {"slug":"Transformer-cuda学习","topic":"CUDA 与 Transformer 基础","summary":"梳理 Transformer 编码器与解码器、词与位置嵌入、自注意力、多头注意力、残差归一化和前馈层。当前正文主要为 Transformer 基础。","keywords":["Transformer","Attention","Encoder","Decoder","FFN"],"note":"标题含 CUDA，但现有正文主要为 Transformer 结构；保留原标题，按实际内容归档。"},
+  {"slug":"计算机网络论文笔记","topic":"课程与分布式学习","summary":"汇总分布式机器学习综述，记录划分、通信、优化、聚合组件，中心化/去中心化训练，以及异构环境、联邦学习与分布式框架。","keywords":["计算机网络","分布式机器学习","通信","联邦学习"],"note":"部分章节仅有标题或简短备注，开头有重复字和转录错误，作为课程草稿保留。"},
+  {"slug":"hexo搭建笔记","topic":"博客建设与起步记录","summary":"记录 Hexo 清理、生成、部署和新建文章命令，以及分类与标签的 YAML 配置示例。","keywords":["Hexo","博客维护","YAML"],"note":"原文未分类；归档补入建站主题，配置示例恢复为代码块。"},
+  {"slug":"hello-world","topic":"博客建设与起步记录","summary":"Hexo 默认入门文章，包含新建文章、本地预览、生成静态文件和部署命令，作为博客起步记录保留。","keywords":["Hexo","起步记录"],"note":"框架自带示例，不计入个人研究笔记。"}
+]

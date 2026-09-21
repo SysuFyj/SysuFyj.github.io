@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
       container.innerHTML = '<div class="search-result-icon"><i class="fa fa-search fa-5x"></i></div>';
     } else if (resultItems.length === 0) {
       container.innerHTML = '<div class="search-result-icon"><i class="far fa-frown fa-5x"></i></div>';
+      const message = document.createElement('p');
+      message.textContent = CONFIG.i18n.empty.replace('${query}', searchText);
+      container.append(message);
     } else {
       resultItems.sort((left, right) => {
         if (left.includedCount !== right.includedCount) {

@@ -1,325 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
-  <link rel="mask-icon" href="/images/logo.svg" color="#222">
-
-<link rel="stylesheet" href="/css/main.css">
-
-
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
-
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
-
-    <meta name="description" content="随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记">
-<meta property="og:url" content="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/index.html">
-<meta property="og:site_name" content="Ringo的博客">
-<meta property="og:description" content="随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求">
-<meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152848852.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153551110.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153748440.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153803154.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029154303254.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161702907.png">
-<meta property="og:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161715260.png">
-<meta property="article:published_time" content="2024-10-25T12:28:10.000Z">
-<meta property="article:modified_time" content="2024-11-06T01:37:22.012Z">
-<meta property="article:author" content="Ringo.fu">
-<meta property="article:tag" content="GPU">
-<meta property="article:tag" content="科研">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png">
-
-
-<link rel="canonical" href="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-
-
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/","path":"2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference论文笔记/","title":"Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记"}</script>
-
+<meta charset="utf-8"/>
+<meta content="width=device-width" name="viewport"/>
+<meta content="#222" name="theme-color"/><meta content="Hexo 7.3.0" name="generator"/>
+<link href="/images/apple-touch-icon-next.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/images/favicon-32x32-next.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/images/favicon-16x16-next.png" rel="icon" sizes="16x16" type="image/png"/>
+<link color="#222" href="/images/logo.svg" rel="mask-icon"/>
+<link href="/css/main.css" rel="stylesheet"/>
+<link crossorigin="anonymous" href="/vendor/fontawesome/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" rel="stylesheet"/>
+<link crossorigin="anonymous" href="/vendor/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" rel="stylesheet"/>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"sysufyj.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索文章…","empty":"没有找到相关内容：${query}","hits_time":"${hits} results found in ${time} ms","hits":"找到 ${hits} 篇文章"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta content="记录 USHER 的资源需求估计、干扰感知调度和算子图合并，关注批量大小、模型复制、SLO 与计算/内存利用率之间的关系。" name="description"/>
+<meta content="article" property="og:type"/>
+<meta content="Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记" property="og:title"/>
+<meta content="https://sysufyj.github.io/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/index.html" property="og:url"/>
+<meta content="Ringo的博客" property="og:site_name"/>
+<meta content="记录 USHER 的资源需求估计、干扰感知调度和算子图合并，关注批量大小、模型复制、SLO 与计算/内存利用率之间的关系。" property="og:description"/>
+<meta content="en_US" property="og:locale"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152848852.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153551110.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153748440.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153803154.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029154303254.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161702907.png" property="og:image"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161715260.png" property="og:image"/>
+<meta content="2024-10-25T12:28:10.000Z" property="article:published_time"/>
+<meta content="2024-11-06T01:37:22.012Z" property="article:modified_time"/>
+<meta content="Ringo.fu" property="article:author"/>
+<meta content="GPU" property="article:tag"/>
+<meta content="科研" property="article:tag"/>
+<meta content="summary" name="twitter:card"/>
+<meta content="https://sysufyj.github.io/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png" name="twitter:image"/>
+<link href="https://sysufyj.github.io/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="canonical"/>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/","path":"2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference论文笔记/","title":"Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记"}</script>
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记 | Ringo的博客</title>
-  
-
-
-
-
-
-
-
-
-  <noscript>
-    <link rel="stylesheet" href="/css/noscript.css">
-  </noscript>
-</head>
-
-<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
-  <div class="headband"></div>
-
-  <main class="main">
-    <div class="column">
-      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
-  <div class="site-nav-toggle">
-    <div class="toggle" aria-label="Toggle navigation bar" role="button">
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-    </div>
-  </div>
-
-  <div class="site-meta">
-
-    <a href="/" class="brand" rel="start">
-      <i class="logo-line"></i>
-      <p class="site-title">Ringo的博客</p>
-      <i class="logo-line"></i>
-    </a>
-  </div>
-
-  <div class="site-nav-right">
-    <div class="toggle popup-trigger" aria-label="Search" role="button">
-        <i class="fa fa-search fa-fw fa-lg"></i>
-    </div>
-  </div>
+<noscript>
+<link href="/css/noscript.css" rel="stylesheet"/>
+</noscript>
+<link href="/css/blog-maintenance.css" rel="stylesheet"/></head>
+<body class="" itemscope="" itemtype="http://schema.org/WebPage">
+<div class="headband"></div>
+<main class="main">
+<div class="column">
+<header class="header" itemscope="" itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+<div class="site-nav-toggle">
+<div aria-label="Toggle navigation bar" class="toggle" role="button" tabindex="0">
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
 </div>
-
-
-
+</div>
+<div class="site-meta">
+<a class="brand" href="/" rel="start">
+<i class="logo-line"></i>
+<p class="site-title">Ringo的博客</p>
+<i class="logo-line"></i>
+</a>
+</div>
+<div class="site-nav-right">
+<div aria-label="Search" class="toggle popup-trigger" role="button" tabindex="0">
+<i class="fa fa-search fa-fw fa-lg"></i>
+</div>
+</div>
+</div>
 <nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">Archives</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">Categories</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">Tags</a></li>
-      <li class="menu-item menu-item-search">
-        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
-        </a>
-      </li>
-  </ul>
+<ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">时间归档</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">分类</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">标签</a></li>
+<li class="menu-item menu-item-search">
+<a class="popup-trigger" role="button" tabindex="0"><i class="fa fa-search fa-fw"></i>搜索</a>
+</li>
+<li class="menu-item"><a href="/library/">主题归档</a></li><li class="menu-item"><a href="/paper-notes/">论文笔记</a></li></ul>
 </nav>
-
-
-
-  <div class="search-pop-overlay">
-    <div class="popup search-popup">
-      <div class="search-header">
-        <span class="search-icon">
-          <i class="fa fa-search"></i>
-        </span>
-        <div class="search-input-container">
-          <input autocomplete="off" autocapitalize="off" maxlength="80"
-                placeholder="Searching..." spellcheck="false"
-                type="search" class="search-input">
-        </div>
-        <span class="popup-btn-close" role="button">
-          <i class="fa fa-times-circle"></i>
-        </span>
-      </div>
-      <div class="search-result-container">
-        <div class="search-result-icon">
-          <i class="fa fa-spinner fa-pulse fa-5x"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div class="search-pop-overlay">
+<div class="popup search-popup">
+<div class="search-header">
+<span class="search-icon">
+<i class="fa fa-search"></i>
+</span>
+<div class="search-input-container">
+<input aria-label="搜索文章" autocapitalize="off" autocomplete="off" class="search-input" maxlength="80" placeholder="搜索文章…" spellcheck="false" type="search"/>
+</div>
+<span aria-label="关闭搜索" class="popup-btn-close" role="button" tabindex="0">
+<i class="fa fa-times-circle"></i>
+</span>
+</div>
+<div class="search-result-container">
+<div class="search-result-icon">
+<i class="fa fa-spinner fa-pulse fa-5x"></i>
+</div>
+</div>
+</div>
+</div>
 </header>
-        
-  
-  <aside class="sidebar">
-
-    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
-      <ul class="sidebar-nav">
-        <li class="sidebar-nav-toc">
-          Table of Contents
-        </li>
-        <li class="sidebar-nav-overview">
-          Overview
-        </li>
-      </ul>
-
-      <div class="sidebar-panel-container">
-        <!--noindex-->
-        <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%87%E7%AB%A0%E4%B8%BB%E4%BD%93"><span class="nav-number">1.</span> <span class="nav-text">文章主体</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%91%E7%8E%B0"><span class="nav-number">1.1.</span> <span class="nav-text">基本发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.2.</span> <span class="nav-text">系统设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-GPU-%E5%86%85%E6%A0%B8%E7%9A%84%E8%B5%84%E6%BA%90%E9%9C%80%E6%B1%82%E4%BC%B0%E8%AE%A1%E5%99%A8%EF%BC%88GK-Estimator%EF%BC%89%E3%80%82"><span class="nav-number">1.2.1.</span> <span class="nav-text">基于 GPU 内核的资源需求估计器（GK-Estimator）。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B2%E6%89%B0%E6%84%9F%E7%9F%A5%E8%B5%84%E6%BA%90%E5%88%A9%E7%94%A8%E7%8E%87%E6%9C%80%E5%A4%A7%E5%8C%96%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F%EF%BC%88IR-%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F%EF%BC%89%E3%80%82"><span class="nav-number">1.2.2.</span> <span class="nav-text">干扰感知资源利用率最大化调度程序（IR 调度程序）。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E7%BB%84"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">分组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">调度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E5%AD%90%E5%9B%BE%E5%90%88%E5%B9%B6%EF%BC%88OG-Merger%EF%BC%89%E3%80%82"><span class="nav-number">1.2.3.</span> <span class="nav-text">算子图合并（OG-Merger）。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E7%B1%BB%E4%BC%BC%E6%9E%B6%E6%9E%84%E7%9A%84%E6%93%8D%E4%BD%9C%E5%88%86%E7%BB%84"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">对类似架构的操作分组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%B3%E5%AE%9A%E5%A4%9A%E4%B8%AA%E5%9B%BE%E4%B8%AD%E5%90%88%E5%B9%B6%E7%9A%84%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">决定多个图中合并的运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%90%88%E5%B9%B6%E6%93%8D%E4%BD%9C"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">执行合并操作</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%AE%9E%E8%B7%B5"><span class="nav-number">1.3.</span> <span class="nav-text">实验实践</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD%E7%A7%AF%E7%B4%AF"><span class="nav-number">2.</span> <span class="nav-text">术语积累</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E5%92%8C%E5%86%85%E5%AD%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">2.1.</span> <span class="nav-text">计算利用率和内存利用率</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%86%85%E5%AD%98%E5%88%A9%E7%94%A8%E7%8E%87%E9%9C%80%E6%B1%82%E9%AB%98%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">1. 内存利用率需求高的模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E9%9C%80%E6%B1%82%E9%AB%98%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.2.</span> <span class="nav-text">2. 计算利用率需求高的模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-GPU-%E7%9A%84%E5%86%85%E5%AD%98%E5%92%8C%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E5%86%B3%E5%AE%9A%E5%9B%A0%E7%B4%A0"><span class="nav-number">2.1.3.</span> <span class="nav-text">3. GPU 的内存和计算利用率决定因素</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SLO"><span class="nav-number">2.2.</span> <span class="nav-text">SLO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BS%E5%92%8CRD"><span class="nav-number">2.3.</span> <span class="nav-text">BS和RD</span></a></li></ol></li></ol></div>
-        </div>
-        <!--/noindex-->
-
-        <div class="site-overview-wrap sidebar-panel">
-          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">Ringo.fu</p>
-  <div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+<aside class="sidebar">
+<div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+<ul class="sidebar-nav">
+<li class="sidebar-nav-toc">文章目录</li>
+<li class="sidebar-nav-overview">站点概览</li>
+</ul>
+<div class="sidebar-panel-container">
+<!--noindex-->
+<div class="post-toc-wrap sidebar-panel">
+<div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%87%E7%AB%A0%E4%B8%BB%E4%BD%93"><span class="nav-number">1.</span> <span class="nav-text">文章主体</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%91%E7%8E%B0"><span class="nav-number">1.1.</span> <span class="nav-text">基本发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.2.</span> <span class="nav-text">系统设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-GPU-%E5%86%85%E6%A0%B8%E7%9A%84%E8%B5%84%E6%BA%90%E9%9C%80%E6%B1%82%E4%BC%B0%E8%AE%A1%E5%99%A8%EF%BC%88GK-Estimator%EF%BC%89%E3%80%82"><span class="nav-number">1.2.1.</span> <span class="nav-text">基于 GPU 内核的资源需求估计器（GK-Estimator）。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B2%E6%89%B0%E6%84%9F%E7%9F%A5%E8%B5%84%E6%BA%90%E5%88%A9%E7%94%A8%E7%8E%87%E6%9C%80%E5%A4%A7%E5%8C%96%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F%EF%BC%88IR-%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F%EF%BC%89%E3%80%82"><span class="nav-number">1.2.2.</span> <span class="nav-text">干扰感知资源利用率最大化调度程序（IR 调度程序）。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E7%BB%84"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">分组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">调度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E5%AD%90%E5%9B%BE%E5%90%88%E5%B9%B6%EF%BC%88OG-Merger%EF%BC%89%E3%80%82"><span class="nav-number">1.2.3.</span> <span class="nav-text">算子图合并（OG-Merger）。</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E7%B1%BB%E4%BC%BC%E6%9E%B6%E6%9E%84%E7%9A%84%E6%93%8D%E4%BD%9C%E5%88%86%E7%BB%84"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">对类似架构的操作分组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%B3%E5%AE%9A%E5%A4%9A%E4%B8%AA%E5%9B%BE%E4%B8%AD%E5%90%88%E5%B9%B6%E7%9A%84%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">决定多个图中合并的运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%90%88%E5%B9%B6%E6%93%8D%E4%BD%9C"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">执行合并操作</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%AE%9E%E8%B7%B5"><span class="nav-number">1.3.</span> <span class="nav-text">实验实践</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD%E7%A7%AF%E7%B4%AF"><span class="nav-number">2.</span> <span class="nav-text">术语积累</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E5%92%8C%E5%86%85%E5%AD%98%E5%88%A9%E7%94%A8%E7%8E%87"><span class="nav-number">2.1.</span> <span class="nav-text">计算利用率和内存利用率</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%86%85%E5%AD%98%E5%88%A9%E7%94%A8%E7%8E%87%E9%9C%80%E6%B1%82%E9%AB%98%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">1. 内存利用率需求高的模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E9%9C%80%E6%B1%82%E9%AB%98%E7%9A%84%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.2.</span> <span class="nav-text">2. 计算利用率需求高的模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-GPU-%E7%9A%84%E5%86%85%E5%AD%98%E5%92%8C%E8%AE%A1%E7%AE%97%E5%88%A9%E7%94%A8%E7%8E%87%E5%86%B3%E5%AE%9A%E5%9B%A0%E7%B4%A0"><span class="nav-number">2.1.3.</span> <span class="nav-text">3. GPU 的内存和计算利用率决定因素</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SLO"><span class="nav-number">2.2.</span> <span class="nav-text">SLO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BS%E5%92%8CRD"><span class="nav-number">2.3.</span> <span class="nav-text">BS和RD</span></a></li></ol></li></ol></div>
+</div>
+<!--/noindex-->
+<div class="site-overview-wrap sidebar-panel">
+<div class="site-author animated" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<p class="site-author-name" itemprop="name">Ringo.fu</p>
+<div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
 </div>
 <div class="site-state-wrap animated">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-        <a href="/archives">
-          <span class="site-state-item-count">11</span>
-          <span class="site-state-item-name">posts</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-          <a href="/categories">
-        <span class="site-state-item-count">7</span>
-        <span class="site-state-item-name">categories</span></a>
-      </div>
-      <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">9</span>
-        <span class="site-state-item-name">tags</span>
-      </div>
-  </nav>
+<nav class="site-state">
+<div class="site-state-item site-state-posts">
+<a href="/archives">
+<span class="site-state-item-count">11</span>
+<span class="site-state-item-name">文章</span>
+</a>
 </div>
-
-        </div>
-      </div>
-    </div>
-
-    
-  </aside>
-
-
-    </div>
-
-    <div class="main-inner post posts-expand">
-
-
-  
-
-
+<div class="site-state-item site-state-categories">
+<a href="/categories">
+<span class="site-state-item-count">7</span>
+<span class="site-state-item-name">分类</span></a>
+</div>
+<div class="site-state-item site-state-tags"><a href="/tags/">
+<span class="site-state-item-count">9</span>
+<span class="site-state-item-name">标签</span>
+</a></div>
+</nav>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<div class="main-inner post posts-expand">
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记 | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="zh-CN">
+<link href="https://sysufyj.github.io/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记 | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h1 class="post-title" itemprop="name headline">
           Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记
         </h1>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-10-25 20:28:10" itemprop="dateCreated datePublished" datetime="2024-10-25T20:28:10+08:00">2024-10-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-11-06 09:37:22" itemprop="dateModified" datetime="2024-11-06T09:37:22+08:00">2024-11-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
-      <span class="post-meta-item-icon">
-        <i class="far fa-eye"></i>
-      </span>
-      <span class="post-meta-item-text">Views: </span>
-      <span id="busuanzi_value_page_pv"></span>
-    </span>
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>7.7k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>7 mins.</span>
-    </span>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-10-25T20:28:10+08:00" itemprop="dateCreated datePublished" title="Created: 2024-10-25 20:28:10">2024-10-25</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2024-11-06T09:37:22+08:00" itemprop="dateModified" title="Modified: 2024-11-06 09:37:22">2024-11-06</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
+</span>
+<span class="post-meta-item" id="busuanzi_container_page_pv" title="Views">
+<span class="post-meta-item-icon">
+<i class="far fa-eye"></i>
+</span>
+<span class="post-meta-item-text">Views: </span>
+<span id="busuanzi_value_page_pv"></span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>7.7k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>7 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody"><p>随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求估计器，2) 一个轻量级的基于启发式的干扰感知资源利用率最大化调度程序，用于决定批量大小、模型复制程度和模型放置最小化货币成本，同时满足延迟 SLO 或最大化吞吐量，以及 3) 一种新颖的运算符图合并，用于合并类似权重的多个模型，以最大程度地减少 GPU 缓存中的干扰。使用生产工作负载的大规模实验表明，与现有方法相比，USHER 的吞吐量提高了 2.6 倍，成本效率提高了 3.5 倍，同时可扩展到数千个 GPU。</p>
-<p>代码：<a target="_blank" rel="noopener" href="https://github.com/ss7krd/Usher/">https://github.com/ss7krd/Usher/</a></p>
+</div>
+</header>
+<div class="post-body" itemprop="articleBody"><p>随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求估计器，2) 一个轻量级的基于启发式的干扰感知资源利用率最大化调度程序，用于决定批量大小、模型复制程度和模型放置最小化货币成本，同时满足延迟 SLO 或最大化吞吐量，以及 3) 一种新颖的运算符图合并，用于合并类似权重的多个模型，以最大程度地减少 GPU 缓存中的干扰。使用生产工作负载的大规模实验表明，与现有方法相比，USHER 的吞吐量提高了 2.6 倍，成本效率提高了 3.5 倍，同时可扩展到数千个 GPU。</p>
+<p>代码：<a href="https://github.com/ss7krd/Usher/" rel="noopener" target="_blank">https://github.com/ss7krd/Usher/</a></p>
 <span id="more"></span>
-
-<h1 id="文章主体"><a href="#文章主体" class="headerlink" title="文章主体"></a>文章主体</h1><p>我们使用 Cuti 和 Muti 分别表示 GPU 计算和内存利用率，并使用 Creq 和 Mreq 表示模型对它们的要求。模型的 Creq（或 Mreq）是模型在执行期间的任何时刻消耗的 GPU 总计算（或内存）空间的最高百分比。我们进一步用Rreq来表示Mreq和Creq的和。我们使用 C-heavy 和 M-heavy 分别表示计算密集型和内存密集型。</p>
-<h2 id="基本发现"><a href="#基本发现" class="headerlink" title="基本发现"></a>基本发现</h2><p>观察1.现有的推理服务系统无法最大化Cuti或Muti，并且它们的模型复用由于模型干扰而显着降低了吞吐量。此外，最大化 Cuti 并不一定最大化 Muti。（很多模型都是C重或是M重的）</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png" alt="image-20241029152349418"></p>
+<h1 id="文章主体"><a class="headerlink" href="#文章主体" title="文章主体"></a>文章主体</h1><p>我们使用 Cuti 和 Muti 分别表示 GPU 计算和内存利用率，并使用 Creq 和 Mreq 表示模型对它们的要求。模型的 Creq（或 Mreq）是模型在执行期间的任何时刻消耗的 GPU 总计算（或内存）空间的最高百分比。我们进一步用Rreq来表示Mreq和Creq的和。我们使用 C-heavy 和 M-heavy 分别表示计算密集型和内存密集型。</p>
+<h2 id="基本发现"><a class="headerlink" href="#基本发现" title="基本发现"></a>基本发现</h2><p>观察1.现有的推理服务系统无法最大化Cuti或Muti，并且它们的模型复用由于模型干扰而显着降低了吞吐量。此外，最大化 Cuti 并不一定最大化 Muti。（很多模型都是C重或是M重的）</p>
+<p><img alt="image-20241029152349418" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152349418.png"/></p>
 <p>观察2.在基于空间复用的推理服务中，与现有系统不同，即使一个 GPU 足以完成 SLO 内的工作负载，我们也可能需要划分模型的工作负载，以提高整体资源利用率。（图4）</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152848852.png" alt="image-20241029152848852"></p>
+<p><img alt="image-20241029152848852" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029152848852.png"/></p>
 <p>观察 3. 不应为每个模型单独决定最佳工作负载划分。相反，同时考虑所有模型的整体方法至关重要。（参考图3）</p>
-<p>一般概念假设大模型具有高 Creq 和 Mreq，而小模型具有低 Creq 和 Mreq。然而，这种区别忽略了 BS 在推理服务中的影响。增加 BS 可能会提高资源使用率，但存在延迟违规和内存溢出的风险。这凸显了 Cuti 和 Muti 在工作负载调度方面的微妙平衡。例如，当我们在 Nvidia H100 GPU 中以 BS&#x3D;4 执行 LlaMA-2（具有 130 亿个参数）时，它几乎占用了所有 GPU 内存，但有 45% 的 Cuti 未使用。进一步增加 BS 会导致内存溢出。因此，尽管它是一个大型模型，但它是 M 重而不是 C 重。另一方面，BS&#x3D;128 的 MobileNetV2（只有 340 万个参数）的 Cuti 高达 93%，但 Muti 为 30%。进一步增加 BS 会违反其 64 毫秒 SLO。因此，它是 C 重模型而不是 M 重模型。图 6a 显示了模型的 CDF 与模型的比率 Creq&#x2F;Mreq 的关系。我们看到 22% 的模型的比率≤0.75，表明它们是 M 重的。另外，28%的模型的比率在(1.35,1.65]，表明它们是Cheavy。Llama-2是M重模型(即Mreq&#x2F;Creq≥1.2)。在其他小模型中，39%是M -heavy，2% 具有可比的 Creq 和 Mreq，其余为 C-heavy（即 Creq&#x2F;Mreq≥1.2）。</p>
+<p>一般概念假设大模型具有高 Creq 和 Mreq，而小模型具有低 Creq 和 Mreq。然而，这种区别忽略了 BS 在推理服务中的影响。增加 BS 可能会提高资源使用率，但存在延迟违规和内存溢出的风险。这凸显了 Cuti 和 Muti 在工作负载调度方面的微妙平衡。例如，当我们在 Nvidia H100 GPU 中以 BS=4 执行 LlaMA-2（具有 130 亿个参数）时，它几乎占用了所有 GPU 内存，但有 45% 的 Cuti 未使用。进一步增加 BS 会导致内存溢出。因此，尽管它是一个大型模型，但它是 M 重而不是 C 重。另一方面，BS=128 的 MobileNetV2（只有 340 万个参数）的 Cuti 高达 93%，但 Muti 为 30%。进一步增加 BS 会违反其 64 毫秒 SLO。因此，它是 C 重模型而不是 M 重模型。图 6a 显示了模型的 CDF 与模型的比率 Creq/Mreq 的关系。我们看到 22% 的模型的比率≤0.75，表明它们是 M 重的。另外，28%的模型的比率在(1.35,1.65]，表明它们是Cheavy。Llama-2是M重模型(即Mreq/Creq≥1.2)。在其他小模型中，39%是M -heavy，2% 具有可比的 Creq 和 Mreq，其余为 C-heavy（即 Creq/Mreq≥1.2）。</p>
 <p>观察4.与普遍看法不同，模型参数大小本身并不能决定模型是 Cheavy 还是 M-heavy。在 BS、依赖于 BS 的资源需求和 SLO 之间复杂关系的驱动下，即使是一个小模型也可以超越 Creq 中的较大模型。</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153551110.png" alt="image-20241029153551110"></p>
+<p><img alt="image-20241029153551110" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153551110.png"/></p>
 <p>观察 5. 将 C 重模型与 M 重模型复用会增加 GPU 的 Cuti 和 Muti。</p>
 <p>给定 CNN 模型 A 和 B，我们首先找到两个模型中每个可能的卷积层对之间的权重相似性。然后，我们将所有层对的平均权重相似度作为两个模型之间的权重相似度。为了找到第 i 层和第 j 层之间的权重相似度，其中 Lx 表示模型 x 中所有卷积层的集合，我们计算了 2×|max(Wi A∩W j B )| |W i A|+|W j B| ，其中 max(W i A ∩W j B ) 表示权重矩阵 W i A 和 W j B 之间的最长公共子矩阵。如果两个权重值的绝对差异非常小，我们认为它们相同</p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153748440.png" alt="image-20241029153748440"></p>
+<p><img alt="image-20241029153748440" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153748440.png"/></p>
 <p>观察 6. 不同 CNN 模型之间以及不同 Transformer 模型之间存在显着的权重重叠。</p>
-<h2 id="系统设计"><a href="#系统设计" class="headerlink" title="系统设计"></a>系统设计</h2><p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153803154.png" alt="image-20241029153803154"></p>
-<h3 id="基于-GPU-内核的资源需求估计器（GK-Estimator）。"><a href="#基于-GPU-内核的资源需求估计器（GK-Estimator）。" class="headerlink" title="基于 GPU 内核的资源需求估计器（GK-Estimator）。"></a>基于 GPU 内核的资源需求估计器（GK-Estimator）。</h3><p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029154303254.png" alt="image-20241029154303254"></p>
+<h2 id="系统设计"><a class="headerlink" href="#系统设计" title="系统设计"></a>系统设计</h2><p><img alt="image-20241029153803154" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029153803154.png"/></p>
+<h3 id="基于-GPU-内核的资源需求估计器（GK-Estimator）。"><a class="headerlink" href="#基于-GPU-内核的资源需求估计器（GK-Estimator）。" title="基于 GPU 内核的资源需求估计器（GK-Estimator）。"></a>基于 GPU 内核的资源需求估计器（GK-Estimator）。</h3><p><img alt="image-20241029154303254" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029154303254.png"/></p>
 <p>（上面形成的二部图就是算子生成的图，边是输入输出的中介数据）</p>
 <p>估计器根据给定的配置快速、正确地计算 GPU 类型中模型的 Creq 和 Mreq。</p>
 <p>离线分析估计每个新模型的 Creq 和 Mreq 的常用方法。然而，这是昂贵且耗时的。为了应对这一挑战，我们提出了 GK-Estimator，它通过分析低级 GPU 内核来独立估计每个模型的资源需求，而无需在 GPU 中实际运行模型。我们以 Mreq 为例来解释 GK-Estimator 的工作原理。每个模型都可以被视为一个计算图，其中节点是算子，边是张量（即多维矩阵），表示模型输入或模型层生成的中间数据。在内部，每个算子执行都涉及顺序调用 GPU 编程框架中定义的一个或多个 GPU 内核 API（例如，用于 Nvidia GPU 的 CUDA、用于 AMD GPU 的 ROCm）。对于 ONNX 中定义的每个运算符，我们使用 Nvidia Profiling 工具发现在运算符执行期间 ML 框架调用了哪些 GPU 内核。我们注意到，分别有 2%、8%、56% 和 34% 的算子调用了 1、2、3 和 4 个 GPU 内核。</p>
 <p>新模型的算子通常来自一组预先已知的算子 [53, 54]。因此，GK-Estimator 使用回归模型，根据输入张量的大小和算子的数学运算，快速计算算子生成的中间数据所需的内存。那么，对于顺序DL模型，其Mreq是模型参数大小和算子所需的最高内存之和。具有并行分支的模型的内存需求来自并发执行的内核的中间数据的Meqs。然后，如图 10 所示，首先，GK-Estimator 通过用其调用的 GPU 内核序列替换每个运算符，将运算符级计算图转换为内核级计算图。对于 ONNX 中的每个操作员，都会离线找到此序列。然后，它找到将同时执行的每组内核。接下来，对于每个集合，它通过回归模型（称为MreqRegressor）估计集合中每个内核生成的中间数据的Mreq，然后将集合中所有内核的Mreq求和。最后，将<strong>模型参数大小与所有集合中的最大内存需求之和</strong>作为模型的Mreq。</p>
 <p>模型的第一个内核（即直接获取模型输入的内核）的启动时间为 0thms。为了确定哪些内核将同时执行，GK-Estimator 首先查找每个内核的开始时间。它使用另一个回归模型来估计每个内核的执行时间持续时间（称为时间回归器）。启动时间差不超过 τms（例如 0.001ms）的内核被视为可能同时运行。</p>
 <p>使用一个集成学习回归器离线训练，可以达到98%的准确率。</p>
-<h3 id="干扰感知资源利用率最大化调度程序（IR-调度程序）。"><a href="#干扰感知资源利用率最大化调度程序（IR-调度程序）。" class="headerlink" title="干扰感知资源利用率最大化调度程序（IR 调度程序）。"></a>干扰感知资源利用率最大化调度程序（IR 调度程序）。</h3><p>USHER 不是解决复杂度很高的优化问题，而是提供轻量级启发式方法来快速导出时间表。它首先以最大化在组内复用 C 重模型和 M 重模型的机会的方式对模型进行分组。然后，在每个组中，它选择能够实现特定目标（通过利用 O2-5）的最佳性能的配置。 IR-Scheduler 确保每个模型副本在其所在的 GPU 中获取其 Creq 和 Mreq，从而确保 C 空间和 M 空间中不存在模型间干扰。 </p>
-<h4 id="分组"><a href="#分组" class="headerlink" title="分组"></a>分组</h4><p>基于O4和O5，将C重模型与M重模型复用可以最大化Ruti。这种多路复用使得 GPU 的 Cuti 和 Muti 具有可比性。如果 GPU 的 C 空间远低于其 M 空间，反之亦然，它可能无法托管额外的模型。</p>
+<h3 id="干扰感知资源利用率最大化调度程序（IR-调度程序）。"><a class="headerlink" href="#干扰感知资源利用率最大化调度程序（IR-调度程序）。" title="干扰感知资源利用率最大化调度程序（IR 调度程序）。"></a>干扰感知资源利用率最大化调度程序（IR 调度程序）。</h3><p>USHER 不是解决复杂度很高的优化问题，而是提供轻量级启发式方法来快速导出时间表。它首先以最大化在组内复用 C 重模型和 M 重模型的机会的方式对模型进行分组。然后，在每个组中，它选择能够实现特定目标（通过利用 O2-5）的最佳性能的配置。 IR-Scheduler 确保每个模型副本在其所在的 GPU 中获取其 Creq 和 Mreq，从而确保 C 空间和 M 空间中不存在模型间干扰。 </p>
+<h4 id="分组"><a class="headerlink" href="#分组" title="分组"></a>分组</h4><p>基于O4和O5，将C重模型与M重模型复用可以最大化Ruti。这种多路复用使得 GPU 的 Cuti 和 Muti 具有可比性。如果 GPU 的 C 空间远低于其 M 空间，反之亦然，它可能无法托管额外的模型。</p>
 <p>基于此，我们在复用模型时遵循一个原则。也就是说，模型的 Creq 之和几乎等于 GPU 中模型的 Mreq 之和（即 Σi Creqi ≈ Σi Mreqi）。在此基础上，USHER 对模型进行分组，使得每组中的模型 <strong>Σi Creqi ≈ Σi Mreqi</strong>。</p>
-<p>在进行分组之前，USHER首先找到每个模型的Creq和Mreq。 USHER 使用 GK-Estiamtor（第 3.2 节中所述）计算所有可能的 BS 和 GPU 类型组合的平均 Rreq。对于 GPU 类型，USHER 在 Creq 或 Mreq 分别超过该类型的最大 C 空间或 M 空间的 BS 处停止。接下来，USHER 使用 <strong>k 均值聚类</strong>的变体进行分组 [56]。一开始，每个组都由一个模型组成。 USHER 将每两个模型之间的距离计算为 D &#x3D; | Σi Creqi − Σi Mreqi|。然后，它使用k-means算法将模型分为几组，其中每组由两个模型组成，使得D最小化，即每组的Σi Creqi ≈ Σi Mreqi。接下来，将每个组视为一个元素，USHER 执行算法的另一遍。此过程将前一遍创建的两个组合并为一个，并将每组中的模型数量增加两倍。因此，如果我们决定每组中最多有 2p（即 4）个模型，则需要执行 p 遍算法。最后，模型被分为几组，组的集合表示为 G &#x3D; {G1, G2, …, Gn}。（两两分组）</p>
-<h4 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h4><p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161702907.png" alt="image-20241029161702907"></p>
-<p><img src="/./../images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161715260.png" alt="image-20241029161715260"></p>
-<p>算法2比较难理解：放置算法如算法 2 所示。USHER 首先根据使用 GKEstimator 作为输入给出的配置计算每个 GPU 类型中每个模型的 Creq 和 Mreq（第 3-4 行）。然后进一步将模型组 Gi 中的模型分为 C 重模型和 M 重模型（第 7 行）。如果模型的平均 C-req&#x2F;M-req ≥ 1.2，则模型为 C 重；如果 M-req&#x2F;C-req ≥ 1.2，则模型为 M 重。接下来，USHER 按 Creq+Mreq 的降序对两个子组中的每一个进行排序（第 8 行）。之后，USHER 将两个子组中的每两个模型配对以创建 Final_model_list（第 9 行）。最后，USHER 将既不是 C 重也不是 M 重的模型插入到列表中，同时保持 Creq+Mreq 的降序。然后，USHER 从列表中逐一挑选一对或一个模型以分配给 GPU。</p>
+<p>在进行分组之前，USHER首先找到每个模型的Creq和Mreq。 USHER 使用 GK-Estiamtor（第 3.2 节中所述）计算所有可能的 BS 和 GPU 类型组合的平均 Rreq。对于 GPU 类型，USHER 在 Creq 或 Mreq 分别超过该类型的最大 C 空间或 M 空间的 BS 处停止。接下来，USHER 使用 <strong>k 均值聚类</strong>的变体进行分组 [56]。一开始，每个组都由一个模型组成。 USHER 将每两个模型之间的距离计算为 D = | Σi Creqi − Σi Mreqi|。然后，它使用k-means算法将模型分为几组，其中每组由两个模型组成，使得D最小化，即每组的Σi Creqi ≈ Σi Mreqi。接下来，将每个组视为一个元素，USHER 执行算法的另一遍。此过程将前一遍创建的两个组合并为一个，并将每组中的模型数量增加两倍。因此，如果我们决定每组中最多有 2p（即 4）个模型，则需要执行 p 遍算法。最后，模型被分为几组，组的集合表示为 G = {G1, G2, …, Gn}。（两两分组）</p>
+<h4 id="调度"><a class="headerlink" href="#调度" title="调度"></a>调度</h4><p><img alt="image-20241029161702907" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161702907.png"/></p>
+<p><img alt="image-20241029161715260" src="/images/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/image-20241029161715260.png"/></p>
+<p>算法2比较难理解：放置算法如算法 2 所示。USHER 首先根据使用 GKEstimator 作为输入给出的配置计算每个 GPU 类型中每个模型的 Creq 和 Mreq（第 3-4 行）。然后进一步将模型组 Gi 中的模型分为 C 重模型和 M 重模型（第 7 行）。如果模型的平均 C-req/M-req ≥ 1.2，则模型为 C 重；如果 M-req/C-req ≥ 1.2，则模型为 M 重。接下来，USHER 按 Creq+Mreq 的降序对两个子组中的每一个进行排序（第 8 行）。之后，USHER 将两个子组中的每两个模型配对以创建 Final_model_list（第 9 行）。最后，USHER 将既不是 C 重也不是 M 重的模型插入到列表中，同时保持 Creq+Mreq 的降序。然后，USHER 从列表中逐一挑选一对或一个模型以分配给 GPU。</p>
 <p>具体来说，USHER 调用 MODEL_REPLICA_PLACEMENT_WITHIN_GiGPU 函数（第 11 行）。该函数将尽可能多的 M 模型副本放置到该模式的 GPU 组（用 GiGPU 表示）中。模型组的 GPU 组定义为托管模型组的大部分模型副本的 GPU 组。基本上，当 USHER 为模型组 Gi 的任何模型副本初始化新 GPU 时，新 GPU 就会添加到 GPU 组 GiGPU 中。这样，USHER 会尝试将同一模型组中的模型副本放置到同一 GPU 组的 GPU 上。如果一个模型或一对模型有多个 GPU 可用，<strong>USHER 会选择托管后留下最低 C 空间 + M 空间的 GPU，以避免资源碎片。</strong></p>
 <p>之后，USHER 调用 MODEL_REPLICA_PLACMENT_OUTSIDE_GiGPU，将尽可能多的 M 剩余模型副本放置到其他 GPU 组的 GPU 上（第 12 行）。最后，对于尚未放置到任何 GPU 的每个模型副本，USHER <strong>调用NEW_LOWEST_COST_GPU_INITIALIZATION 来初始化可以以最低成本托管模型或配对的 GPU 类型的新 GPU，并将 GPU 分配给 GiGPU</strong>（第 1315 行）。最后，布局算法将初始化新 GPU 的额外成本以及所有模型的总吞吐量返回给调度算法（第 19 行）。如[14]，模型的有效吞吐量被视为批量大小与第 954 届 USENIX 操作系统设计与实现 USENIX 协会完成批量的预期时间（包括队列等待时间）之间的比率。</p>
-<h3 id="算子图合并（OG-Merger）。"><a href="#算子图合并（OG-Merger）。" class="headerlink" title="算子图合并（OG-Merger）。"></a>算子图合并（OG-Merger）。</h3><p>决定放置位置后，OG-Merger 会合并尽可能多的分配给 GPU 的模型的算子图，以最大限度地减少 GPU 缓存中的模型间干扰。合并后，合并后的图所分配的资源是分配给已合并图的模型（由 IR-Scheduler 决定）的资源总和。请注意，IR 调度程序不满足模型的缓存要求，我们发现在第 2 节的设置中几乎 100% 满足模型的缓存要求。因此，满足高速缓存要求会导致C空间和M空间的利用不足。这就是 USHER 在 OG-Merger 中单独解决缓存干扰的原因。</p>
+<h3 id="算子图合并（OG-Merger）。"><a class="headerlink" href="#算子图合并（OG-Merger）。" title="算子图合并（OG-Merger）。"></a>算子图合并（OG-Merger）。</h3><p>决定放置位置后，OG-Merger 会合并尽可能多的分配给 GPU 的模型的算子图，以最大限度地减少 GPU 缓存中的模型间干扰。合并后，合并后的图所分配的资源是分配给已合并图的模型（由 IR-Scheduler 决定）的资源总和。请注意，IR 调度程序不满足模型的缓存要求，我们发现在第 2 节的设置中几乎 100% 满足模型的缓存要求。因此，满足高速缓存要求会导致C空间和M空间的利用不足。这就是 USHER 在 OG-Merger 中单独解决缓存干扰的原因。</p>
 <p>为了最大限度地减少 GPU 缓存的干扰，在分配给一个 GPU 的模型中，USHER 将尽可能多的模型运算符图合并到单个图中。为了执行最大算子图合并，USHER 首先根据模型的架构相似性（即结构和构成算子）将模型分组为子组。然后，对于每个子组，在 O6 的推动下，USHER 根据权重相似性决定多个图中要合并的运算符。最后，在合并过程中，USHER提取出需要合并的算子之间的最大公共权子矩阵，并确保同时处理不同模型的不同输入的与该子矩阵相关的矩阵乘法，而该子矩阵为在 GPU 缓存中。</p>
-<h4 id="对类似架构的操作分组"><a href="#对类似架构的操作分组" class="headerlink" title="对类似架构的操作分组"></a>对类似架构的操作分组</h4><p>具有类似架构的算子图的模型的权重更有可能具有高度相似性。基于此，USHER 使用 DBSCAN 算法根据架构相似性对分配给 GPU 的模型进行分组。给定一组元素，DBSCAN 算法可以将元素之间距离很小（即 10−7）的元素聚集在同一组内，而不需要任何预定数量的组或组内的元素数量。在 DBSCAN 算法中，USHER 使用图编辑距离 来计算距离来衡量两个算子图之间的架构相似性。基本上，编辑距离算法发现需要执行多少操作符的添加&#x2F;删除&#x2F;替换才能使两个操作符图相同。距离越短意味着架构相似度越高。</p>
-<h4 id="决定多个图中合并的运算符"><a href="#决定多个图中合并的运算符" class="headerlink" title="决定多个图中合并的运算符"></a>决定多个图中合并的运算符</h4><p> USHER 首先随机抽取两个模型。然后，它生成包含两个模型的运算符的二部图 B。当且仅当满足以下所有条件时，两个图的两个顶点之间存在边 e：(i) 相同类型（即卷积算子或注意力算子），(ii) 相同的起始时间（第 3.2 节中解释） ), (iii) 算子之间的权重相似度（第 2.4 节中描述）不小于 ω（例如 40%）。它被指定为边权重。生成 B 后，U SHER 在 B 中使用匈牙利算法 [59] 找到最大加权匹配，该算法选择一组独立的边（即不共享任何公共顶点），以使权重之和最大化。每条所选边的两个端点运算符都匹配并将被合并（第 3.4.2 节中进行了说明）。然后，USHER 从剩余模型中随机取出另一个模型，并通过重复相同的过程，使用 B 和另一个模型生成新的二分图 B’。重复此过程，直到组中不再有模型可以合并为止。</p>
-<h4 id="执行合并操作"><a href="#执行合并操作" class="headerlink" title="执行合并操作"></a>执行合并操作</h4><p>作为运算符合并的示例，我们描述了两个 Transformer 模型的注意力层中两个 Query 运算符的过程。它是一个矩阵乘法运算：I′ 1 &#x3D; W1I1，其中I1是输入，W1是查询权重矩阵。现在，我们解释 USHER 如何修改此操作以进行运算符合并。如果 I1 和 I2 以及 W1 和 W2 的大小不同，我们将应用零填充以使它们大小相同。</p>
-<p>只要加载一遍W1和W2重合的Ws，然后把矩阵乘法分配律用上之后分开：I′ 1 &#x3D; W sI1 + W R 1 I1. </p>
-<h2 id="实验实践"><a href="#实验实践" class="headerlink" title="实验实践"></a>实验实践</h2><p>除了表1中描述的模型之外，我们还使用了两个包含多个DL模型的多模型应用程序：视频监控（SLO：500ms）[2]和社交媒体（SLO：750ms）[65] 。</p>
-<p>除了具有稳定和密集的请求到达率的 Microsoft Azure Function Trace 2019 (MAF1) 之外，我们还尝试了具有突发到达率的 MAF Trace 2021 (MAF2) [66]。 (a) MAF1 (b) MAF2 图 13：固定集群的实际测试台中不同方法的良好吞吐量比较。 (a) MAF1 (b) MAF2 我们进行了真实测试台和模拟实验。真正的测试床是一个包含 6 个 AWS EC2 p3.8xlarge 服务器的集群，每个服务器由 4 个 V100 Nvidia GPU 组成，并且 GPU 通过 NVLink 互连。在模拟中，我们将GPU数量增加到6000个，以模拟大型企业级GPU集群[67]。由于使用如此多的 GPU 实际执行模型的成本极其昂贵，因此我们直接从调度程序决策中报告结果，而不实际运行模型。在模拟中，我们尝试了高达 15M 请求&#x2F;秒的超大工作负载，以模拟企业级集群中的大型工作负载。我们测试了固定和非固定集群设置。我们将 USHER 与 Shepherd [3]、GPUlet [14] 和 AlpaServe [4] 进行了比较。</p>
+<h4 id="对类似架构的操作分组"><a class="headerlink" href="#对类似架构的操作分组" title="对类似架构的操作分组"></a>对类似架构的操作分组</h4><p>具有类似架构的算子图的模型的权重更有可能具有高度相似性。基于此，USHER 使用 DBSCAN 算法根据架构相似性对分配给 GPU 的模型进行分组。给定一组元素，DBSCAN 算法可以将元素之间距离很小（即 10−7）的元素聚集在同一组内，而不需要任何预定数量的组或组内的元素数量。在 DBSCAN 算法中，USHER 使用图编辑距离 来计算距离来衡量两个算子图之间的架构相似性。基本上，编辑距离算法发现需要执行多少操作符的添加/删除/替换才能使两个操作符图相同。距离越短意味着架构相似度越高。</p>
+<h4 id="决定多个图中合并的运算符"><a class="headerlink" href="#决定多个图中合并的运算符" title="决定多个图中合并的运算符"></a>决定多个图中合并的运算符</h4><p> USHER 首先随机抽取两个模型。然后，它生成包含两个模型的运算符的二部图 B。当且仅当满足以下所有条件时，两个图的两个顶点之间存在边 e：(i) 相同类型（即卷积算子或注意力算子），(ii) 相同的起始时间（第 3.2 节中解释） ), (iii) 算子之间的权重相似度（第 2.4 节中描述）不小于 ω（例如 40%）。它被指定为边权重。生成 B 后，U SHER 在 B 中使用匈牙利算法 [59] 找到最大加权匹配，该算法选择一组独立的边（即不共享任何公共顶点），以使权重之和最大化。每条所选边的两个端点运算符都匹配并将被合并（第 3.4.2 节中进行了说明）。然后，USHER 从剩余模型中随机取出另一个模型，并通过重复相同的过程，使用 B 和另一个模型生成新的二分图 B’。重复此过程，直到组中不再有模型可以合并为止。</p>
+<h4 id="执行合并操作"><a class="headerlink" href="#执行合并操作" title="执行合并操作"></a>执行合并操作</h4><p>作为运算符合并的示例，我们描述了两个 Transformer 模型的注意力层中两个 Query 运算符的过程。它是一个矩阵乘法运算：I′ 1 = W1I1，其中I1是输入，W1是查询权重矩阵。现在，我们解释 USHER 如何修改此操作以进行运算符合并。如果 I1 和 I2 以及 W1 和 W2 的大小不同，我们将应用零填充以使它们大小相同。</p>
+<p>只要加载一遍W1和W2重合的Ws，然后把矩阵乘法分配律用上之后分开：I′ 1 = W sI1 + W R 1 I1. </p>
+<h2 id="实验实践"><a class="headerlink" href="#实验实践" title="实验实践"></a>实验实践</h2><p>除了表1中描述的模型之外，我们还使用了两个包含多个DL模型的多模型应用程序：视频监控（SLO：500ms）[2]和社交媒体（SLO：750ms）[65] 。</p>
+<p>除了具有稳定和密集的请求到达率的 Microsoft Azure Function Trace 2019 (MAF1) 之外，我们还尝试了具有突发到达率的 MAF Trace 2021 (MAF2) [66]。 (a) MAF1 (b) MAF2 图 13：固定集群的实际测试台中不同方法的良好吞吐量比较。 (a) MAF1 (b) MAF2 我们进行了真实测试台和模拟实验。真正的测试床是一个包含 6 个 AWS EC2 p3.8xlarge 服务器的集群，每个服务器由 4 个 V100 Nvidia GPU 组成，并且 GPU 通过 NVLink 互连。在模拟中，我们将GPU数量增加到6000个，以模拟大型企业级GPU集群[67]。由于使用如此多的 GPU 实际执行模型的成本极其昂贵，因此我们直接从调度程序决策中报告结果，而不实际运行模型。在模拟中，我们尝试了高达 15M 请求/秒的超大工作负载，以模拟企业级集群中的大型工作负载。我们测试了固定和非固定集群设置。我们将 USHER 与 Shepherd [3]、GPUlet [14] 和 AlpaServe [4] 进行了比较。</p>
 <p>主要实验包括：</p>
 <ul>
 <li><p>固定配置集群</p>
@@ -346,18 +274,18 @@
 </li>
 </ul>
 <p>结果略，反正表现很好就对了。</p>
-<h1 id="术语积累"><a href="#术语积累" class="headerlink" title="术语积累"></a>术语积累</h1><h2 id="计算利用率和内存利用率"><a href="#计算利用率和内存利用率" class="headerlink" title="计算利用率和内存利用率"></a>计算利用率和内存利用率</h2><p>GPU 内存利用率（Muti）和计算利用率（Cuti）的需求主要由模型的任务类型和架构决定，不同类型的模型会对内存和计算资源提出不同的要求。</p>
-<h3 id="1-内存利用率需求高的模型"><a href="#1-内存利用率需求高的模型" class="headerlink" title="1. 内存利用率需求高的模型"></a>1. 内存利用率需求高的模型</h3><p><strong>图像生成模型（如 GANs）</strong>和<strong>大规模预训练语言模型（如 GPT-3、BERT）</strong>通常对内存有很高需求。这类模型的参数量较大，尤其是预训练语言模型，它们需要存储大量的词嵌入和参数矩阵。因此，在推理或训练中，它们的内存需求通常较高。此外：</p>
+<h1 id="术语积累"><a class="headerlink" href="#术语积累" title="术语积累"></a>术语积累</h1><h2 id="计算利用率和内存利用率"><a class="headerlink" href="#计算利用率和内存利用率" title="计算利用率和内存利用率"></a>计算利用率和内存利用率</h2><p>GPU 内存利用率（Muti）和计算利用率（Cuti）的需求主要由模型的任务类型和架构决定，不同类型的模型会对内存和计算资源提出不同的要求。</p>
+<h3 id="1-内存利用率需求高的模型"><a class="headerlink" href="#1-内存利用率需求高的模型" title="1. 内存利用率需求高的模型"></a>1. 内存利用率需求高的模型</h3><p><strong>图像生成模型（如 GANs）</strong>和<strong>大规模预训练语言模型（如 GPT-3、BERT）</strong>通常对内存有很高需求。这类模型的参数量较大，尤其是预训练语言模型，它们需要存储大量的词嵌入和参数矩阵。因此，在推理或训练中，它们的内存需求通常较高。此外：</p>
 <ul>
 <li><strong>Transformer 模型</strong>（如 BERT 和 GPT）因其自注意力机制，需存储大量激活值和中间结果，导致内存需求增加。</li>
 <li><strong>卷积神经网络（CNN）</strong>用于高分辨率图像处理时，也需要较高的内存来存储特征图。</li>
 </ul>
-<h3 id="2-计算利用率需求高的模型"><a href="#2-计算利用率需求高的模型" class="headerlink" title="2. 计算利用率需求高的模型"></a>2. 计算利用率需求高的模型</h3><p>**卷积神经网络（CNNs）**和**图像分类或对象检测模型**（如 ResNet、YOLO 等）通常是计算密集型。这些模型会进行大量矩阵乘法和卷积操作，因而对计算资源的需求较大。此外：</p>
+<h3 id="2-计算利用率需求高的模型"><a class="headerlink" href="#2-计算利用率需求高的模型" title="2. 计算利用率需求高的模型"></a>2. 计算利用率需求高的模型</h3><p>**卷积神经网络（CNNs）**和**图像分类或对象检测模型**（如 ResNet、YOLO 等）通常是计算密集型。这些模型会进行大量矩阵乘法和卷积操作，因而对计算资源的需求较大。此外：</p>
 <ul>
 <li><strong>视频处理模型</strong>也有高计算需求，因为要处理每一帧图像，并可能涉及时间上的信息建模。</li>
 <li><strong>Recurrent Neural Networks（RNNs）</strong>和 LSTM 也由于其时间依赖性操作（如在序列数据上的递归操作），在长序列数据上对计算资源需求较高。</li>
 </ul>
-<h3 id="3-GPU-的内存和计算利用率决定因素"><a href="#3-GPU-的内存和计算利用率决定因素" class="headerlink" title="3. GPU 的内存和计算利用率决定因素"></a>3. GPU 的内存和计算利用率决定因素</h3><p>GPU 的架构在很大程度上决定了内存利用率和计算利用率的表现，具体包括以下几点：</p>
+<h3 id="3-GPU-的内存和计算利用率决定因素"><a class="headerlink" href="#3-GPU-的内存和计算利用率决定因素" title="3. GPU 的内存和计算利用率决定因素"></a>3. GPU 的内存和计算利用率决定因素</h3><p>GPU 的架构在很大程度上决定了内存利用率和计算利用率的表现，具体包括以下几点：</p>
 <ul>
 <li><strong>CUDA 核心数量和频率</strong>：决定了 GPU 可以进行的并行计算能力，从而影响计算利用率。</li>
 <li><strong>内存带宽和显存大小</strong>：内存带宽越大，GPU 处理内存密集型任务的效率越高，显存大小也会影响大型模型是否能完全加载进 GPU。</li>
@@ -365,133 +293,94 @@
 <li><strong>缓存机制和内存管理</strong>：较高的缓存可以提升模型执行速度，减少对全局内存的依赖，提高总体利用效率。</li>
 </ul>
 <p>不同架构和模型的组合会直接影响 GPU 的计算和内存使用表现，因此在选择 GPU 时，需根据模型需求做出针对性选择。</p>
-<h2 id="SLO"><a href="#SLO" class="headerlink" title="SLO"></a>SLO</h2><p>在 GPU 计算中，SLO（Service Level Objective，服务级别目标） 是用来定义 GPU 服务性能的目标标准。SLO 的设定主要是为了确保服务能够达到特定的性能要求，例如响应时间、延迟、吞吐量或资源利用率等，从而为任务提供稳定和高效的计算环境。对 GPU 来说，SLO 通常设定的目标会围绕延迟、计算时间、资源占用比（如计算或内存利用率）等，以满足用户的需求或应用的实时性要求</p>
-<h2 id="BS和RD"><a href="#BS和RD" class="headerlink" title="BS和RD"></a>BS和RD</h2><p><strong>BS（Batch Size，批量大小）</strong>：指模型在 GPU 上执行时的批处理数量，即模型每次传入 GPU 的数据量大小。批量越大，通常能够更好地利用 GPU 计算资源，但也可能受到 GPU 内存的限制。</p>
+<h2 id="SLO"><a class="headerlink" href="#SLO" title="SLO"></a>SLO</h2><p>在 GPU 计算中，SLO（Service Level Objective，服务级别目标） 是用来定义 GPU 服务性能的目标标准。SLO 的设定主要是为了确保服务能够达到特定的性能要求，例如响应时间、延迟、吞吐量或资源利用率等，从而为任务提供稳定和高效的计算环境。对 GPU 来说，SLO 通常设定的目标会围绕延迟、计算时间、资源占用比（如计算或内存利用率）等，以满足用户的需求或应用的实时性要求</p>
+<h2 id="BS和RD"><a class="headerlink" href="#BS和RD" title="BS和RD"></a>BS和RD</h2><p><strong>BS（Batch Size，批量大小）</strong>：指模型在 GPU 上执行时的批处理数量，即模型每次传入 GPU 的数据量大小。批量越大，通常能够更好地利用 GPU 计算资源，但也可能受到 GPU 内存的限制。</p>
 <p><strong>RD（Replication Degree，复制度）</strong>：指模型的复制数量，以提高并发度。每个模型可以创建多份副本（replica），RD 就是副本的数量。增大 RD 值可以分散模型负载，提高任务完成速度，但需要更多的 GPU 资源。</p>
-
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-          <div class="post-tags">
-              <a href="/tags/GPU/" rel="tag"># GPU</a>
-              <a href="/tags/%E7%A7%91%E7%A0%94/" rel="tag"># 科研</a>
-          </div>
-
-        
-
-          <div class="post-nav">
-            <div class="post-nav-item">
-                <a href="/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/" rel="prev" title="hexo搭建笔记">
-                  <i class="fa fa-angle-left"></i> hexo搭建笔记
+</div>
+<footer class="post-footer">
+<div class="post-tags">
+<a href="/tags/GPU/" rel="tag"># GPU</a>
+<a href="/tags/%E7%A7%91%E7%A0%94/" rel="tag"># 科研</a>
+</div>
+<div class="post-nav">
+<div class="post-nav-item">
+<a href="/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/" rel="prev" title="hexo搭建笔记">
+<i class="fa fa-angle-left"></i> hexo搭建笔记
                 </a>
-            </div>
-            <div class="post-nav-item">
-                <a href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="next" title="Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记">
+</div>
+<div class="post-nav-item">
+<a href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" rel="next" title="Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记">
                   Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记 <i class="fa fa-angle-right"></i>
-                </a>
-            </div>
-          </div>
-    </footer>
-  </article>
+</a>
 </div>
-
-
-
-
-
-
 </div>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-
-  <div class="copyright">
-    &copy; 
+</footer>
+</article>
+</div>
+</div>
+</main>
+<footer class="footer">
+<div class="footer-inner">
+<div class="copyright">
+    ©
     <span itemprop="copyrightYear">2025</span>
-    <span class="with-love">
-      <i class="fa fa-heart"></i>
-    </span>
-    <span class="author" itemprop="copyrightHolder">Ringo.fu</span>
-  </div>
+<span class="with-love">
+<i class="fa fa-heart"></i>
+</span>
+<span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+</div>
 <div class="wordcount">
-  <span class="post-meta-item">
-    <span class="post-meta-item-icon">
-      <i class="fa fa-chart-line"></i>
-    </span>
-    <span title="Word count total">70k</span>
-  </span>
-  <span class="post-meta-item">
-    <span class="post-meta-item-icon">
-      <i class="fa fa-coffee"></i>
-    </span>
-    <span title="Reading time total">1:04</span>
-  </span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="fa fa-chart-line"></i>
+</span>
+<span title="Word count total">70k</span>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="fa fa-coffee"></i>
+</span>
+<span title="Reading time total">1:04</span>
+</span>
 </div>
 <div class="busuanzi-count">
-    <span class="post-meta-item" id="busuanzi_container_site_uv">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-user"></i>
-      </span>
-      <span class="site-uv" title="Total Visitors">
-        <span id="busuanzi_value_site_uv"></span>
-      </span>
-    </span>
-    <span class="post-meta-item" id="busuanzi_container_site_pv">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-eye"></i>
-      </span>
-      <span class="site-pv" title="Total Views">
-        <span id="busuanzi_value_site_pv"></span>
-      </span>
-    </span>
+<span class="post-meta-item" id="busuanzi_container_site_uv">
+<span class="post-meta-item-icon">
+<i class="fa fa-user"></i>
+</span>
+<span class="site-uv" title="Total Visitors">
+<span id="busuanzi_value_site_uv"></span>
+</span>
+</span>
+<span class="post-meta-item" id="busuanzi_container_site_pv">
+<span class="post-meta-item-icon">
+<i class="fa fa-eye"></i>
+</span>
+<span class="site-pv" title="Total Views">
+<span id="busuanzi_value_site_pv"></span>
+</span>
+</span>
 </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
-  </div>
-
-    </div>
-  </footer>
-
-  
-  <div class="toggle sidebar-toggle" role="button">
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-  </div>
-  <div class="sidebar-dimmer"></div>
-  <div class="back-to-top" role="button" aria-label="Back to top">
-    <i class="fa fa-arrow-up fa-lg"></i>
-    <span>0%</span>
-  </div>
-
+<div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> &amp; <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+</div>
+</div>
+</footer>
+<div class="toggle sidebar-toggle" role="button" tabindex="0">
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+</div>
+<div class="sidebar-dimmer"></div>
+<div aria-label="Back to top" class="back-to-top" role="button" tabindex="0">
+<i class="fa fa-arrow-up fa-lg"></i>
+<span>0%</span>
+</div>
 <noscript>
-  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+<div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
-
-
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" src="/vendor/anime.min.js"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" src="/vendor/search.js"></script>
 <script src="/js/third-party/search/local-search.js"></script>
-
-
-
-
-
-
-
-  
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-
-
-
-
-</body>
+<script defer="" src="/js/blog-maintenance.js"></script></body>
 </html>

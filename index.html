@@ -1,1355 +1,876 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
-  <link rel="mask-icon" href="/images/logo.svg" color="#222">
-
-<link rel="stylesheet" href="/css/main.css">
-
-
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
-
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
-
-    <meta name="description" content="乌拉呀哈咿呀哈">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Ringo的博客">
-<meta property="og:url" content="http://example.com/index.html">
-<meta property="og:site_name" content="Ringo的博客">
-<meta property="og:description" content="乌拉呀哈咿呀哈">
-<meta property="og:locale" content="en_US">
-<meta property="article:author" content="Ringo.fu">
-<meta name="twitter:card" content="summary">
-
-
-<link rel="canonical" href="http://example.com/">
-
-
-
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"en","comments":"","permalink":"","path":"index.html","title":""}</script>
-
+<meta charset="utf-8"/>
+<meta content="width=device-width" name="viewport"/>
+<meta content="#222" name="theme-color"/><meta content="Hexo 7.3.0" name="generator"/>
+<link href="/images/apple-touch-icon-next.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/images/favicon-32x32-next.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/images/favicon-16x16-next.png" rel="icon" sizes="16x16" type="image/png"/>
+<link color="#222" href="/images/logo.svg" rel="mask-icon"/>
+<link href="/css/main.css" rel="stylesheet"/>
+<link crossorigin="anonymous" href="/vendor/fontawesome/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" rel="stylesheet"/>
+<link crossorigin="anonymous" href="/vendor/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" rel="stylesheet"/>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"sysufyj.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索文章…","empty":"没有找到相关内容：${query}","hits_time":"${hits} results found in ${time} ms","hits":"找到 ${hits} 篇文章"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta content="乌拉呀哈咿呀哈" name="description"/>
+<meta content="website" property="og:type"/>
+<meta content="Ringo的博客" property="og:title"/>
+<meta content="https://sysufyj.github.io/index.html" property="og:url"/>
+<meta content="Ringo的博客" property="og:site_name"/>
+<meta content="乌拉呀哈咿呀哈" property="og:description"/>
+<meta content="en_US" property="og:locale"/>
+<meta content="Ringo.fu" property="article:author"/>
+<meta content="summary" name="twitter:card"/>
+<link href="https://sysufyj.github.io/" rel="canonical"/>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"index.html","title":""}</script>
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>Ringo的博客</title>
-  
-
-
-
-
-
-
-
-
-  <noscript>
-    <link rel="stylesheet" href="/css/noscript.css">
-  </noscript>
-</head>
-
-<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
-  <div class="headband"></div>
-
-  <main class="main">
-    <div class="column">
-      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
-  <div class="site-nav-toggle">
-    <div class="toggle" aria-label="Toggle navigation bar" role="button">
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-    </div>
-  </div>
-
-  <div class="site-meta">
-
-    <a href="/" class="brand" rel="start">
-      <i class="logo-line"></i>
-      <h1 class="site-title">Ringo的博客</h1>
-      <i class="logo-line"></i>
-    </a>
-  </div>
-
-  <div class="site-nav-right">
-    <div class="toggle popup-trigger" aria-label="Search" role="button">
-        <i class="fa fa-search fa-fw fa-lg"></i>
-    </div>
-  </div>
+<noscript>
+<link href="/css/noscript.css" rel="stylesheet"/>
+</noscript>
+<link href="/css/blog-maintenance.css" rel="stylesheet"/></head>
+<body class="" itemscope="" itemtype="http://schema.org/WebPage">
+<div class="headband"></div>
+<main class="main">
+<div class="column">
+<header class="header" itemscope="" itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+<div class="site-nav-toggle">
+<div aria-label="Toggle navigation bar" class="toggle" role="button" tabindex="0">
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
 </div>
-
-
-
+</div>
+<div class="site-meta">
+<a class="brand" href="/" rel="start">
+<i class="logo-line"></i>
+<h1 class="site-title">Ringo的博客</h1>
+<i class="logo-line"></i>
+</a>
+</div>
+<div class="site-nav-right">
+<div aria-label="Search" class="toggle popup-trigger" role="button" tabindex="0">
+<i class="fa fa-search fa-fw fa-lg"></i>
+</div>
+</div>
+</div>
 <nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">Archives</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">Categories</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">Tags</a></li>
-      <li class="menu-item menu-item-search">
-        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
-        </a>
-      </li>
-  </ul>
+<ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">时间归档</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">分类</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">标签</a></li>
+<li class="menu-item menu-item-search">
+<a class="popup-trigger" role="button" tabindex="0"><i class="fa fa-search fa-fw"></i>搜索</a>
+</li>
+<li class="menu-item"><a href="/library/">主题归档</a></li><li class="menu-item"><a href="/paper-notes/">论文笔记</a></li></ul>
 </nav>
-
-
-
-  <div class="search-pop-overlay">
-    <div class="popup search-popup">
-      <div class="search-header">
-        <span class="search-icon">
-          <i class="fa fa-search"></i>
-        </span>
-        <div class="search-input-container">
-          <input autocomplete="off" autocapitalize="off" maxlength="80"
-                placeholder="Searching..." spellcheck="false"
-                type="search" class="search-input">
-        </div>
-        <span class="popup-btn-close" role="button">
-          <i class="fa fa-times-circle"></i>
-        </span>
-      </div>
-      <div class="search-result-container">
-        <div class="search-result-icon">
-          <i class="fa fa-spinner fa-pulse fa-5x"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div class="search-pop-overlay">
+<div class="popup search-popup">
+<div class="search-header">
+<span class="search-icon">
+<i class="fa fa-search"></i>
+</span>
+<div class="search-input-container">
+<input aria-label="搜索文章" autocapitalize="off" autocomplete="off" class="search-input" maxlength="80" placeholder="搜索文章…" spellcheck="false" type="search"/>
+</div>
+<span aria-label="关闭搜索" class="popup-btn-close" role="button" tabindex="0">
+<i class="fa fa-times-circle"></i>
+</span>
+</div>
+<div class="search-result-container">
+<div class="search-result-icon">
+<i class="fa fa-spinner fa-pulse fa-5x"></i>
+</div>
+</div>
+</div>
+</div>
 </header>
-        
-  
-  <aside class="sidebar">
-
-    <div class="sidebar-inner sidebar-overview-active">
-      <ul class="sidebar-nav">
-        <li class="sidebar-nav-toc">
-          Table of Contents
-        </li>
-        <li class="sidebar-nav-overview">
-          Overview
-        </li>
-      </ul>
-
-      <div class="sidebar-panel-container">
-        <!--noindex-->
-        <div class="post-toc-wrap sidebar-panel">
-        </div>
-        <!--/noindex-->
-
-        <div class="site-overview-wrap sidebar-panel">
-          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <p class="site-author-name" itemprop="name">Ringo.fu</p>
-  <div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+<aside class="sidebar">
+<div class="sidebar-inner sidebar-overview-active">
+<ul class="sidebar-nav">
+<li class="sidebar-nav-toc">文章目录</li>
+<li class="sidebar-nav-overview">站点概览</li>
+</ul>
+<div class="sidebar-panel-container">
+<!--noindex-->
+<div class="post-toc-wrap sidebar-panel">
+</div>
+<!--/noindex-->
+<div class="site-overview-wrap sidebar-panel">
+<div class="site-author animated" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<p class="site-author-name" itemprop="name">Ringo.fu</p>
+<div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
 </div>
 <div class="site-state-wrap animated">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-        <a href="/archives">
-          <span class="site-state-item-count">11</span>
-          <span class="site-state-item-name">posts</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-          <a href="/categories">
-        <span class="site-state-item-count">7</span>
-        <span class="site-state-item-name">categories</span></a>
-      </div>
-      <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">9</span>
-        <span class="site-state-item-name">tags</span>
-      </div>
-  </nav>
+<nav class="site-state">
+<div class="site-state-item site-state-posts">
+<a href="/archives">
+<span class="site-state-item-count">11</span>
+<span class="site-state-item-name">文章</span>
+</a>
 </div>
-
-        </div>
-      </div>
-    </div>
-
-    
-  </aside>
-
-
-    </div>
-
-    <div class="main-inner index posts-expand">
-
-    
-
-
+<div class="site-state-item site-state-categories">
+<a href="/categories">
+<span class="site-state-item-count">7</span>
+<span class="site-state-item-name">分类</span></a>
+</div>
+<div class="site-state-item site-state-tags"><a href="/tags/">
+<span class="site-state-item-count">9</span>
+<span class="site-state-item-name">标签</span>
+</a></div>
+</nav>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<div class="main-inner index posts-expand">
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">Transformer+cuda学习</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2025-02-21 13:06:58" itemprop="dateCreated datePublished" datetime="2025-02-21T13:06:58+08:00">2025-02-21</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-04 11:06:16" itemprop="dateModified" datetime="2025-03-04T11:06:16+08:00">2025-03-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">cuda学习</span></a>
-        </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/" itemprop="url">Transformer+cuda学习</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2025-02-21T13:06:58+08:00" itemprop="dateCreated datePublished" title="Created: 2025-02-21 13:06:58">2025-02-21</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2025-03-04T11:06:16+08:00" itemprop="dateModified" title="Modified: 2025-03-04 11:06:16">2025-03-04</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/cuda%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">cuda学习</span></a>
+</span>
           , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/Transformer/" itemprop="url" rel="index"><span itemprop="name">Transformer</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>2.3k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>2 mins.</span>
-    </span>
+        <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/cuda%E5%AD%A6%E4%B9%A0/Transformer/" itemprop="url" rel="index"><span itemprop="name">Transformer</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>2.3k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>2 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>[TOC]</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>梳理 Transformer 编码器与解码器、词与位置嵌入、自注意力、多头注意力、残差归一化和前馈层。当前正文主要为 Transformer 基础。</p><div class="post-button"><a class="btn" href="/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" class="post-title-link" itemprop="url">cuda基础</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2025-01-29 22:24:28" itemprop="dateCreated datePublished" datetime="2025-01-29T22:24:28+08:00">2025-01-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-04 11:04:08" itemprop="dateModified" datetime="2025-03-04T11:04:08+08:00">2025-03-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">cuda学习</span></a>
-        </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" itemprop="url">cuda基础</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2025-01-29T22:24:28+08:00" itemprop="dateCreated datePublished" title="Created: 2025-01-29 22:24:28">2025-01-29</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2025-03-04T11:04:08+08:00" itemprop="dateModified" title="Modified: 2025-03-04 11:04:08">2025-03-04</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/cuda%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">cuda学习</span></a>
+</span>
           , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cuda%E5%AD%A6%E4%B9%A0/%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" itemprop="url" rel="index"><span itemprop="name">基础操作</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>6.7k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>6 mins.</span>
-    </span>
+        <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/cuda%E5%AD%A6%E4%B9%A0/%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/" itemprop="url" rel="index"><span itemprop="name">基础操作</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>6.7k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>6 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="GPU结构"><a href="#GPU结构" class="headerlink" title="GPU结构"></a>GPU结构</h3><p>GPU底层适合完成一些与机器学习负责的部分高度重合的任务。比如向量加法、矩阵乘法、偏微分方程求解等计算量大但并行性高的任务等。</p>
-<p>GPU 的设计哲学是吞吐量（throughput）比延迟更加重要。（数据并行）让大量数据可以被同时处理，GPU 使用大量的晶体管来堆砌大量的运算单元，通过同时让许多运算单元共享同一个控制单元，以节约晶体管。</p>
-<p>经典老图</p>
-<p><img src="/./../images/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/image-20250129222901101.png" alt="image-20250129222901101"></p>
-<p>对于3D画面的渲染管线：包含Vertex Mapping, Fragment Generation 与 Fragment Merging三个部分。一般来说让各个电路负责不同的部分，但这样容易在各个部分形成瓶颈。Nvidia在2006年退出Telsa架构，用流处理器负责某个步骤的处理，每个SM都像一个小型CPU一样可以执行其支持的指令集中的任何程序。并引申到通用计算部分。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>记录 GPU 架构、CUDA kernel、内存管理、线程组织、性能分析及代码实例，包含用于说明 CPU/GPU 内存区别的报错示例。</p><div class="post-button"><a class="btn" href="/2025/01/29/cuda%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Inducer论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-12-18 12:13:05" itemprop="dateCreated datePublished" datetime="2024-12-18T12:13:05+08:00">2024-12-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-04 11:06:13" itemprop="dateModified" datetime="2025-03-04T11:06:13+08:00">2025-03-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>4.4k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>4 mins.</span>
-    </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">Inducer论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-12-18T12:13:05+08:00" itemprop="dateCreated datePublished" title="Created: 2024-12-18 12:13:05">2024-12-18</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2025-03-04T11:06:13+08:00" itemprop="dateModified" title="Modified: 2025-03-04 11:06:13">2025-03-04</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>4.4k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>4 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>[TOC]</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>从核方法和诱导变量理解前缀调优，整理查询自适应的 Inducer-Tuning、残差适配器、值向量扩展、LoRA 与实验观察。</p><div class="post-button"><a class="btn" href="/2024/12/18/Inducer%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-12-09 15:56:33" itemprop="dateCreated datePublished" datetime="2024-12-09T15:56:33+08:00">2024-12-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-04 11:06:23" itemprop="dateModified" datetime="2025-03-04T11:06:23+08:00">2025-03-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">Llumnix: Dynamic Scheduling for Large Language Model Serving论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-12-09T15:56:33+08:00" itemprop="dateCreated datePublished" title="Created: 2024-12-09 15:56:33">2024-12-09</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2025-03-04T11:06:23+08:00" itemprop="dateModified" title="Modified: 2025-03-04 11:06:23">2025-03-04</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
           , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">大模型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>9.2k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>8 mins.</span>
-    </span>
+        <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/%E5%A4%A7%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">大模型</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>9.2k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>8 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>为大型语言模型 (LLM) 提供推理服务是在人们的日常生活中释放其潜力的关键。然而，LLM大规模推理服务在今天仍然具有挑战性，因为由于应用程序的多样化和LLM的动态执行性质：请求本质上是异构的，并且在资源和延迟要求方面是不可预测的。现有系统在处理这些特征方面从根本上受到限制，并导致严重的排队延迟、尾部延迟差和 SLO 违规等问题。</p>
-<p>我们引入了 Llumnix，这是一个 LLM 服务系统，它通过跨多个模型实例的运行时重新调度来响应此类异构且不可预测的请求。与现代操作系统中跨 CPU 内核的上下文切换类似，Llumnix 重新安排请求以改善负载平衡和隔离、减少资源碎片并区分请求优先级和 SLO。 Llumnix 通过高效且可扩展的实时迁移机制来实现请求及其内存状态的重新调度，并在动态调度策略中利用它，优雅地统一了多种重新调度场景。我们的评估表明，与最先进的 LLM 服务系统相比，Llumnix 将尾部延迟提高了一个数量级，将高优先级请求加速高达 1.5 倍，并在实现类似尾部延迟的同时节省高达 36% 的成本。 Llumnix 已在 <a target="_blank" rel="noopener" href="https://github.com/AlibabaPAI/llumnix">https://github.com/AlibabaPAI/llumnix</a> 上公开提供。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>记录 Llumnix 的 LLM 请求实时迁移、分布式重调度及虚拟使用量策略，讨论负载均衡、内存碎片、请求优先级与延迟目标。</p><div class="post-button"><a class="btn" href="/2024/12/09/Llumnix-Dynamic-Scheduling-for-Large-Language-Model-Serving%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/11/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">计算机网络论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-11-20 14:04:01" itemprop="dateCreated datePublished" datetime="2024-11-20T14:04:01+08:00">2024-11-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-03-04 11:07:18" itemprop="dateModified" datetime="2025-03-04T11:07:18+08:00">2025-03-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AF%BE%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">课程</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>3.5k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>3 mins.</span>
-    </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/11/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/11/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">计算机网络论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-11-20T14:04:01+08:00" itemprop="dateCreated datePublished" title="Created: 2024-11-20 14:04:01">2024-11-20</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2025-03-04T11:07:18+08:00" itemprop="dateModified" title="Modified: 2025-03-04 11:07:18">2025-03-04</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AF%BE%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">课程</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>3.5k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>3 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="论文1-中文综述"><a href="#论文1-中文综述" class="headerlink" title="论文1-中文综述"></a>论文1-中文综述</h1><p>摘要：人工智能利用各种优化技术从海量训练样本中学习关键特征或知识，以提较高的质量量，这对训练训练方法提出了更高的要求。然而，传统单机训练无法满足存储与计算性因此，利用多个计算节点协同的分布式训练系统成为热点研究方向之一。本文首先阐述了单机训练面临的主要挑战。其次、分解析了分布训练系统系统预急需解决的三个关键问题（<strong>分区、通信、聚合</strong>），基于上述问题总结了一套训练系统的通用框架与四个核心组件。在此基础上，总结了基于随机随机陡峭下降算法的中心化与去中心化架构构研分支，并对各研研分支优化算法与应用进行综述.最后,提出了未来可能的研究方向.</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/11/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>汇总分布式机器学习综述，记录划分、通信、优化、聚合组件，中心化/去中心化训练，以及异构环境、联邦学习与分布式框架。</p><div class="post-button"><a class="btn" href="/2024/11/20/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-      
-
-      <time title="Created: 2024-11-01 10:43:49 / Modified: 20:46:35" itemprop="dateCreated datePublished" datetime="2024-11-01T10:43:49+08:00">2024-11-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>20k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>18 mins.</span>
-    </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">Microsecond-scale Preemption for Concurrent GPU-accelerated DNN Inferences论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-11-01T10:43:49+08:00" itemprop="dateCreated datePublished" title="Created: 2024-11-01 10:43:49 / Modified: 20:46:35">2024-11-01</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>20k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>18 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>自动驾驶和虚拟现实等许多智能应用程序都需要运行延迟关键型和尽力而为的 DNN 推理任务，以在 GPU 上实现实时性和节省工作量。然而，商用 GPU 缺乏高效的抢占式调度支持，最先进的方法要么必须独占 GPU，要么让实时任务等待尽力而为的任务完成，这会导致利用率低或延迟高，或两者兼而有之。本文介绍了 REEF，这是第一个 GPU 加速的 DNN 推理服务系统，可在 GPU 调度中实现微秒级内核抢占和受控并发执行。 REEF 有两个新颖之处。首先，<strong>基于 DNN 推理内核大多具有幂等性的观察，REEF 设计了一种基于重置的抢占方案，通过主动杀死和恢复微秒级的尽力而为内核，在 GPU 上启动实时内核</strong>。其次，<strong>由于 DNN 推理内核具有不同的并行性和可预测的延迟，REEF 提出了一种动态内核填充机制，可以使用适当的尽力而为内核动态填充实时内核，从而以可忽略的开销充分利用 GPU</strong>。使用新的 DNN 推理服务基准 (DISB) 以及 AMD GPU 上的不同工作负载和真实世界跟踪进行的评估表明，REEF 在实时任务的端到端延迟方面仅产生不到 2% 的开销，但增加了与将 GPU 专用于实时任务相比，整体吞吐量提高了高达 7.7 倍。为了证明我们的方法在闭源 GPU 上的可行性，我们在 NVIDIA GPU 上进一步移植和评估了 REEF 的受限版本，将抢占延迟减少了 12.3 倍（从 6.3 倍）。</p>
-<p>代码：https: &#x2F;&#x2F;github.com&#x2F;SJTU-IPADS&#x2F;reef</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>整理 REEF 的微秒级抢占与动态内核填充，覆盖实时/尽力而为任务、内核幂等性、队列重置、实验及 CUDA/C++ 补充知识。</p><div class="post-button"><a class="btn" href="/2024/11/01/Microsecond-scale-Preemption-for-Concurrent-GPU-accelerated-DNN-Inferences%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-11-01 10:42:51" itemprop="dateCreated datePublished" datetime="2024-11-01T10:42:51+08:00">2024-11-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-11-06 14:21:28" itemprop="dateModified" datetime="2024-11-06T14:21:28+08:00">2024-11-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>11k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>10 mins.</span>
-    </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">Orion: Interference-aware, Fine-grained GPU Sharing for ML Applications论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-11-01T10:42:51+08:00" itemprop="dateCreated datePublished" title="Created: 2024-11-01 10:42:51">2024-11-01</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2024-11-06T14:21:28+08:00" itemprop="dateModified" title="Modified: 2024-11-06 14:21:28">2024-11-06</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>11k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>10 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>GPU 对于最大化深度神经网络 (DNN) 应用的每瓦吞吐量至关重要。然而，DNN 应用程序经常未充分利用 GPU，即使使用大批量大小并消除输入数据处理或通信停顿也是如此。 DNN 工作负载由依赖于数据的算子组成，具有不同的计算和内存要求。虽然算子可能会使 GPU 计算单元或内存带宽饱和，但它通常会使其他 GPU 资源闲置。尽管 GPU 共享技术很流行，但当前的方法还不够细粒度或干扰感知，无法最大限度地提高 GPU 利用率，同时最大限度地减少 10 μs 粒度的干扰。我们提出了 Orion，这是一个可以透明地<strong>拦截</strong>共享 GPU 的多个客户端的 GPU 内核启动的系统。 Orion 以各个<strong>算子的粒度</strong>安排 GPU 上的工作，并通过考虑每个算子的计算和内存需求来最大限度地减少干扰。我们将 Orion 集成到 PyTorch 中，并在各种 DNN 工作负载搭配用例中展示其优势。与高优先级推理作业的最先进基线相比，Orion 显着改善了<strong>尾部延迟</strong>，同时搭配尽力而为推理作业，将每个 GPU 请求吞吐量提高高达 7.3 倍，或者搭配 DNN 训练时，节省高达 1.49 倍× 与<strong>专用 GPU</strong> 分配相比，训练成本降低。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>梳理 Orion 的算子级 GPU 共享、内核拦截、干扰感知调度及 PyTorch 集成，并记录工作负载分析、实验和改进方向。</p><div class="post-button"><a class="btn" href="/2024/11/01/Orion-Interference-aware-Fine-grained-GPU-Sharing-for-ML-Applications%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-10-25 20:28:10" itemprop="dateCreated datePublished" datetime="2024-10-25T20:28:10+08:00">2024-10-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-11-06 09:37:22" itemprop="dateModified" datetime="2024-11-06T09:37:22+08:00">2024-11-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>7.7k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>7 mins.</span>
-    </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">Usher: Holistic Interference Avoidance for Resource Optimized ML Inference论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-10-25T20:28:10+08:00" itemprop="dateCreated datePublished" title="Created: 2024-10-25 20:28:10">2024-10-25</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2024-11-06T09:37:22+08:00" itemprop="dateModified" title="Modified: 2024-11-06 09:37:22">2024-11-06</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>7.7k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>7 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>随着深度学习模型的日益普及，最小化货币成本和最大化推理服务系统的吞吐量变得越来越重要。虽然希望对 GPU 资源进行空间复用以提高利用率，但现有技术受到模型间干扰的影响，这阻碍了它们同时实现高计算和内存利用率。我们推出了 USHER，这是一个能够以整体方式最大限度地提高资源利用率，同时具有干扰感知能力的系统。 USHER 由三个关键组件组成：1) 一个经济高效且快速的基于 GPU 内核的模型资源需求估计器，2) 一个轻量级的基于启发式的干扰感知资源利用率最大化调度程序，用于决定批量大小、模型复制程度和模型放置最小化货币成本，同时满足延迟 SLO 或最大化吞吐量，以及 3) 一种新颖的运算符图合并，用于合并类似权重的多个模型，以最大程度地减少 GPU 缓存中的干扰。使用生产工作负载的大规模实验表明，与现有方法相比，USHER 的吞吐量提高了 2.6 倍，成本效率提高了 3.5 倍，同时可扩展到数千个 GPU。</p>
-<p>代码：<a target="_blank" rel="noopener" href="https://github.com/ss7krd/Usher/">https://github.com/ss7krd/Usher/</a></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>记录 USHER 的资源需求估计、干扰感知调度和算子图合并，关注批量大小、模型复制、SLO 与计算/内存利用率之间的关系。</p><div class="post-button"><a class="btn" href="/2024/10/25/Usher-Holistic-Interference-Avoidance-for-Resource-Optimized-ML-Inference%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">hexo搭建笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-10-23 17:31:29" itemprop="dateCreated datePublished" datetime="2024-10-23T17:31:29+08:00">2024-10-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2025-01-29 22:28:32" itemprop="dateModified" datetime="2025-01-29T22:28:32+08:00">2025-01-29</time>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>113</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>1 mins.</span>
-    </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/" itemprop="url">hexo搭建笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-10-23T17:31:29+08:00" itemprop="dateCreated datePublished" title="Created: 2024-10-23 17:31:29">2024-10-23</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2025-01-29T22:28:32+08:00" itemprop="dateModified" title="Modified: 2025-01-29 22:28:32">2025-01-29</time>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>113</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>1 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="hexo操作小结"><a href="#hexo操作小结" class="headerlink" title="hexo操作小结"></a>hexo操作小结</h3><ul>
-<li><code>hexo clean &amp;&amp; hexo g &amp;&amp; hexo d</code>清理现有缓存-生成新内容-部署</li>
-<li><code>hexo new</code>新建页面</li>
-</ul>
-<h3 id="页面排版"><a href="#页面排版" class="headerlink" title="页面排版"></a>页面排版</h3><p>示例：</p>
-<p>categories:</p>
-<ul>
-<li>[论文,大模型]<br>tags:</li>
-<li>调度系统  </li>
-<li>科研  </li>
-<li>大模型</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-    
-
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>记录 Hexo 清理、生成、部署和新建文章命令，以及分类与标签的 YAML 配置示例。</p><div class="post-button"><a class="btn" href="/2024/10/23/hexo%E6%90%AD%E5%BB%BA%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
+</div>
 <div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Ringo.fu">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Ringo的博客">
-      <meta itemprop="description" content="乌拉呀哈咿呀哈">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Ringo的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Hardware Compute Partitioning on NVIDIA GPUs 论文笔记</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2024-10-23 17:30:25" itemprop="dateCreated datePublished" datetime="2024-10-23T17:30:25+08:00">2024-10-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2024-10-25 14:03:02" itemprop="dateModified" datetime="2024-10-25T14:03:02+08:00">2024-10-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
-        </span>
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="">
+<link href="https://sysufyj.github.io/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="undefined | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h2 class="post-title" itemprop="name headline">
+<a class="post-title-link" href="/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/" itemprop="url">Hardware Compute Partitioning on NVIDIA GPUs 论文笔记</a>
+</h2>
+<div class="post-meta-container">
+<div class="post-meta">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar"></i>
+</span>
+<span class="post-meta-item-text">Posted on</span>
+<time datetime="2024-10-23T17:30:25+08:00" itemprop="dateCreated datePublished" title="Created: 2024-10-23 17:30:25">2024-10-23</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-calendar-check"></i>
+</span>
+<span class="post-meta-item-text">Edited on</span>
+<time datetime="2024-10-25T14:03:02+08:00" itemprop="dateModified" title="Modified: 2024-10-25 14:03:02">2024-10-25</time>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="far fa-folder"></i>
+</span>
+<span class="post-meta-item-text">In</span>
+<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/" itemprop="url" rel="index"><span itemprop="name">论文</span></a>
+</span>
           , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BA%E6%96%87/GPU%E6%9E%B6%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">GPU架构</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>4.9k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>4 mins.</span>
-    </span>
+        <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+<a href="/categories/%E8%AE%BA%E6%96%87/GPU%E6%9E%B6%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">GPU架构</span></a>
+</span>
+</span>
+<span class="post-meta-break"></span>
+<span class="post-meta-item" title="Word count in article">
+<span class="post-meta-item-icon">
+<i class="far fa-file-word"></i>
+</span>
+<span class="post-meta-item-text">Word count in article: </span>
+<span>4.9k</span>
+</span>
+<span class="post-meta-item" title="Reading time">
+<span class="post-meta-item-icon">
+<i class="far fa-clock"></i>
+</span>
+<span class="post-meta-item-text">Reading time ≈</span>
+<span>4 mins.</span>
+</span>
 </div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>嵌入式和自主系统越来越多地集成 AI&#x2F;ML 功能，这些功能通常由 GPU 等硬件加速器启用。随着这些工作负载的要求越来越高，但尺寸、重量、功耗和成本限制仍然存在，迫切需要增加 GPU 容量的方法。在这项工作中，我们提供了一种透明地对 NVIDIA GPU 的计算单元进行<strong>空间分区</strong>的方法，从而允许通过安全高效的 GPU 共享来回收闲置的容量。我们的方法适用于 2013 年以来的任何 NVIDIA GPU，并且可以通过我们易于使用的名为 libsmctrl 的用户空间库来应用。我们通过深入研究 NVIDIA GPU 的<strong>硬件调度管道</strong>来支持我们的系统设计。我们提供了系统的使用指南，并通过使用 YOLOv2 的对象检测案例研究进行了演示。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
 </div>
-
-
-
-
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" title="Next page" aria-label="Next page" href="/page/2/"><i class="fa fa-angle-right"></i></a>
-  </nav>
-
+</header>
+<div class="post-body" itemprop="articleBody"><p>梳理 NVIDIA GPU 的 TPC/SM 空间分区、硬件调度管线与 libsmctrl，记录分区策略、YOLOv2 实验和 GPU 架构知识。</p><div class="post-button"><a class="btn" href="/2024/10/23/Hardware-Compute-Partitioning-on-NVIDIA-GPUs-%E8%AE%BA%E6%96%87%E7%AC%94%E8%AE%B0/">阅读全文 »</a></div></div>
+<footer class="post-footer">
+<div class="post-eof"></div>
+</footer>
+</article>
 </div>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-
-  <div class="copyright">
-    &copy; 
+<nav class="pagination">
+<span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a aria-label="Next page" class="extend next" href="/page/2/" rel="next" title="Next page"><i class="fa fa-angle-right"></i></a>
+</nav>
+</div>
+</main>
+<footer class="footer">
+<div class="footer-inner">
+<div class="copyright">
+    ©
     <span itemprop="copyrightYear">2025</span>
-    <span class="with-love">
-      <i class="fa fa-heart"></i>
-    </span>
-    <span class="author" itemprop="copyrightHolder">Ringo.fu</span>
-  </div>
+<span class="with-love">
+<i class="fa fa-heart"></i>
+</span>
+<span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+</div>
 <div class="wordcount">
-  <span class="post-meta-item">
-    <span class="post-meta-item-icon">
-      <i class="fa fa-chart-line"></i>
-    </span>
-    <span title="Word count total">70k</span>
-  </span>
-  <span class="post-meta-item">
-    <span class="post-meta-item-icon">
-      <i class="fa fa-coffee"></i>
-    </span>
-    <span title="Reading time total">1:04</span>
-  </span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="fa fa-chart-line"></i>
+</span>
+<span title="Word count total">70k</span>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="fa fa-coffee"></i>
+</span>
+<span title="Reading time total">1:04</span>
+</span>
 </div>
 <div class="busuanzi-count">
-    <span class="post-meta-item" id="busuanzi_container_site_uv">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-user"></i>
-      </span>
-      <span class="site-uv" title="Total Visitors">
-        <span id="busuanzi_value_site_uv"></span>
-      </span>
-    </span>
-    <span class="post-meta-item" id="busuanzi_container_site_pv">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-eye"></i>
-      </span>
-      <span class="site-pv" title="Total Views">
-        <span id="busuanzi_value_site_pv"></span>
-      </span>
-    </span>
+<span class="post-meta-item" id="busuanzi_container_site_uv">
+<span class="post-meta-item-icon">
+<i class="fa fa-user"></i>
+</span>
+<span class="site-uv" title="Total Visitors">
+<span id="busuanzi_value_site_uv"></span>
+</span>
+</span>
+<span class="post-meta-item" id="busuanzi_container_site_pv">
+<span class="post-meta-item-icon">
+<i class="fa fa-eye"></i>
+</span>
+<span class="site-pv" title="Total Views">
+<span id="busuanzi_value_site_pv"></span>
+</span>
+</span>
 </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
-  </div>
-
-    </div>
-  </footer>
-
-  
-  <div class="toggle sidebar-toggle" role="button">
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-    <span class="toggle-line"></span>
-  </div>
-  <div class="sidebar-dimmer"></div>
-  <div class="back-to-top" role="button" aria-label="Back to top">
-    <i class="fa fa-arrow-up fa-lg"></i>
-    <span>0%</span>
-  </div>
-
+<div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> &amp; <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+</div>
+</div>
+</footer>
+<div class="toggle sidebar-toggle" role="button" tabindex="0">
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+</div>
+<div class="sidebar-dimmer"></div>
+<div aria-label="Back to top" class="back-to-top" role="button" tabindex="0">
+<i class="fa fa-arrow-up fa-lg"></i>
+<span>0%</span>
+</div>
 <noscript>
-  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+<div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
-
-
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" src="/vendor/anime.min.js"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" src="/vendor/search.js"></script>
 <script src="/js/third-party/search/local-search.js"></script>
-
-
-
-
-
-
-
-  
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-
-
-
-
-</body>
+<script defer="" src="/js/blog-maintenance.js"></script></body>
 </html>
