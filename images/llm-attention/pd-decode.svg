@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+<title id="title">LLM attention prefill and decode flow</title>
+<desc id="desc">Prefill computes all causal attention and stores keys and values. Decode computes one query, reads the cache, predicts a token, appends its key and value, and repeats.</desc>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#18212b} .h{font-size:25px;font-weight:700}.s{font-size:19px}.t{font-size:17px}.box{fill:#f5f8fb;stroke:#4b6b88;stroke-width:2;rx:12}.cache{fill:#fff6df;stroke:#c28b20;stroke-width:2;rx:12}.out{fill:#eff8f1;stroke:#4c8a5c;stroke-width:2;rx:12}.arrow{stroke:#536779;stroke-width:3;fill:none;marker-end:url(#m)}.dash{stroke-dasharray:8 7}</style>
+<defs><marker id="m" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 z" fill="#536779"/></marker></defs>
+<text x="45" y="45" class="h">Prefill：把已有上下文一次性编码</text>
+<rect x="45" y="75" width="220" height="70" class="box"/><text x="155" y="118" text-anchor="middle" class="s">x₁ … xₙ</text>
+<path d="M265 110 H325" class="arrow"/>
+<rect x="325" y="75" width="245" height="70" class="box"/><text x="447" y="118" text-anchor="middle" class="s">因果 Mask + QKV</text>
+<path d="M570 110 H630" class="arrow"/>
+<rect x="630" y="75" width="230" height="70" class="cache"/><text x="745" y="108" text-anchor="middle" class="s">保存 K₁…Kₙ</text><text x="745" y="133" text-anchor="middle" class="s">保存 V₁…Vₙ</text>
+<path d="M860 110 H920" class="arrow"/>
+<rect x="920" y="75" width="220" height="70" class="out"/><text x="1030" y="118" text-anchor="middle" class="s">上下文表示</text>
+<text x="45" y="215" class="h">Decode：每轮只新增一个 token</text>
+<rect x="45" y="245" width="185" height="70" class="box"/><text x="137" y="288" text-anchor="middle" class="s">hₜ → qₜ,kₜ,vₜ</text>
+<path d="M230 280 H300" class="arrow"/>
+<rect x="300" y="245" width="280" height="70" class="box"/><text x="440" y="276" text-anchor="middle" class="s">qₜ 与 K≤ₜ 点积</text><text x="440" y="301" text-anchor="middle" class="t">softmax( qₜKᵀ / √dₖ )</text>
+<path d="M580 280 H650" class="arrow"/>
+<rect x="650" y="245" width="245" height="70" class="cache"/><text x="772" y="276" text-anchor="middle" class="s">加权读取 V≤ₜ</text><text x="772" y="301" text-anchor="middle" class="t">oₜ = softmax(…)V</text>
+<path d="M895 280 H965" class="arrow"/>
+<rect x="965" y="245" width="175" height="70" class="out"/><text x="1052" y="276" text-anchor="middle" class="s">LM Head</text><text x="1052" y="301" text-anchor="middle" class="t">→ xₜ₊₁</text>
+<path d="M137 315 V380 H772 V315" class="arrow dash"/><text x="455" y="372" text-anchor="middle" class="t">把 kₜ、vₜ 追加进 KV cache</text>
+<path d="M1052 315 V435 H137 V315" class="arrow dash"/><text x="595" y="428" text-anchor="middle" class="t">生成的 xₜ₊₁ 成为下一轮输入，循环直到停止</text>
+</svg>
