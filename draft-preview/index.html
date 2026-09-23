@@ -1,193 +1,181 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力</title>
-  <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    svg {
-      height: auto;
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid #1a1a1a;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
-    code{white-space: pre-wrap;}
-    span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
-    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-  </style>
-<style>
-:root{color-scheme:light;--ink:#1d2935;--muted:#66737f;--line:#dbe3ea;--accent:#2e6f9e;--paper:#fff;--bg:#f3f6f8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.85}
-main{max-width:980px;margin:40px auto;padding:42px 64px;background:var(--paper);box-shadow:0 5px 28px #17324b16}h1{font-size:36px;line-height:1.3;margin-top:0}h2{margin-top:2.4em;border-bottom:1px solid var(--line);padding-bottom:.3em}h3{margin-top:2em}h4{margin-top:1.5em}p,li{font-size:17px}blockquote{margin:1.5em 0;padding:12px 18px;border-left:4px solid var(--accent);background:#f5f9fc;color:#53616d}table{width:100%;border-collapse:collapse;margin:1.2em 0}th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}th{background:#f5f8fb}pre{padding:16px;overflow:auto;background:#f4f6f8;border-radius:7px}code{background:#f1f4f6;padding:.1em .3em;border-radius:3px}img{display:block;max-width:100%;height:auto;margin:24px auto}a{color:var(--accent)}.draft-banner{padding:12px 16px;border:1px solid #e5c56a;background:#fff8df;color:#725d19;border-radius:7px;margin-bottom:24px;font-size:15px}@media(max-width:720px){main{margin:0;padding:24px 20px}h1{font-size:28px}p,li{font-size:16px}table{display:block;overflow:auto;white-space:nowrap}}
-</style></head>
-<body><main><div class="draft-banner">本地审核预览 · 草稿状态 · 未加入正式博客</div>
-<header id="title-block-header">
-<h1 class="title">LLM 注意力机制及优化：从单 token
-解码到稀疏与线性注意力</h1>
-<p class="date">2026-09-23 21:00:00</p>
+<meta charset="utf-8"/>
+<meta content="width=device-width" name="viewport"/>
+<meta content="#222" name="theme-color"/><meta content="Hexo 7.3.0" name="generator"/>
+<link href="/images/apple-touch-icon-next.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/images/favicon-32x32-next.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/images/favicon-16x16-next.png" rel="icon" sizes="16x16" type="image/png"/>
+<link color="#222" href="/images/logo.svg" rel="mask-icon"/>
+<link href="/css/main.css" rel="stylesheet"/>
+<link crossorigin="anonymous" href="/vendor/fontawesome/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" rel="stylesheet"/>
+<link crossorigin="anonymous" href="/vendor/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" rel="stylesheet"/>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"sysufyj.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.21.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索文章…","empty":"没有找到相关内容：${query}","hits_time":"${hits} results found in ${time} ms","hits":"找到 ${hits} 篇文章"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta content="梳理单 token 解码中的注意力计算、逐层 KV cache、MHA/GQA/MQA，以及 Gated Attention、MLA、KDA、DSA、CSA、HCA 与 SWA 的优化思路。" name="description"/>
+<meta content="article" property="og:type"/>
+<meta content="LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力" property="og:title"/>
+<meta content="http://127.0.0.1:8765/draft-preview/" property="og:url"/>
+<meta content="Ringo的博客" property="og:site_name"/>
+<meta content="梳理单 token 解码中的注意力计算、逐层 KV cache、MHA/GQA/MQA，以及 Gated Attention、MLA、KDA、DSA、CSA、HCA 与 SWA 的优化思路。" property="og:description"/>
+<meta content="en_US" property="og:locale"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta content="2026-09-23T13:00:00.000Z" property="article:published_time"/>
+<meta content="2026-09-23T13:00:00.000Z" property="article:modified_time"/>
+<meta content="Ringo.fu" property="article:author"/>
+<meta content="summary" name="twitter:card"/>
+
+<link href="http://127.0.0.1:8765/draft-preview/" rel="canonical"/>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://127.0.0.1:8765/draft-preview/","path":"draft-preview/","title":"LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力"}</script>
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力 | Ringo的博客</title>
+<noscript>
+<link href="/css/noscript.css" rel="stylesheet"/>
+</noscript>
+<link href="/css/blog-maintenance.css" rel="stylesheet"/></head>
+<body class="" itemscope="" itemtype="http://schema.org/WebPage">
+<div class="headband"></div>
+<main class="main">
+<div class="column">
+<header class="header" itemscope="" itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+<div class="site-nav-toggle">
+<div aria-label="Toggle navigation bar" class="toggle" role="button" tabindex="0">
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+</div>
+</div>
+<div class="site-meta">
+<a class="brand" href="/" rel="start">
+<i class="logo-line"></i>
+<p class="site-title">Ringo的博客</p>
+<i class="logo-line"></i>
+</a>
+</div>
+<div class="site-nav-right">
+<div aria-label="Search" class="toggle popup-trigger" role="button" tabindex="0">
+<i class="fa fa-search fa-fw fa-lg"></i>
+</div>
+</div>
+</div>
+<nav class="site-nav">
+<ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">时间归档</a></li><li class="menu-item menu-item-categories"><a href="/categories" rel="section">分类</a></li><li class="menu-item menu-item-tags"><a href="/tags" rel="section">标签</a></li>
+<li class="menu-item menu-item-search">
+<a class="popup-trigger" role="button" tabindex="0"><i class="fa fa-search fa-fw"></i>搜索</a>
+</li>
+<li class="menu-item"><a href="/library/">主题归档</a></li><li class="menu-item"><a href="/paper-notes/">论文笔记</a></li></ul>
+</nav>
+<div class="search-pop-overlay">
+<div class="popup search-popup">
+<div class="search-header">
+<span class="search-icon">
+<i class="fa fa-search"></i>
+</span>
+<div class="search-input-container">
+<input aria-label="搜索文章" autocapitalize="off" autocomplete="off" class="search-input" maxlength="80" placeholder="搜索文章…" spellcheck="false" type="search"/>
+</div>
+<span aria-label="关闭搜索" class="popup-btn-close" role="button" tabindex="0">
+<i class="fa fa-times-circle"></i>
+</span>
+</div>
+<div class="search-result-container">
+<div class="search-result-icon">
+<i class="fa fa-spinner fa-pulse fa-5x"></i>
+</div>
+</div>
+</div>
+</div>
 </header>
-<blockquote>
-<p>本文是根据手写笔记整理的第一版草稿。主线、术语顺序和重点遵照原笔记；涉及
-QSA、CSA、HCA
-的部分，笔记中的缩写尚不能与某一篇公开论文一一对应，文中会明确标注工作性解释，待后续核对。</p>
-</blockquote>
-<figure>
-<img src="/images/llm-attention/pd-decode.svg"
-alt="Prefill 与 Decode 中的注意力流程" />
+<aside class="sidebar">
+<div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+<ul class="sidebar-nav">
+<li class="sidebar-nav-toc">文章目录</li>
+<li class="sidebar-nav-overview">站点概览</li>
+</ul>
+<div class="sidebar-panel-container">
+<!--noindex-->
+<div class="post-toc-wrap sidebar-panel">
+<div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一注意力机制的梳理"><span class="nav-text">一、注意力机制的梳理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从文字到-qkv"><span class="nav-text">1. 从文字到 Q、K、V</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prefill-和-decode一个-token-怎样被生成"><span class="nav-text">2. Prefill 和
+Decode：一个 token 怎样被生成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#prefill先把已有上下文写入每一层的-cache"><span class="nav-text">2.1
+Prefill：先把已有上下文写入每一层的 cache</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#decode从第一层开始逐层传递-hidden-state"><span class="nav-text">2.2
+Decode：从第一层开始，逐层传递 hidden state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mhagqa-和-mqa"><span class="nav-text">3. MHA、GQA 和 MQA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二注意力机制的几条优化路线"><span class="nav-text">二、注意力机制的几条优化路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#qwengated-attention-与-gated-deltanet"><span class="nav-text">Qwen：Gated Attention 与
+Gated DeltaNet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gated-attention给注意力输出加一个可学习的门"><span class="nav-text">Gated
+Attention：给注意力输出加一个可学习的门</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gdn把长序列-kv-变成门控的有限状态"><span class="nav-text">GDN：把长序列 KV
+变成门控的有限状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mla-与-kda压缩缓存或把缓存变成状态"><span class="nav-text">MLA 与
+KDA：压缩缓存，或把缓存变成状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mla在每个-token-的存储维度上做压缩"><span class="nav-text">MLA：在每个 token
+的存储维度上做压缩</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kda把-gated-deltanet-做得更细"><span class="nav-text">KDA：把 Gated DeltaNet
+做得更细</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deepseek-dsa先索引再只对少量-token-做注意力"><span class="nav-text">DeepSeek
+DSA：先索引，再只对少量 token 做注意力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#csahca-与-swa压缩全局保留和局部窗口"><span class="nav-text">CSA、HCA 与
+SWA：压缩、全局保留和局部窗口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#csa压缩稀疏注意力"><span class="nav-text">CSA：压缩稀疏注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hca重度压缩注意力"><span class="nav-text">HCA：重度压缩注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#swa滑动窗口保留局部连续性"><span class="nav-text">SWA：滑动窗口保留局部连续性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#与-dsaqsa-的区别"><span class="nav-text">与 DSA/QSA 的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三把这些方法放回同一个问题"><span class="nav-text">三、把这些方法放回同一个问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-text">参考资料</span></a></li></ol></div>
+</div>
+<!--/noindex-->
+<div class="site-overview-wrap sidebar-panel">
+<div class="site-author animated" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<p class="site-author-name" content="Ringo.fu" itemprop="name">Ringo.fu</p>
+<div class="site-description" itemprop="description">乌拉呀哈咿呀哈</div>
+</div>
+<div class="site-state-wrap animated">
+<nav class="site-state">
+<div class="site-state-item site-state-posts">
+<a href="/archives">
+<span class="site-state-item-count">11</span>
+<span class="site-state-item-name">文章</span>
+</a>
+</div>
+<div class="site-state-item site-state-categories">
+<a href="/categories">
+<span class="site-state-item-count">7</span>
+<span class="site-state-item-name">分类</span></a>
+</div>
+<div class="site-state-item site-state-tags"><a href="/tags/">
+<span class="site-state-item-count">9</span>
+<span class="site-state-item-name">标签</span>
+</a></div>
+</nav>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<div class="main-inner post posts-expand">
+<div class="post-block">
+<article class="post-content" itemscope="" itemtype="http://schema.org/Article" lang="zh-CN">
+<link href="http://127.0.0.1:8765/draft-preview/" itemprop="mainEntityOfPage"/>
+<span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+<meta content="/images/avatar.gif" itemprop="image"/>
+<meta content="Ringo.fu" itemprop="name"/>
+</span>
+<span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<meta content="Ringo的博客" itemprop="name"/>
+<meta content="乌拉呀哈咿呀哈" itemprop="description"/>
+</span>
+<span hidden="" itemprop="post" itemscope="" itemtype="http://schema.org/CreativeWork">
+<meta content="LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力 | Ringo的博客" itemprop="name"/>
+<meta content="" itemprop="description"/>
+</span>
+<header class="post-header">
+<h1 class="post-title" itemprop="name headline">LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力</h1>
+<div class="post-meta-container"><div class="post-meta"><span class="post-meta-item"><span class="post-meta-item-icon"><i class="far fa-calendar"></i></span><span class="post-meta-item-text">Posted on</span><time datetime="2026-09-23T21:00:00+08:00" itemprop="dateCreated datePublished">2026-09-23</time></span><span class="post-meta-item"><span class="post-meta-item-icon"><i class="far fa-folder"></i></span><span class="post-meta-item-text">In</span><span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><span itemprop="name">论文</span></span>，<span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><span itemprop="name">大模型</span></span></span></div></div>
+</header>
+<div class="post-body" itemprop="articleBody"><figure>
+<img alt="Prefill 与 Decode 中的注意力流程" src="/images/llm-attention/pd-decode.svg"/>
 <figcaption aria-hidden="true">Prefill 与 Decode
 中的注意力流程</figcaption>
 </figure>
@@ -228,7 +216,7 @@ s_{t,i}=\frac{q_t k_i^\top}{\sqrt{d_k}}.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt><annotation encoding="application/x-tex">\sqrt{d_k}</annotation></semantics></math>
 是为了控制点积的数值范围，避免 softmax
 输入过大而造成梯度不稳定。随后对分数做 softmax，得到注意力权重</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">softmax</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">softmax</mi><mo>⁡</mo></mrow><mo form="prefix" stretchy="false">(</mo><msub><mi>s</mi><mrow><mi>t</mi><mo>,</mo><mi>i</mi></mrow></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \alpha_{t,i}=\operatorname{softmax}(s_{t,i}),
 </annotation></semantics></math></p>
 <p>再对 value 加权求和：</p>
@@ -251,62 +239,101 @@ token”由最后的语言模型头生成。</p>
 </blockquote>
 <h3 id="prefill-和-decode一个-token-怎样被生成">2. Prefill 和
 Decode：一个 token 怎样被生成</h3>
-<p>推理可以分成两个阶段：<strong>Prefill</strong> 和
-<strong>Decode</strong>。</p>
-<h4 id="prefill先处理已有上下文">2.1 Prefill：先处理已有上下文</h4>
-<p>用户一次输入一段上下文
+<p>推理可以分成 <strong>Prefill</strong> 和 <strong>Decode</strong>
+两个阶段。理解这两个阶段时，最容易漏掉的一点是：<strong>每一层
+Transformer 都有自己独立的 KV cache</strong>。层与层之间传递的是当前
+token 的 hidden state，而不是把某一层的 K/V 直接交给下一层。</p>
+<p>设模型共有
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+层，输入 hidden state 为
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>H</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>0</mn><mo form="postfix" stretchy="false">)</mo></mrow></msup><mo>=</mo><mi>X</mi></mrow><annotation encoding="application/x-tex">H^{(0)}=X</annotation></semantics></math>。第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
+层接收上一层的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>H</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo>−</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">H^{(l-1)}</annotation></semantics></math>，用自己的投影矩阵产生
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>Q</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msup><mo>,</mo><msup><mi>K</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msup><mo>,</mo><msup><mi>V</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">Q^{(l)},K^{(l)},V^{(l)}</annotation></semantics></math>，并维护本层的缓存：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>C</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msup><mo>=</mo><mo form="prefix" stretchy="false">{</mo><mo form="prefix" stretchy="false">(</mo><msubsup><mi>K</mi><mi>i</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>V</mi><mi>i</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo form="postfix" stretchy="false">)</mo><msubsup><mo form="postfix" stretchy="false">}</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>t</mi></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+C^{(l)}=\{(K_i^{(l)},V_i^{(l)})\}_{i=1}^{t}.
+</annotation></semantics></math></p>
+<p>因此，第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
+层的 cache 只服务于第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
+层；不同层不会共享同一份 K/V。</p>
+<h4 id="prefill先把已有上下文写入每一层的-cache">2.1
+Prefill：先把已有上下文写入每一层的 cache</h4>
+<p>用户一次输入
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>x</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">x_1,\ldots,x_n</annotation></semantics></math>
-时，模型会在因果 mask 下并行计算这
+时，模型在因果 mask 下并行处理这
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
 个位置。第
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
 个位置只能看到
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">x_1,\ldots,x_t</annotation></semantics></math>，不能看到未来
-token。这个阶段的主要工作有两件：</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">x_1,\ldots,x_t</annotation></semantics></math>。对每一层来说，Prefill
+会完成两件事：</p>
 <ol type="1">
-<li>计算上下文各位置的隐藏状态和注意力输出；</li>
-<li>把每一层已经得到的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>K</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>K</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">K_1,\ldots,K_n</annotation></semantics></math>
+<li>用本层的参数计算每个位置的 query、key、value 以及注意力输出；</li>
+<li>把本层所有位置的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>K</mi><mn>1</mn><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mi>K</mi><mi>n</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">K_1^{(l)},\ldots,K_n^{(l)}</annotation></semantics></math>
 和
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>V</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">V_1,\ldots,V_n</annotation></semantics></math>
-保存下来，形成 KV cache。</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>V</mi><mn>1</mn><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mi>V</mi><mi>n</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">V_1^{(l)},\ldots,V_n^{(l)}</annotation></semantics></math>
+写入本层的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">C^{(l)}</annotation></semantics></math>。</li>
 </ol>
-<p>Prefill
-的计算量通常随上下文长度增长得很快，但它可以利用矩阵乘法并行处理多个
-token。</p>
-<h4 id="decode每轮只生成一个新-token">2.2 Decode：每轮只生成一个新
-token</h4>
+<p>Prefill 可以用矩阵乘法并行处理多个
+token，但它要在所有层都建立一份与上下文长度对应的 cache。</p>
+<h4 id="decode从第一层开始逐层传递-hidden-state">2.2
+Decode：从第一层开始，逐层传递 hidden state</h4>
 <p>Prefill 得到最后一个位置的输出后，LM Head 产生第一个待生成
-token。之后进入自回归 Decode：</p>
+token。生成下一个 token 时，流程可以写成：</p>
 <ol type="1">
-<li>把上一轮生成的 token 输入下一轮；</li>
-<li>当前隐藏状态
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>t</mi></msub><annotation encoding="application/x-tex">h_t</annotation></semantics></math>
-只生成新的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>t</mi></msub><mo>,</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">q_t,k_t,v_t</annotation></semantics></math>；</li>
-<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>t</mi></msub><annotation encoding="application/x-tex">q_t</annotation></semantics></math>
-与 KV cache 中的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>K</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">K_{1:t}</annotation></semantics></math>
-做匹配；</li>
-<li>用权重读取
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">V_{1:t}</annotation></semantics></math>，得到当前层输出
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>o</mi><mi>t</mi></msub><annotation encoding="application/x-tex">o_t</annotation></semantics></math>；</li>
-<li>经过所有层和 LM Head，得到
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">x_{t+1}</annotation></semantics></math>；</li>
-<li>把新产生的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">k_t,v_t</annotation></semantics></math>
-追加到 cache，进入下一轮。</li>
+<li>新 token
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>t</mi></msub><annotation encoding="application/x-tex">x_t</annotation></semantics></math>
+先进入 embedding，得到第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+层输入
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>0</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">h_t^{(0)}</annotation></semantics></math>；</li>
+<li>在第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>
+层，<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>0</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">h_t^{(0)}</annotation></semantics></math>
+经过本层投影得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>q</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>k</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>v</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">q_t^{(1)},k_t^{(1)},v_t^{(1)}</annotation></semantics></math>。<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>q</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">q_t^{(1)}</annotation></semantics></math>
+访问第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>
+层从第一个 token 到当前位置的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msup><annotation encoding="application/x-tex">C^{(1)}</annotation></semantics></math>，得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">h_t^{(1)}</annotation></semantics></math>，并把新的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>v</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">k_t^{(1)},v_t^{(1)}</annotation></semantics></math>
+追加进去；</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">h_t^{(1)}</annotation></semantics></math>
+作为第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math>
+层输入，重复同样的过程，直到第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+层得到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>L</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">h_t^{(L)}</annotation></semantics></math>；</li>
+<li>最终的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>L</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><annotation encoding="application/x-tex">h_t^{(L)}</annotation></semantics></math>
+送入 LM Head，得到下一个 token 的概率分布。</li>
 </ol>
-<p>Decode 时不需要重新计算旧 token 的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>,</mo><mi>V</mi></mrow><annotation encoding="application/x-tex">K,V</annotation></semantics></math>，这就是
-KV cache 的意义。但它也带来新的瓶颈：序列越长，缓存越大；每生成一个
-token，都要从显存读取越来越长的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>,</mo><mi>V</mi></mrow><annotation encoding="application/x-tex">K,V</annotation></semantics></math>。因此，注意力优化通常围绕两个问题展开：<strong>能否少存一些状态，能否少读或少算一些
-token</strong>。</p>
+<p>对第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
+层，可以把这一步简写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo>−</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mspace width="0.222em"></mspace><mo>→</mo><mspace width="0.222em"></mspace><msubsup><mi>q</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>k</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>v</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mspace width="0.222em"></mspace><mo>→</mo><mspace width="0.222em"></mspace><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>=</mo><msub><mrow><mi mathvariant="normal">Block</mi><mo>⁡</mo></mrow><mi>l</mi></msub><mo form="prefix" maxsize="120%" minsize="120%" stretchy="true">(</mo><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo>−</mo><mn>1</mn><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>C</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mo form="postfix" maxsize="120%" minsize="120%" stretchy="true">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+h_t^{(l-1)}\ \longrightarrow\ q_t^{(l)},k_t^{(l)},v_t^{(l)}
+\ \longrightarrow\ h_t^{(l)}=\operatorname{Block}_l\bigl(h_t^{(l-1)},C_{1:t}^{(l)}\bigr).
+</annotation></semantics></math></p>
+<p>所以“从第一个 token 开始算”准确地说，是<strong>每一层的新 query
+都可以读取从 token 1 到当前位置的本层 cache</strong>；并不是每生成一个
+token，就把历史 token 从第一层到最后一层重新计算一遍。旧 token 的 K/V
+已经保存在各层自己的 cache 中，Decode 只需计算当前 token
+在每一层的新投影并追加新条目。</p>
+<p>Decode 的瓶颈也因此分成三部分：历史 K/V
+越多，<strong>存储</strong>越大；每一层都要从 cache
+中取出可见历史，<strong>读取</strong>越多；query 与这些历史 key
+做匹配并聚合 value，<strong>计算</strong>也越多。</p>
 <h3 id="mhagqa-和-mqa">3. MHA、GQA 和 MQA</h3>
 <figure>
-<img src="/images/llm-attention/attention-variants.svg"
-alt="MHA、GQA 与 MQA 的 K/V 共享方式" />
+<img alt="MHA、GQA 与 MQA 的 K/V 共享方式" src="/images/llm-attention/attention-variants.svg"/>
 <figcaption aria-hidden="true">MHA、GQA 与 MQA 的 K/V
 共享方式</figcaption>
 </figure>
@@ -315,10 +342,10 @@ alt="MHA、GQA 与 MQA 的 K/V 共享方式" />
 个 query head。</p>
 <table>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
 </colgroup>
 <thead>
 <tr>
@@ -357,15 +384,21 @@ alt="MHA、GQA 与 MQA 的 K/V 共享方式" />
 维度上的缓存数量</strong>，并没有改变“每个新 query 仍然要面对历史
 token”这一事实。MLA、线性注意力和稀疏注意力，则从缓存表示或 token
 数量上继续优化。</p>
+<p>同一层里的不同 head 也不是重复计算：它们各自有不同的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>Q</mi></msub><mo>,</mo><msub><mi>W</mi><mi>K</mi></msub><mo>,</mo><msub><mi>W</mi><mi>V</mi></msub></mrow><annotation encoding="application/x-tex">W_Q,W_K,W_V</annotation></semantics></math>，会在训练中形成不同的关注视角。有的
+head 更偏向局部语法和邻近
+token，有的擅长长距离指代或实体检索，有的对位置边界、分隔符或结构模式更敏感。模型并不会手工规定“第几个
+head 必须负责什么”，这些分工是训练后涌现出来的。各 head
+得到的输出会拼接起来，再经过输出投影写回这一层的 hidden state。GQA 和
+MQA 保留了多个 query head 的视角，只是让若干 query head 共享 K/V。</p>
 <h2 id="二注意力机制的几条优化路线">二、注意力机制的几条优化路线</h2>
 <figure>
-<img src="/images/llm-attention/optimization-map.svg"
-alt="注意力优化路线图" />
+<img alt="注意力优化路线图" src="/images/llm-attention/optimization-map.svg"/>
 <figcaption aria-hidden="true">注意力优化路线图</figcaption>
 </figure>
-<h3 id="qwengated-attention-与-gated-deltanet">1. Qwen：Gated Attention
-与 Gated DeltaNet</h3>
-<h4 id="gated-attention给注意力输出加一个可学习的门">1.1 Gated
+<h3 id="qwengated-attention-与-gated-deltanet">Qwen：Gated Attention 与
+Gated DeltaNet</h3>
+<h4 id="gated-attention给注意力输出加一个可学习的门">Gated
 Attention：给注意力输出加一个可学习的门</h4>
 <p>标准 scaled dot-product attention 得到
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>o</mi><mi>t</mi></msub><annotation encoding="application/x-tex">o_t</annotation></semantics></math>
@@ -376,7 +409,7 @@ sigmoid 把它限制在
 到
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>
 附近：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>o</mi><mo accent="true">̃</mo></mover><mi>t</mi></msub><mo>=</mo><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>g</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>⊙</mo><msub><mi>o</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>o</mi><mo accent="true">̃</mo></mover><mi>t</mi></msub><mo>=</mo><mi>σ</mi><mo form="prefix" stretchy="false">(</mo><msub><mi>g</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>⊙</mo><msub><mi>o</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \tilde{o}_t=\sigma(g_t)\odot o_t.
 </annotation></semantics></math></p>
 <p>门控可以是 head-specific 的，也可以依赖当前 query。它并没有改变 Q、K
@@ -394,14 +427,14 @@ sigmoid 把它限制在
 的混合架构可以把两者放在不同层中协同使用。Qwen 论文明确报告，效果最好的
 SDPA output gating 被用于 Qwen3-Next；Qwen3.5 的公开介绍则把 Gated
 DeltaNet 作为混合架构中的线性注意力组件。</p>
-<h4 id="gdn把长序列-kv-变成门控的有限状态">1.2 GDN：把长序列 KV
+<h4 id="gdn把长序列-kv-变成门控的有限状态">GDN：把长序列 KV
 变成门控的有限状态</h4>
 <p>Gated DeltaNet 可以从“不断更新一块记忆矩阵”的角度理解。与每个历史
 token 都保存一份
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>,</mo><mi>V</mi></mrow><annotation encoding="application/x-tex">K,V</annotation></semantics></math>
 不同，它维护一个随时间更新的状态
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>t</mi></msub><annotation encoding="application/x-tex">S_t</annotation></semantics></math>。一个简化的概念式是：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>≈</mo><msub><mi>λ</mi><mi>t</mi></msub><mo>⊙</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mtext mathvariant="normal">delta-update</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>≈</mo><msub><mi>λ</mi><mi>t</mi></msub><mo>⊙</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mtext mathvariant="normal">delta-update</mtext><mo form="prefix" stretchy="false">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 S_t\approx \lambda_t\odot S_{t-1}+\text{delta-update}(k_t,v_t),
 \qquad o_t=S_tq_t.
 </annotation></semantics></math></p>
@@ -422,38 +455,63 @@ token。</li>
 attention
 层交替组成混合架构。代价是：有限状态必须学会压缩历史信息，某些需要精确回看远处原文的任务仍然更依赖
 full attention 或稀疏检索层。</p>
-<h3 id="mla-与-kda压缩缓存或把缓存变成状态">2. MLA 与
+<h3 id="mla-与-kda压缩缓存或把缓存变成状态">MLA 与
 KDA：压缩缓存，或把缓存变成状态</h3>
-<h4 id="mla先压缩再在需要时恢复">2.1 MLA：先压缩，再在需要时恢复</h4>
-<p>DeepSeek-V2 提出的 Multi-head Latent Attention（MLA）不是简单地把每个
-head 的 K/V 复制减少，而是把 key 和 value 联合压缩到一个共享的低秩
-latent 向量：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo>=</mo><msub><mi>W</mi><mrow><mi>D</mi><mi>K</mi><mi>V</mi></mrow></msub><msub><mi>h</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
-c_t^{KV}=W_{DKV}h_t.
+<h4 id="mla在每个-token-的存储维度上做压缩">MLA：在每个 token
+的存储维度上做压缩</h4>
+<p>MLA 的核心不是简单减少 K/V head 的数量，而是把<strong>每个历史 token
+的缓存条目压到更低的维度</strong>。在第
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
+层，先用一个低秩下投影把 hidden state 压成 latent：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>D</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+c_t^{KV}=W_D^{KV}h_t^{(l)}.
 </annotation></semantics></math></p>
-<p>推理时主要缓存
+<p>推理时主要存储
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_t^{KV}</annotation></semantics></math>，而不是完整的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">k_t,v_t</annotation></semantics></math>。概念上，需要注意力计算时，再通过上投影恢复内容相关的
-key/value：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mi>C</mi></msubsup><mo>=</mo><msub><mi>W</mi><mrow><mi>U</mi><mi>K</mi></mrow></msub><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mi>t</mi></msub><mo>=</mo><msub><mi>W</mi><mrow><mi>U</mi><mi>V</mi></mrow></msub><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
-k_t^C=W_{UK}c_t^{KV},\qquad v_t=W_{UV}c_t^{KV}.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">k_t,v_t</annotation></semantics></math>。这里的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>W</mi><mi>D</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">W_D^{KV}</annotation></semantics></math>
+就是把高维 hidden state 映射到低维存储空间的矩阵，因此 MLA
+直接减少的是每个 token 的 cache 维度。</p>
+<p>为什么压缩后的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_t^{KV}</annotation></semantics></math>
+仍然有用？因为模型可以用另外的上投影从这个低秩表示中恢复注意力需要的不同分支：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mi>C</mi></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>K</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mi>t</mi></msub><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>V</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+k_t^C=W_U^Kc_t^{KV},\qquad v_t=W_U^Vc_t^{KV}.
 </annotation></semantics></math></p>
-<p>位置编码是 MLA 中容易混淆的部分。若把 RoPE 直接施加到低秩 latent
-上，位置旋转会和内容压缩耦合。MLA
-因此把内容分支和位置分支拆开：内容信息保存在
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_t^{KV}</annotation></semantics></math>，位置相关的
-key/query 分量单独处理。这样既保留位置信息，又可以在缓存中主要保存低维
-latent。</p>
-<p>从工程上看，MLA 的收益在于：缓存条目仍然对应历史
-token，但每个条目的维度大幅缩小；某些上投影还可以吸收到 query
-或输出投影中，使推理时不必显式恢复完整 K/V。DeepSeek-V2
-的原论文把这一点概括为 low-rank key-value joint compression。</p>
-<h4 id="kda把-gated-deltanet-做得更细">2.2 KDA：把 Gated DeltaNet
+<p>其中
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>k</mi><mi>t</mi><mi>C</mi></msubsup><annotation encoding="application/x-tex">k_t^C</annotation></semantics></math>
+和
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>t</mi></msub><annotation encoding="application/x-tex">v_t</annotation></semantics></math>
+负责内容信息。位置部分不与内容强行揉在一起，而是用独立的低维分支和上投影恢复参与打分所需的
+RoPE 分量，例如
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mi>R</mi></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>R</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mi>R</mi></msubsup></mrow><annotation encoding="application/x-tex">k_t^R=W_U^R c_t^R</annotation></semantics></math>，再对它施加
+RoPE。也就是说，模型用不同的可学习矩阵分别恢复内容分支和位置分支：低秩
+latent 保留内容，独立的 RoPE
+分支补上位置信息。这里的“恢复”不是把每个历史 token 的完整 K/V
+永久还原，而是只生成注意力计算需要的分量。</p>
+<p>推理时还不必把每个历史 token 的完整 K/V
+全部还原出来。矩阵乘法满足结合律，例如：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>q</mi><mi>t</mi><mi>⊤</mi></msubsup><mo form="prefix" stretchy="false">(</mo><msubsup><mi>W</mi><mi>U</mi><mi>K</mi></msubsup><msubsup><mi>c</mi><mi>s</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo form="postfix" stretchy="false">)</mo><mo>=</mo><mo form="prefix" stretchy="false">(</mo><msubsup><mi>W</mi><mi>U</mi><mrow><mi>K</mi><mi>⊤</mi></mrow></msubsup><msub><mi>q</mi><mi>t</mi></msub><msup><mo form="postfix" stretchy="false">)</mo><mi>⊤</mi></msup><msubsup><mi>c</mi><mi>s</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+q_t^{\top}(W_U^Kc_s^{KV})
+= (W_U^{K\top}q_t)^{\top}c_s^{KV}.
+</annotation></semantics></math></p>
+<p>因此，可以先把当前 query 变换到低维空间，再直接与缓存中的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>s</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_s^{KV}</annotation></semantics></math>
+做匹配；value
+侧的上投影也可以吸收到后续的输出变换中。这样做的本质是：<strong>不重建完整
+KV cache，而是让 query 去读取低维
+latent</strong>。训练会学习一个足以保留有效内容的瓶颈，RoPE
+分支则保留位置辨识能力。</p>
+<p>所以，MLA 的收益可以用一句话概括：<strong>每个 token
+仍有自己的缓存表示，但这个表示的存储维度被压小了</strong>。它和 GQA/MQA
+的区别在于，GQA/MQA 主要减少 head 维度上的 K/V 副本，MLA
+则进一步压缩每个 token 的存储条目。</p>
+<h4 id="kda把-gated-deltanet-做得更细">KDA：把 Gated DeltaNet
 做得更细</h4>
 <p>Kimi Linear 中的 Kimi Delta Attention（KDA）可以看作 Gated DeltaNet
 的更细粒度版本。它保留 delta rule
 的“更新有限状态”思路，同时使用更细的门控去控制不同维度、不同状态分量的写入和遗忘：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>=</mo><msub><mtext mathvariant="normal">forget</mtext><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mtext mathvariant="normal">delta</mtext><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>=</mo><msub><mtext mathvariant="normal">forget</mtext><mi>t</mi></msub><mo form="prefix" stretchy="false">(</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo form="postfix" stretchy="false">)</mo><mo>+</mo><msub><mtext mathvariant="normal">delta</mtext><mi>t</mi></msub><mo form="prefix" stretchy="false">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 S_t=\text{forget}_t(S_{t-1})+\text{delta}_t(k_t,v_t),
 \qquad o_t=S_tq_t.
 </annotation></semantics></math></p>
@@ -470,70 +528,89 @@ Linear 的整体结构是 KDA 与 MLA
 的缓存压小</strong>”，KDA 是“<strong>让历史 token
 进入有限状态</strong>”。前者仍保留 token 对应的
 latent，后者更像一个递归记忆系统。</p>
-<h3 id="deepseek-dsa先索引再只对少量-token-做注意力">3. DeepSeek
+<h3 id="deepseek-dsa先索引再只对少量-token-做注意力">DeepSeek
 DSA：先索引，再只对少量 token 做注意力</h3>
-<p>手写笔记中在这里同时出现了 “QSA” 和 “DSA”。公开的 DeepSeek-V3.2
-技术报告正式使用的名称是 <strong>DeepSeek Sparse
-Attention（DSA）</strong>；下文把笔记里的 QSA 理解为“由 query 驱动的候选
-token 索引/选择阶段”，不把它当作另一个已经确认的官方模块。</p>
-<p>DSA 的核心是两阶段：</p>
+<p>公开的 DeepSeek-V3.2 技术报告把这条路线正式称为 <strong>DeepSeek
+Sparse Attention（DSA）</strong>。它先用便宜的索引器估计当前 query
+与历史 token 的相关性，再只对排名靠前的 token 做完整 attention：</p>
 <ol type="1">
-<li><strong>Lightning
-indexer</strong>：用一个更小、更便宜的索引器，为当前 query 与历史 token
-计算相关性分数；</li>
-<li><strong>Fine-grained token selection</strong>：只取 index score
-最高的
+<li><strong>Lightning indexer</strong>：用更小、更便宜的索引器，为当前
+query 与历史 token 计算相关性分数；</li>
+<li><strong>Fine-grained token selection</strong>：取 index score 最高的
 top-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 个 token 的 KV，交给真正的 attention。</li>
 </ol>
-<p>可以把它写成：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mtext mathvariant="normal">Indexer</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>h</mi><mi>t</mi></msub><mo>,</mo><msub><mi>h</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>𝒮</mi><mi>t</mi></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">TopK</mi><mo>&#8289;</mo></mrow><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>I</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
-I_{t,s}=\text{Indexer}(h_t,h_s),
+<p>可以写成：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">Indexer</mi><mo>⁡</mo></mrow><mo form="prefix" stretchy="false">(</mo><msub><mi>h</mi><mi>t</mi></msub><mo>,</mo><msub><mi>h</mi><mi>s</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>𝒮</mi><mi>t</mi></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">TopK</mi><mo>⁡</mo></mrow><mi>s</mi></msub><mo form="prefix" stretchy="false">(</mo><msub><mi>I</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi></mrow></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+I_{t,s}=\operatorname{Indexer}(h_t,h_s),
 \qquad \mathcal{S}_t=\operatorname{TopK}_s(I_{t,s}),
 </annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">Attn</mi><mo>&#8289;</mo></mrow><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>q</mi><mi>t</mi></msub><mo>,</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>k</mi><mi>s</mi></msub><mo>,</mo><msub><mi>v</mi><mi>s</mi></msub><msub><mo stretchy="false" form="postfix">}</mo><mrow><mi>s</mi><mo>∈</mo><msub><mi>𝒮</mi><mi>t</mi></msub></mrow></msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">Attn</mi><mo>⁡</mo></mrow><mo form="prefix" maxsize="120%" minsize="120%" stretchy="true">(</mo><msub><mi>q</mi><mi>t</mi></msub><mo>,</mo><mo form="prefix" stretchy="false">{</mo><msub><mi>k</mi><mi>s</mi></msub><mo>,</mo><msub><mi>v</mi><mi>s</mi></msub><msub><mo form="postfix" stretchy="false">}</mo><mrow><mi>s</mi><mo>∈</mo><msub><mi>𝒮</mi><mi>t</mi></msub></mrow></msub><mo form="postfix" maxsize="120%" minsize="120%" stretchy="true">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 o_t=\operatorname{Attn}\bigl(q_t,\{k_s,v_s\}_{s\in\mathcal{S}_t}\bigr).
 </annotation></semantics></math></p>
-<p>关键点是：索引器不必和完整 attention 一样昂贵，它只负责回答“哪些
-token 值得被真正读取”。主 attention 的 token 数从
+<p>DSA 的主要收益来自<strong>少读、少算</strong>：主 attention 面对的
+token 数从
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
 缩小到
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，因此核心注意力部分由
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>L</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(L^2)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，核心部分由
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo form="prefix" stretchy="false">(</mo><msup><mi>L</mi><mn>2</mn></msup><mo form="postfix" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(L^2)</annotation></semantics></math>
 变成近似
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>L</mi><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(Lk)</annotation></semantics></math>。索引过程本身也要付出成本，所以
-DSA 的工程价值取决于索引器是否足够轻、top-k
-选择是否足够稳定，以及硬件是否能高效读取不连续的 KV 条目。</p>
-<h3 id="csahca-与-swa从笔记抽象出的组合策略">4. CSA、HCA 与
-SWA：从笔记抽象出的组合策略</h3>
-<p>这一组缩写在手写笔记中更像是对稀疏注意力设计空间的归纳，而不是一组已经确认的
-DeepSeek
-官方组件。按照笔记中的“先压缩、再筛选、再局部计算”的逻辑，可以整理成下面的工作性解释。</p>
-<h4 id="csa先把-kv-做粗粒度压缩">4.1 CSA：先把 KV 做粗粒度压缩</h4>
-<p>CSA 可以理解为先把历史 token
-按连续块或语义区域组织起来，为每个块建立一个压缩表示。当前 query
-先与块表示匹配，再决定哪些块值得展开。这样做的好处是先减少候选数量，坏处是块内的细节可能被平均掉；如果重要
-token 与不重要 token 混在同一块里，粗粒度压缩会损失检索精度。</p>
-<h4 id="hca保留高价值-token再处理剩余区域">4.2 HCA：保留高价值
-token，再处理剩余区域</h4>
-<p>HCA 可以理解为 heavy-hitter 或 high-coverage 的保留策略：某些 token
-在较长时间内经常被访问，或者对全局语义十分重要，就把它们作为长期保留项；其余
-token 再通过窗口、块压缩或 query 选择处理。它解决的是“不能只看最近
-token”的问题：系统需要给少数全局锚点留下长期通道。</p>
-<h4 id="swa滑动窗口保留局部连续性">4.3 SWA：滑动窗口保留局部连续性</h4>
-<p>Sliding Window Attention（SWA）只让 query 关注最近的
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo form="prefix" stretchy="false">(</mo><mi>L</mi><mi>k</mi><mo form="postfix" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(Lk)</annotation></semantics></math>。它本身通常不等于把历史
+KV 存储压缩掉；如果底层仍保留完整 KV cache，存储量并不会因为
+top-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+选择自动消失。DSA 可以和 MLA 组合，此时 MLA 负责压缩每个 token
+的存储维度，DSA 负责从这些缓存条目中选择当前要读取的部分。</p>
+<p>笔记中的 QSA 可以放在同一类“query/key
+驱动选择”的位置理解：它描述的是用轻量索引或 query 相关性找候选 token
+的思路；DSA 则是把索引、top-k 选择和主 attention
+组合起来的完整机制。</p>
+<h3 id="csahca-与-swa压缩全局保留和局部窗口">CSA、HCA 与
+SWA：压缩、全局保留和局部窗口</h3>
+<p>CSA、HCA、SWA 与 DSA/QSA
+都可以用于稀疏化注意力，但它们关注的瓶颈不同。<strong>CSA 和 HCA
+先改变历史的存储表示，DSA/QSA 主要决定当前读取哪些条目，SWA
+则用固定窗口限制可见范围。</strong>这些方法可以并列组合，不必理解成一条固定的先后流水线。</p>
+<h4 id="csa压缩稀疏注意力">CSA：压缩稀疏注意力</h4>
+<p><strong>CSA（Compressed Sparse
+Attention）</strong>先把历史压缩成更少的 KV
+条目，例如按连续块、语义区域或摘要单元形成压缩表示；然后当前 query
+先在这些压缩条目中筛选，再只对选中的条目计算
+attention。由于历史在写入或维护时已经被压成更少的条目，CSA
+同时减少：</p>
+<ul>
+<li><strong>存储</strong>：cache 中保存的 KV 条目更少；</li>
+<li><strong>读取</strong>：query 不必扫描全部原始 token；</li>
+<li><strong>计算</strong>：主 attention 只处理筛选后的压缩条目。</li>
+</ul>
+<p>它的代价是压缩会损失细节，尤其当同一个块里混有重要和不重要 token
+时，摘要可能无法精确恢复原文。</p>
+<h4 id="hca重度压缩注意力">HCA：重度压缩注意力</h4>
+<p><strong>HCA（Heavy/Highly Compressed Attention）</strong>比 CSA
+采用更强的历史压缩，把更长的片段聚合成更少的条目，再对这些压缩后的条目做全局
+attention。它强调“压得更狠、仍保持全局可见”：存储量和读取量都能进一步下降，但信息损失和训练难度也更高。</p>
+<p>CSA 与 HCA 的差别可以这样记：CSA
+是较温和的压缩后稀疏选择，仍会从部分压缩条目中读取；HCA
+是更重的压缩，直接在压缩后的全局条目上做注意力。二者都在<strong>存储和计算</strong>上动手，而不只是读取阶段的
+top-k。</p>
+<h4 id="swa滑动窗口保留局部连续性">SWA：滑动窗口保留局部连续性</h4>
+<p><strong>SWA（Sliding Window Attention）</strong>只让 query 关注最近的
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
 个 token：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒮</mi><mi>t</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>t</mi><mo>−</mo><mi>W</mi><mo>+</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒮</mi><mi>t</mi></msub><mo>=</mo><mo form="prefix" stretchy="false">{</mo><mi>t</mi><mo>−</mo><mi>W</mi><mo>+</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>t</mi><mo form="postfix" stretchy="false">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathcal{S}_t=\{t-W+1,\ldots,t\}.
 </annotation></semantics></math></p>
-<p>它对局部语言建模很有效，缓存和计算都容易控制，但会丢掉窗口之外的远程信息。因此实际系统常把
-SWA 与全局
-token、压缩摘要或少量检索头结合：窗口负责“最近发生了什么”，全局保留项负责“整段上下文中哪些内容不能忘”。</p>
-<p>把这几种思路放在一起，可以得到一条清晰的组合路线：<strong>SWA
-提供稳定的局部窗口，HCA 保留少量全局重要 token，CSA
-对大范围历史做块级压缩，QSA/DSA 用 query 做最后的细粒度选择。</strong>
-这比单独使用某一种策略更灵活，但也增加了索引、内存布局和训练稳定性的复杂度。</p>
+<p>它的
+cache、读取和计算都容易控制，但窗口之外的远程信息会被截断。因此实际系统常把
+SWA 与少量全局 token、压缩摘要或 DSA
+检索结合：窗口负责最近上下文，全局通道负责远处的重要信息。</p>
+<h4 id="与-dsaqsa-的区别">与 DSA/QSA 的区别</h4>
+<p>DSA/QSA
+的核心是<strong>选择</strong>：历史通常仍按原有形式存储，轻量索引器只决定当前
+query 要读哪些 token，所以主要节省读取带宽和主 attention 的计算。CSA/HCA
+的核心是<strong>存储表示本身已经被压缩</strong>，因此在读取和计算之外，还直接减少
+KV cache 的容量。SWA
+则不依赖内容相关性，按照固定位置窗口选择，稳定但可能漏掉远程关键
+token。</p>
 <h2 id="三把这些方法放回同一个问题">三、把这些方法放回同一个问题</h2>
 <p>从单 token Decode 的公式看，注意力的成本主要来自三处：</p>
 <ol type="1">
@@ -555,23 +632,9 @@ token、压缩摘要或少量检索头结合：窗口负责“最近发生了什
 <p>因此，“优化注意力”不是简单地让某一个公式更快，而是在三个层面做取舍：<strong>保留什么信息、把信息存在哪里、当前
 query
 读取哪些信息</strong>。理想的架构往往是混合的：局部窗口保证稳定的短程建模，稀疏检索负责远程查找，低秩或递归状态负责压缩缓存，门控则控制各个分支最终写回多少信息。</p>
-<h2 id="术语与待核对项">术语与待核对项</h2>
-<ol type="1">
-<li>手写页中的 “QSA” 与 DeepSeek-V3.2 技术报告中的 DSA
-可能指同一条“query/index/top-k”思路，也可能是你想区分的两个方案；本文暂按“QSA
-是选择阶段，DSA 是完整机制”处理。</li>
-<li>CSA、HCA
-在笔记中没有展开全称；本文使用的是便于理解的工作性解释，不把它们写成已确认的官方模块。</li>
-<li>Gated Attention 与 GDN 是两个不同层次的概念：前者是 softmax
-attention 输出门，后者是带门控的线性/递归注意力。Qwen
-的混合架构可能同时包含两者，但不能把二者等同。</li>
-<li>MLA 的位置分支、KDA
-的门控形式和不同实现的融合层数需要根据具体模型配置继续补充。本文先解释思路，不记录未经核对的维度和层数。</li>
-</ol>
 <h2 id="参考资料">参考资料</h2>
 <ul>
-<li><a
-href="https://papers.neurips.cc/paper_files/paper/2025/file/904e89bb4e632e75fb47f093b620b257-Paper-Conference.pdf">Gated
+<li><a href="https://papers.neurips.cc/paper_files/paper/2025/file/904e89bb4e632e75fb47f093b620b257-Paper-Conference.pdf">Gated
 Attention for Large Language Models: Non-linearity, Sparsity, and
 Attention-Sink-Free</a></li>
 <li><a href="https://qwen.ai/blog?id=qwen3.5">Qwen3.5: Towards Native
@@ -580,13 +643,77 @@ Multimodal Agents</a></li>
 Economical, and Efficient Mixture-of-Experts Language Model</a></li>
 <li><a href="https://arxiv.org/abs/2510.26692">Kimi Linear: An
 Expressive, Efficient Attention Architecture</a></li>
-<li><a
-href="https://modelscope.cn/models/deepseek-ai/DeepSeek-V3.2/resolve/master/assets/paper.pdf">DeepSeek-V3.2
+<li><a href="https://modelscope.cn/models/deepseek-ai/DeepSeek-V3.2/resolve/master/assets/paper.pdf">DeepSeek-V3.2
 技术报告</a></li>
 </ul>
-<blockquote>
-<p>这是一版供审核的博客草稿，暂未加入正式归档目录，也未发布到 GitHub
-Pages。</p>
-</blockquote>
-</main></body>
+</div>
+
+</article>
+</div>
+</div>
+</main>
+<footer class="footer">
+<div class="footer-inner">
+<div class="copyright">
+    ©
+    <span itemprop="copyrightYear">2025</span>
+<span class="with-love">
+<i class="fa fa-heart"></i>
+</span>
+<span class="author" itemprop="copyrightHolder">Ringo.fu</span>
+</div>
+<div class="wordcount">
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="fa fa-chart-line"></i>
+</span>
+<span title="Word count total">70k</span>
+</span>
+<span class="post-meta-item">
+<span class="post-meta-item-icon">
+<i class="fa fa-coffee"></i>
+</span>
+<span title="Reading time total">1:04</span>
+</span>
+</div>
+<div class="busuanzi-count">
+<span class="post-meta-item" id="busuanzi_container_site_uv">
+<span class="post-meta-item-icon">
+<i class="fa fa-user"></i>
+</span>
+<span class="site-uv" title="Total Visitors">
+<span id="busuanzi_value_site_uv"></span>
+</span>
+</span>
+<span class="post-meta-item" id="busuanzi_container_site_pv">
+<span class="post-meta-item-icon">
+<i class="fa fa-eye"></i>
+</span>
+<span class="site-pv" title="Total Views">
+<span id="busuanzi_value_site_pv"></span>
+</span>
+</span>
+</div>
+<div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> &amp; <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+</div>
+</div>
+</footer>
+<div class="toggle sidebar-toggle" role="button" tabindex="0">
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+<span class="toggle-line"></span>
+</div>
+<div class="sidebar-dimmer"></div>
+<div aria-label="Back to top" class="back-to-top" role="button" tabindex="0">
+<i class="fa fa-arrow-up fa-lg"></i>
+<span>0%</span>
+</div>
+<noscript>
+<div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+<script crossorigin="anonymous" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" src="/vendor/anime.min.js"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+<script crossorigin="anonymous" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" src="/vendor/search.js"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+<script defer="" src="/js/blog-maintenance.js"></script></body>
 </html>
