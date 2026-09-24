@@ -114,15 +114,8 @@
 <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一注意力机制的梳理"><span class="nav-text">一、注意力机制的梳理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从文字到-qkv"><span class="nav-text">1. 从文字到 Q、K、V</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#prefill-和-decode一个-token-怎样被生成"><span class="nav-text">2. Prefill 和
 Decode：一个 token 怎样被生成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#prefill先把已有上下文写入每一层的-cache"><span class="nav-text">2.1
 Prefill：先把已有上下文写入每一层的 cache</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#decode从第一层开始逐层传递-hidden-state"><span class="nav-text">2.2
-Decode：从第一层开始，逐层传递 hidden state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mhagqa-和-mqa"><span class="nav-text">3. MHA、GQA 和 MQA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二注意力机制的几条优化路线"><span class="nav-text">二、注意力机制的几条优化路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#qwengated-attention-与-gated-deltanet"><span class="nav-text">Qwen：Gated Attention 与
-Gated DeltaNet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gated-attention给注意力输出加一个可学习的门"><span class="nav-text">Gated
-Attention：给注意力输出加一个可学习的门</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gdn把长序列-kv-变成门控的有限状态"><span class="nav-text">GDN：把长序列 KV
-变成门控的有限状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mla-与-kda压缩缓存或把缓存变成状态"><span class="nav-text">MLA 与
-KDA：压缩缓存，或把缓存变成状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mla在每个-token-的存储维度上做压缩"><span class="nav-text">MLA：在每个 token
-的存储维度上做压缩</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kda把-gated-deltanet-做得更细"><span class="nav-text">KDA：把 Gated DeltaNet
-做得更细</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deepseek-dsa先索引再只对少量-token-做注意力"><span class="nav-text">DeepSeek
-DSA：先索引，再只对少量 token 做注意力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#csahca-与-swa压缩全局保留和局部窗口"><span class="nav-text">CSA、HCA 与
-SWA：压缩、全局保留和局部窗口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#csa压缩稀疏注意力"><span class="nav-text">CSA：压缩稀疏注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#hca重度压缩注意力"><span class="nav-text">HCA：重度压缩注意力</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#swa滑动窗口保留局部连续性"><span class="nav-text">SWA：滑动窗口保留局部连续性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#与-dsaqsa-的区别"><span class="nav-text">与 DSA/QSA 的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三把这些方法放回同一个问题"><span class="nav-text">三、把这些方法放回同一个问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-text">参考资料</span></a></li></ol></div>
+Decode：从第一层开始，逐层传递 hidden state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mhagqa-和-mqa"><span class="nav-text">3. MHA、GQA 和 MQA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二注意力机制的三条优化路线"><span class="nav-text">二、注意力机制的三条优化路线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路线一mla-与-gated-attention"><span class="nav-text">路线一：MLA 与 Gated
+Attention</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路线二gdnkda-与-dsa"><span class="nav-text">路线二：GDN、KDA 与 DSA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#路线三csahca-与-swa"><span class="nav-text">路线三：CSA、HCA 与 SWA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三把这些方法放回同一个问题"><span class="nav-text">三、把这些方法放回同一个问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-text">参考资料</span></a></li></ol></div>
 </div>
 <!--/noindex-->
 <div class="site-overview-wrap sidebar-panel">
@@ -391,156 +384,80 @@ token，有的擅长长距离指代或实体检索，有的对位置边界、分
 head 必须负责什么”，这些分工是训练后涌现出来的。各 head
 得到的输出会拼接起来，再经过输出投影写回这一层的 hidden state。GQA 和
 MQA 保留了多个 query head 的视角，只是让若干 query head 共享 K/V。</p>
-<h2 id="二注意力机制的几条优化路线">二、注意力机制的几条优化路线</h2>
+<h2 id="二注意力机制的三条优化路线">二、注意力机制的三条优化路线</h2>
 <figure>
 <img alt="注意力优化路线图" src="/images/llm-attention/optimization-map.svg"/>
 <figcaption aria-hidden="true">注意力优化路线图</figcaption>
 </figure>
-<h3 id="qwengated-attention-与-gated-deltanet">Qwen：Gated Attention 与
-Gated DeltaNet</h3>
-<h4 id="gated-attention给注意力输出加一个可学习的门">Gated
-Attention：给注意力输出加一个可学习的门</h4>
-<p>标准 scaled dot-product attention 得到
+<p>下面按三条并列路线来整理：第一条关注每个 token
+的缓存表示和注意力输出，第二条把历史变成可更新的状态或先做稀疏选择，第三条直接压缩历史或限制可见范围。它们可以组合使用，没有固定的先后顺序。</p>
+<h3 id="路线一mla-与-gated-attention">路线一：MLA 与 Gated
+Attention</h3>
+<p><strong>Gated Attention</strong>仍然保留 scaled dot-product
+attention。得到注意力输出
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>o</mi><mi>t</mi></msub><annotation encoding="application/x-tex">o_t</annotation></semantics></math>
-后，可以再计算一个门控向量
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>g</mi><mi>t</mi></msub><annotation encoding="application/x-tex">g_t</annotation></semantics></math>，用
-sigmoid 把它限制在
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
-到
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>
-附近：</p>
+后，再计算一个门控向量
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>g</mi><mi>t</mi></msub><annotation encoding="application/x-tex">g_t</annotation></semantics></math>：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>o</mi><mo accent="true">̃</mo></mover><mi>t</mi></msub><mo>=</mo><mi>σ</mi><mo form="prefix" stretchy="false">(</mo><msub><mi>g</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>⊙</mo><msub><mi>o</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \tilde{o}_t=\sigma(g_t)\odot o_t.
 </annotation></semantics></math></p>
-<p>门控可以是 head-specific 的，也可以依赖当前 query。它并没有改变 Q、K
-的匹配过程，而是让模型在得到注意力结果后，决定哪些通道或哪些头的结果应该被保留、抑制或缩小。Qwen
-团队的实验把这种简单的 output gating 与三点联系起来：</p>
-<ul>
-<li>在 softmax attention 的低秩映射之后增加非线性；</li>
-<li>用 query-dependent 的门控分数产生稀疏的输出调制；</li>
-<li>缓解 massive activation、attention sink，并改善长上下文外推。</li>
-</ul>
-<p>所以，Gated Attention
-的关键是“<strong>注意力算完之后再控制信息流</strong>”。它和 GDN
-不是同一个东西：前者仍然是 softmax attention
-的输出门，后者是线性注意力/递归状态更新机制。Qwen
-的混合架构可以把两者放在不同层中协同使用。Qwen 论文明确报告，效果最好的
-SDPA output gating 被用于 Qwen3-Next；Qwen3.5 的公开介绍则把 Gated
-DeltaNet 作为混合架构中的线性注意力组件。</p>
-<h4 id="gdn把长序列-kv-变成门控的有限状态">GDN：把长序列 KV
-变成门控的有限状态</h4>
-<p>Gated DeltaNet 可以从“不断更新一块记忆矩阵”的角度理解。与每个历史
-token 都保存一份
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>,</mo><mi>V</mi></mrow><annotation encoding="application/x-tex">K,V</annotation></semantics></math>
-不同，它维护一个随时间更新的状态
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>t</mi></msub><annotation encoding="application/x-tex">S_t</annotation></semantics></math>。一个简化的概念式是：</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>≈</mo><msub><mi>λ</mi><mi>t</mi></msub><mo>⊙</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mtext mathvariant="normal">delta-update</mtext><mo form="prefix" stretchy="false">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
-S_t\approx \lambda_t\odot S_{t-1}+\text{delta-update}(k_t,v_t),
-\qquad o_t=S_tq_t.
-</annotation></semantics></math></p>
-<p>其中
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\lambda_t</annotation></semantics></math>
-是遗忘或保留门，delta update 则根据当前的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">k_t,v_t</annotation></semantics></math>
-修正已有记忆。它的直觉是：</p>
-<ul>
-<li>新 token 不是简单地追加到无限长的列表里，而是更新有限状态；</li>
-<li>门控决定旧记忆保留多少，新信息写入多少；</li>
-<li>查询读取的是状态
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>t</mi></msub><annotation encoding="application/x-tex">S_t</annotation></semantics></math>，而不是逐一读取所有历史
-token。</li>
-</ul>
-<p>因此，GDN
-的状态更新更接近线性复杂度的递归记忆，适合与少数保留完整检索能力的
-attention
-层交替组成混合架构。代价是：有限状态必须学会压缩历史信息，某些需要精确回看远处原文的任务仍然更依赖
-full attention 或稀疏检索层。</p>
-<h3 id="mla-与-kda压缩缓存或把缓存变成状态">MLA 与
-KDA：压缩缓存，或把缓存变成状态</h3>
-<h4 id="mla在每个-token-的存储维度上做压缩">MLA：在每个 token
-的存储维度上做压缩</h4>
-<p>MLA 的核心不是简单减少 K/V head 的数量，而是把<strong>每个历史 token
-的缓存条目压到更低的维度</strong>。在第
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>
-层，先用一个低秩下投影把 hidden state 压成 latent：</p>
+<p>门控可以是 head-specific 的，也可以依赖当前 query。它不改变 Q、K
+的匹配过程，而是在注意力算完之后控制哪些通道或哪些头的结果应该被保留、抑制或缩小。Qwen
+的相关实验把 output gating 与非线性、稀疏输出调制、massive activation 和
+attention sink 联系起来。它的主要作用是控制信息流，<strong>不会直接减少
+KV cache 的存储量</strong>。</p>
+<p><strong>MLA（Multi-head Latent
+Attention）</strong>则从存储表示入手，把每个历史 token 的 hidden state
+用低秩矩阵压成 latent：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>D</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><msubsup><mi>h</mi><mi>t</mi><mrow><mo form="prefix" stretchy="false">(</mo><mi>l</mi><mo form="postfix" stretchy="false">)</mo></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
 c_t^{KV}=W_D^{KV}h_t^{(l)}.
 </annotation></semantics></math></p>
 <p>推理时主要存储
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_t^{KV}</annotation></semantics></math>，而不是完整的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">k_t,v_t</annotation></semantics></math>。这里的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>W</mi><mi>D</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">W_D^{KV}</annotation></semantics></math>
-就是把高维 hidden state 映射到低维存储空间的矩阵，因此 MLA
-直接减少的是每个 token 的 cache 维度。</p>
-<p>为什么压缩后的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_t^{KV}</annotation></semantics></math>
-仍然有用？因为模型可以用另外的上投影从这个低秩表示中恢复注意力需要的不同分支：</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">k_t,v_t</annotation></semantics></math>，所以被压缩的是每个
+token
+的存储维度。模型再用不同的上投影恢复注意力所需的内容和位置分支：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mi>C</mi></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>K</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>v</mi><mi>t</mi></msub><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>V</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
 k_t^C=W_U^Kc_t^{KV},\qquad v_t=W_U^Vc_t^{KV}.
 </annotation></semantics></math></p>
-<p>其中
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>k</mi><mi>t</mi><mi>C</mi></msubsup><annotation encoding="application/x-tex">k_t^C</annotation></semantics></math>
-和
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>t</mi></msub><annotation encoding="application/x-tex">v_t</annotation></semantics></math>
-负责内容信息。位置部分不与内容强行揉在一起，而是用独立的低维分支和上投影恢复参与打分所需的
-RoPE 分量，例如
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mi>R</mi></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>R</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mi>R</mi></msubsup></mrow><annotation encoding="application/x-tex">k_t^R=W_U^R c_t^R</annotation></semantics></math>，再对它施加
-RoPE。也就是说，模型用不同的可学习矩阵分别恢复内容分支和位置分支：低秩
-latent 保留内容，独立的 RoPE
-分支补上位置信息。这里的“恢复”不是把每个历史 token 的完整 K/V
-永久还原，而是只生成注意力计算需要的分量。</p>
-<p>推理时还不必把每个历史 token 的完整 K/V
-全部还原出来。矩阵乘法满足结合律，例如：</p>
+<p>位置分支使用独立的低维表示和投影，例如
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>k</mi><mi>t</mi><mi>R</mi></msubsup><mo>=</mo><msubsup><mi>W</mi><mi>U</mi><mi>R</mi></msubsup><msubsup><mi>c</mi><mi>t</mi><mi>R</mi></msubsup></mrow><annotation encoding="application/x-tex">k_t^R=W_U^R c_t^R</annotation></semantics></math>，再施加
+RoPE。这里的“恢复”只生成注意力计算需要的分量，并不意味着把完整 KV cache
+永久还原。</p>
+<p>矩阵乘法的结合律还允许把上投影吸收到 query 侧：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>q</mi><mi>t</mi><mi>⊤</mi></msubsup><mo form="prefix" stretchy="false">(</mo><msubsup><mi>W</mi><mi>U</mi><mi>K</mi></msubsup><msubsup><mi>c</mi><mi>s</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mo form="postfix" stretchy="false">)</mo><mo>=</mo><mo form="prefix" stretchy="false">(</mo><msubsup><mi>W</mi><mi>U</mi><mrow><mi>K</mi><mi>⊤</mi></mrow></msubsup><msub><mi>q</mi><mi>t</mi></msub><msup><mo form="postfix" stretchy="false">)</mo><mi>⊤</mi></msup><msubsup><mi>c</mi><mi>s</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
 q_t^{\top}(W_U^Kc_s^{KV})
 = (W_U^{K\top}q_t)^{\top}c_s^{KV}.
 </annotation></semantics></math></p>
-<p>因此，可以先把当前 query 变换到低维空间，再直接与缓存中的
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>c</mi><mi>s</mi><mrow><mi>K</mi><mi>V</mi></mrow></msubsup><annotation encoding="application/x-tex">c_s^{KV}</annotation></semantics></math>
-做匹配；value
-侧的上投影也可以吸收到后续的输出变换中。这样做的本质是：<strong>不重建完整
-KV cache，而是让 query 去读取低维
-latent</strong>。训练会学习一个足以保留有效内容的瓶颈，RoPE
-分支则保留位置辨识能力。</p>
-<p>所以，MLA 的收益可以用一句话概括：<strong>每个 token
-仍有自己的缓存表示，但这个表示的存储维度被压小了</strong>。它和 GQA/MQA
-的区别在于，GQA/MQA 主要减少 head 维度上的 K/V 副本，MLA
-则进一步压缩每个 token 的存储条目。</p>
-<h4 id="kda把-gated-deltanet-做得更细">KDA：把 Gated DeltaNet
-做得更细</h4>
-<p>Kimi Linear 中的 Kimi Delta Attention（KDA）可以看作 Gated DeltaNet
-的更细粒度版本。它保留 delta rule
-的“更新有限状态”思路，同时使用更细的门控去控制不同维度、不同状态分量的写入和遗忘：</p>
+<p>因此可以先把 query 降到低维空间，直接与缓存中的 latent 做匹配；value
+侧的变换也可以吸收到后续输出投影中。MLA 的核心收益是<strong>每个 token
+仍有自己的缓存表示，但存储维度更小</strong>。</p>
+<h3 id="路线二gdnkda-与-dsa">路线二：GDN、KDA 与 DSA</h3>
+<p><strong>GDN（Gated DeltaNet）</strong>不再为每个历史 token
+保留一份独立的 K/V，而是维护一个随时间更新的有限状态
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>t</mi></msub><annotation encoding="application/x-tex">S_t</annotation></semantics></math>：</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>≈</mo><msub><mi>λ</mi><mi>t</mi></msub><mo>⊙</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mtext mathvariant="normal">delta-update</mtext><mo form="prefix" stretchy="false">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+S_t\approx\lambda_t\odot S_{t-1}+\text{delta-update}(k_t,v_t),
+\qquad o_t=S_tq_t.
+</annotation></semantics></math></p>
+<p>门控决定旧记忆保留多少、新信息写入多少；query
+读取的是状态，而不是逐一读取全部历史
+token。它的读取更接近线性复杂度，但有限状态对原文的精确回看能力会受到压缩限制。</p>
+<p><strong>KDA（Kimi Delta Attention）</strong>可以看作更细粒度的
+GDN。它仍然用 delta rule
+更新状态，但把遗忘和写入门细化到不同维度或状态分量：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>=</mo><msub><mtext mathvariant="normal">forget</mtext><mi>t</mi></msub><mo form="prefix" stretchy="false">(</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo form="postfix" stretchy="false">)</mo><mo>+</mo><msub><mtext mathvariant="normal">delta</mtext><mi>t</mi></msub><mo form="prefix" stretchy="false">(</mo><msub><mi>k</mi><mi>t</mi></msub><mo>,</mo><msub><mi>v</mi><mi>t</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><msub><mi>S</mi><mi>t</mi></msub><msub><mi>q</mi><mi>t</mi></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
 S_t=\text{forget}_t(S_{t-1})+\text{delta}_t(k_t,v_t),
 \qquad o_t=S_tq_t.
 </annotation></semantics></math></p>
-<p>这里的重点不是某一个固定公式，而是门控粒度：如果只有一个粗粒度门，模型只能整体保留或整体遗忘；更细粒度的门允许它在状态中保留不同类型的信息。Kimi
-Linear 的整体结构是 KDA 与 MLA
-的层间混合：一部分层用线性注意力状态处理长序列，一部分层用 MLA
-保留更强的内容检索能力。这样形成了一个折中：</p>
-<ul>
-<li>KDA 负责低缓存、线性读取和持续更新；</li>
-<li>MLA 负责压缩后的全局检索；</li>
-<li>两者共同避免所有层都承担完整 KV cache 的成本。</li>
-</ul>
-<p>这里也要区分两个方向：MLA 是“<strong>把每个 token
-的缓存压小</strong>”，KDA 是“<strong>让历史 token
-进入有限状态</strong>”。前者仍保留 token 对应的
-latent，后者更像一个递归记忆系统。</p>
-<h3 id="deepseek-dsa先索引再只对少量-token-做注意力">DeepSeek
-DSA：先索引，再只对少量 token 做注意力</h3>
-<p>公开的 DeepSeek-V3.2 技术报告把这条路线正式称为 <strong>DeepSeek
-Sparse Attention（DSA）</strong>。它先用便宜的索引器估计当前 query
-与历史 token 的相关性，再只对排名靠前的 token 做完整 attention：</p>
-<ol type="1">
-<li><strong>Lightning indexer</strong>：用更小、更便宜的索引器，为当前
-query 与历史 token 计算相关性分数；</li>
-<li><strong>Fine-grained token selection</strong>：取 index score 最高的
+<p>Kimi Linear 将 KDA 与 MLA 混合：KDA 负责持续更新的线性状态，MLA
+负责压缩后的全局检索。二者都在减少长序列历史的直接读取，但 MLA 保留
+token 对应的 latent，KDA 则把历史融合进递归状态。</p>
+<p><strong>DSA（DeepSeek Sparse
+Attention）</strong>保留历史条目，然后先用轻量索引器估计 query 与历史
+token 的相关性，再只对
 top-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
-个 token 的 KV，交给真正的 attention。</li>
-</ol>
-<p>可以写成：</p>
+条目做完整 attention：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi></mrow></msub><mo>=</mo><mrow><mi mathvariant="normal">Indexer</mi><mo>⁡</mo></mrow><mo form="prefix" stretchy="false">(</mo><msub><mi>h</mi><mi>t</mi></msub><mo>,</mo><msub><mi>h</mi><mi>s</mi></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>𝒮</mi><mi>t</mi></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">TopK</mi><mo>⁡</mo></mrow><mi>s</mi></msub><mo form="prefix" stretchy="false">(</mo><msub><mi>I</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi></mrow></msub><mo form="postfix" stretchy="false">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 I_{t,s}=\operatorname{Indexer}(h_t,h_s),
 \qquad \mathcal{S}_t=\operatorname{TopK}_s(I_{t,s}),
@@ -548,69 +465,100 @@ I_{t,s}=\operatorname{Indexer}(h_t,h_s),
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>o</mi><mi>t</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">Attn</mi><mo>⁡</mo></mrow><mo form="prefix" maxsize="120%" minsize="120%" stretchy="true">(</mo><msub><mi>q</mi><mi>t</mi></msub><mo>,</mo><mo form="prefix" stretchy="false">{</mo><msub><mi>k</mi><mi>s</mi></msub><mo>,</mo><msub><mi>v</mi><mi>s</mi></msub><msub><mo form="postfix" stretchy="false">}</mo><mrow><mi>s</mi><mo>∈</mo><msub><mi>𝒮</mi><mi>t</mi></msub></mrow></msub><mo form="postfix" maxsize="120%" minsize="120%" stretchy="true">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 o_t=\operatorname{Attn}\bigl(q_t,\{k_s,v_s\}_{s\in\mathcal{S}_t}\bigr).
 </annotation></semantics></math></p>
-<p>DSA 的主要收益来自<strong>少读、少算</strong>：主 attention 面对的
-token 数从
+<p>DSA 的主要收益是少读、少算，核心 attention 从面对
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
-缩小到
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>，核心部分由
+个历史 token 变成面对
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+个候选，近似从
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo form="prefix" stretchy="false">(</mo><msup><mi>L</mi><mn>2</mn></msup><mo form="postfix" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(L^2)</annotation></semantics></math>
-变成近似
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo form="prefix" stretchy="false">(</mo><mi>L</mi><mi>k</mi><mo form="postfix" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(Lk)</annotation></semantics></math>。它本身通常不等于把历史
-KV 存储压缩掉；如果底层仍保留完整 KV cache，存储量并不会因为
-top-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
-选择自动消失。DSA 可以和 MLA 组合，此时 MLA 负责压缩每个 token
-的存储维度，DSA 负责从这些缓存条目中选择当前要读取的部分。</p>
-<p>笔记中的 QSA 可以放在同一类“query/key
-驱动选择”的位置理解：它描述的是用轻量索引或 query 相关性找候选 token
-的思路；DSA 则是把索引、top-k 选择和主 attention
-组合起来的完整机制。</p>
-<h3 id="csahca-与-swa压缩全局保留和局部窗口">CSA、HCA 与
-SWA：压缩、全局保留和局部窗口</h3>
-<p>CSA、HCA、SWA 与 DSA/QSA
-都可以用于稀疏化注意力，但它们关注的瓶颈不同。<strong>CSA 和 HCA
-先改变历史的存储表示，DSA/QSA 主要决定当前读取哪些条目，SWA
-则用固定窗口限制可见范围。</strong>这些方法可以并列组合，不必理解成一条固定的先后流水线。</p>
-<h4 id="csa压缩稀疏注意力">CSA：压缩稀疏注意力</h4>
+降到
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo form="prefix" stretchy="false">(</mo><mi>L</mi><mi>k</mi><mo form="postfix" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(Lk)</annotation></semantics></math>。它本身通常不改变
+KV cache 的存储量；与 MLA 组合时，MLA 负责压缩存储，DSA
+负责选择读取范围。笔记中的 QSA 可以理解为同一类 query/key
+驱动的候选选择思路。</p>
+<h3 id="路线三csahca-与-swa">路线三：CSA、HCA 与 SWA</h3>
 <p><strong>CSA（Compressed Sparse
 Attention）</strong>先把历史压缩成更少的 KV
-条目，例如按连续块、语义区域或摘要单元形成压缩表示；然后当前 query
-先在这些压缩条目中筛选，再只对选中的条目计算
-attention。由于历史在写入或维护时已经被压成更少的条目，CSA
-同时减少：</p>
-<ul>
-<li><strong>存储</strong>：cache 中保存的 KV 条目更少；</li>
-<li><strong>读取</strong>：query 不必扫描全部原始 token；</li>
-<li><strong>计算</strong>：主 attention 只处理筛选后的压缩条目。</li>
-</ul>
-<p>它的代价是压缩会损失细节，尤其当同一个块里混有重要和不重要 token
-时，摘要可能无法精确恢复原文。</p>
-<h4 id="hca重度压缩注意力">HCA：重度压缩注意力</h4>
-<p><strong>HCA（Heavy/Highly Compressed Attention）</strong>比 CSA
-采用更强的历史压缩，把更长的片段聚合成更少的条目，再对这些压缩后的条目做全局
-attention。它强调“压得更狠、仍保持全局可见”：存储量和读取量都能进一步下降，但信息损失和训练难度也更高。</p>
-<p>CSA 与 HCA 的差别可以这样记：CSA
-是较温和的压缩后稀疏选择，仍会从部分压缩条目中读取；HCA
-是更重的压缩，直接在压缩后的全局条目上做注意力。二者都在<strong>存储和计算</strong>上动手，而不只是读取阶段的
-top-k。</p>
-<h4 id="swa滑动窗口保留局部连续性">SWA：滑动窗口保留局部连续性</h4>
-<p><strong>SWA（Sliding Window Attention）</strong>只让 query 关注最近的
+条目，再从压缩条目中选出部分进行
+attention。它同时减少存储、读取和计算：cache 中条目更少，query
+不必扫描全部原始 token，主 attention 也只处理选中的压缩条目。</p>
+<p><strong>HCA（Heavy/Highly Compressed Attention）</strong>采用比 CSA
+更强的历史压缩，把更长片段聚合成更少的条目，再对这些压缩条目做全局
+attention。它进一步降低存储和读取，但信息损失与训练难度也更高。CSA
+更接近“适度压缩后再稀疏选择”，HCA 更接近“重度压缩后保持全局可见”。</p>
+<p><strong>SWA（Sliding Window
+Attention）</strong>不依赖内容相关性，只让 query 关注最近的
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
 个 token：</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒮</mi><mi>t</mi></msub><mo>=</mo><mo form="prefix" stretchy="false">{</mo><mi>t</mi><mo>−</mo><mi>W</mi><mo>+</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>t</mi><mo form="postfix" stretchy="false">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathcal{S}_t=\{t-W+1,\ldots,t\}.
 </annotation></semantics></math></p>
-<p>它的
-cache、读取和计算都容易控制，但窗口之外的远程信息会被截断。因此实际系统常把
-SWA 与少量全局 token、压缩摘要或 DSA
-检索结合：窗口负责最近上下文，全局通道负责远处的重要信息。</p>
-<h4 id="与-dsaqsa-的区别">与 DSA/QSA 的区别</h4>
-<p>DSA/QSA
-的核心是<strong>选择</strong>：历史通常仍按原有形式存储，轻量索引器只决定当前
-query 要读哪些 token，所以主要节省读取带宽和主 attention 的计算。CSA/HCA
-的核心是<strong>存储表示本身已经被压缩</strong>，因此在读取和计算之外，还直接减少
-KV cache 的容量。SWA
-则不依赖内容相关性，按照固定位置窗口选择，稳定但可能漏掉远程关键
-token。</p>
+<p>它能稳定地控制
+cache、读取和计算，但会截断窗口之外的远程信息，所以常与全局
+token、压缩摘要或 DSA 检索结合。</p>
+<p>三条路线中的方法可以用下面的表格并列对比：</p>
+<table>
+<colgroup>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+</colgroup>
+<thead>
+<tr>
+<th>方法</th>
+<th>核心机制</th>
+<th>存储与读取</th>
+<th>主要取舍</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gated Attention</td>
+<td>注意力输出后加门控</td>
+<td>cache 基本不变</td>
+<td>控制信息流，不直接省缓存</td>
+</tr>
+<tr>
+<td>MLA</td>
+<td>每个 token 压成低秩 latent</td>
+<td>存储维度压缩</td>
+<td>少存、少带宽；有低秩瓶颈</td>
+</tr>
+<tr>
+<td>GDN / KDA</td>
+<td>历史写入门控递归状态</td>
+<td>变成有限状态</td>
+<td>读写更轻；精确回看能力受限</td>
+</tr>
+<tr>
+<td>DSA / QSA</td>
+<td>索引并选择
+top-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+token</td>
+<td>通常不改存储</td>
+<td>少读、少算；有索引和访存开销</td>
+</tr>
+<tr>
+<td>CSA</td>
+<td>压缩历史后再稀疏选择</td>
+<td>存储条目减少</td>
+<td>同时少存、少读、少算；有压缩损失</td>
+</tr>
+<tr>
+<td>HCA</td>
+<td>重度压缩后做全局 attention</td>
+<td>存储大幅减少</td>
+<td>全局可见；信息损失和训练难度更高</td>
+</tr>
+<tr>
+<td>SWA</td>
+<td>固定滑动窗口</td>
+<td>窗口内受控</td>
+<td>稳定少算；可能漏掉远程信息</td>
+</tr>
+</tbody>
+</table>
 <h2 id="三把这些方法放回同一个问题">三、把这些方法放回同一个问题</h2>
 <p>从单 token Decode 的公式看，注意力的成本主要来自三处：</p>
 <ol type="1">
