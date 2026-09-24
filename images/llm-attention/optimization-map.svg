@@ -1,9 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
-<title id="title">Three parallel attention optimization routes</title><desc id="desc">Three parallel routes combine latent compression and output gating, recurrent state or sparse selection, and compressed or windowed history.</desc>
-<style>text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#18212b}.h{font-size:25px;font-weight:700}.s{font-size:19px}.t{font-size:16px}.card{stroke-width:2;rx:14}.g{fill:#eaf2ff;stroke:#4777ae}.c{fill:#fff6df;stroke:#c28b20}.l{fill:#edf8ef;stroke:#4c8a5c}</style>
-<text x="40" y="42" class="h">三条并列路线：压缩表示、递归状态与稀疏读取</text>
-<rect x="40" y="90" width="340" height="200" class="card g"/><text x="210" y="130" text-anchor="middle" class="s">MLA / Gated Attention</text><text x="65" y="170" class="t">MLA：压缩每个 token 的 latent</text><text x="65" y="198" class="t">Gated：在输出后控制信息流</text><text x="65" y="226" class="t">少存 / 控制激活</text><text x="65" y="264" class="t">内容与位置分支分开</text>
-<rect x="430" y="90" width="340" height="200" class="card c"/><text x="600" y="130" text-anchor="middle" class="s">GDN / KDA / DSA</text><text x="455" y="170" class="t">GDN、KDA：门控递归状态</text><text x="455" y="198" class="t">DSA：索引 + top-k 选择</text><text x="455" y="226" class="t">少读 / 少算</text><text x="455" y="264" class="t">可与 MLA 组合</text>
-<rect x="820" y="90" width="340" height="200" class="card l"/><text x="990" y="130" text-anchor="middle" class="s">CSA / HCA / SWA</text><text x="845" y="170" class="t">CSA、HCA：压缩历史表示</text><text x="845" y="198" class="t">SWA：固定滑动窗口</text><text x="845" y="226" class="t">少存 / 少读 / 少算</text><text x="845" y="264" class="t">远程细节与窗口权衡</text>
-<text x="600" y="350" text-anchor="middle" class="t">三条路线可以按模型需求组合：改变存储表示、更新方式或当前读取范围</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+<title id="title">注意力机制的三条并列优化路线</title>
+<desc id="desc">MLA 压缩每个 token 的缓存；Gated Attention、GDN 与 KDA 使用门控或递归状态；DSA、CSA、HCA 与 SWA 选择或压缩历史。三条路线可以组合，无先后依赖。</desc>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;fill:#18212b}.h{font-size:28px;font-weight:700}.s{font-size:23px;font-weight:600}.t{font-size:21px}.card{stroke-width:2;rx:14}</style>
+<text x="32" y="44" class="h">三条并列路线：改变缓存、状态与读取范围</text>
+<rect x="32" y="76" width="896" height="118" class="card" fill="#eaf2ff" stroke="#4777ae"/>
+<text x="56" y="112" class="s">MLA · 低秩缓存</text>
+<text x="56" y="147" class="t">hidden state → latent，压缩每个 token 的存储维度</text>
+<text x="56" y="178" class="t">矩阵吸收：直接在 latent 空间匹配，省去完整 K/V 的重建</text>
+<rect x="32" y="210" width="896" height="118" class="card" fill="#fff6df" stroke="#c28b20"/>
+<text x="56" y="246" class="s">Gated Attention / GDN / KDA · 门控与递归状态</text>
+<text x="56" y="281" class="t">Gated Attention：门控注意力输出，控制信息流</text>
+<text x="56" y="312" class="t">GDN / KDA：门控更新有限状态，融合历史信息</text>
+<rect x="32" y="344" width="896" height="118" class="card" fill="#edf8ef" stroke="#4c8a5c"/>
+<text x="56" y="380" class="s">DSA / CSA / HCA / SWA · 稀疏与压缩历史</text>
+<text x="56" y="415" class="t">DSA：相关性筛选；SWA：固定窗口</text>
+<text x="56" y="446" class="t">CSA：压缩后稀疏选择；HCA：重度压缩后全局读取</text>
+<text x="480" y="511" text-anchor="middle" class="t">三条路线可组合；门控、缓存压缩和稀疏选择承担不同作用</text>
 </svg>
