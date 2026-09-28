@@ -1,5 +1,411 @@
 <?xml version='1.0' encoding='utf-8'?>
-<search><entry><title>Transformer+cuda学习</title><url>/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/</url><content type="html">&lt;div class="post-body" itemprop="articleBody"&gt;
+<search><entry><title>LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力</title><url>/2026/09/23/LLM%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E5%8F%8A%E4%BC%98%E5%8C%96/</url><content type="html">&lt;div class="post-body" itemprop="articleBody"&gt;&lt;figure&gt;
+&lt;img alt="Prefill 与 Decode 中的注意力流程" src="/images/llm-attention/pd-decode.svg"/&gt;
+&lt;figcaption aria-hidden="true"&gt;Prefill 与 Decode
+中的注意力流程&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;h2 id="一注意力机制的梳理"&gt;一、注意力机制的梳理&lt;/h2&gt;
+&lt;h3 id="从文字到-qkv"&gt;1. 从文字到 Q、K、V&lt;/h3&gt;
+&lt;p&gt;LLM 接收的不是“字”本身，而是一串 token。输入文本首先经过
+tokenizer，被切分成 token，再通过 embedding 查表得到向量。设一段输入包含
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;T&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;T&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个 token，每个 token 的隐藏维度为
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;D&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;D&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，那么输入可以写成矩阵&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;X&lt;/mi&gt;&lt;mo&gt;∈&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;ℝ&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;T&lt;/mi&gt;&lt;mo&gt;×&lt;/mo&gt;&lt;mi&gt;D&lt;/mi&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+X \in \mathbb{R}^{T \times D}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;在一个注意力层中，输入隐藏状态分别经过三个线性变换：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;Q&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;X&lt;/mi&gt;&lt;msub&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;Q&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width="2.0em"&gt;&lt;/mspace&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;X&lt;/mi&gt;&lt;msub&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width="2.0em"&gt;&lt;/mspace&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;X&lt;/mi&gt;&lt;msub&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/msub&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;这里不妨把三个向量理解成三个不同的问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Q（Query）&lt;/strong&gt;：当前 token 想从上下文中寻找什么；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;K（Key）&lt;/strong&gt;：每个历史 token
+可以被什么样的查询匹配；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;V（Value）&lt;/strong&gt;：匹配成功后，真正要取回的内容。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此，&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;Q&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;Q&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+和
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;K&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+负责“匹配”，&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;V&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+负责“提供信息”。对第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个 token 而言，它会用自己的查询向量
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;q_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+与当前可见的 key 做点积，得到一组分数：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mfrac&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mi&gt;⊤&lt;/mi&gt;&lt;/msubsup&gt;&lt;/mrow&gt;&lt;msqrt&gt;&lt;msub&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/msub&gt;&lt;/msqrt&gt;&lt;/mfrac&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+s_{t,i}=\frac{q_t k_i^\top}{\sqrt{d_k}}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;除以
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msqrt&gt;&lt;msub&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;/msub&gt;&lt;/msqrt&gt;&lt;annotation encoding="application/x-tex"&gt;\sqrt{d_k}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+是为了控制点积的数值范围，避免 softmax
+输入过大而造成梯度不稳定。随后对分数做 softmax，得到注意力权重&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;α&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;softmax&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+\alpha_{t,i}=\operatorname{softmax}(s_{t,i}),
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;再对 value 加权求和：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;munder&gt;&lt;mo&gt;∑&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;≤&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/mrow&gt;&lt;/munder&gt;&lt;msub&gt;&lt;mi&gt;α&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;msub&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/msub&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+o_t=\sum_{i\le t}\alpha_{t,i}v_i.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;这个
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;o_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+是当前层的注意力输出，它仍然是一个向量，并不是下一个
+token。经过输出投影、残差连接、前馈网络和后续 Transformer
+层之后，最终隐藏状态才会送入 LM Head，得到词表上的 logits，再经过
+softmax 得到下一个 token 的概率分布。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;容易混淆的三个对象&lt;/strong&gt;：注意力分数是
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mi&gt;⊤&lt;/mi&gt;&lt;/msubsup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;q_tk_i^\top&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，注意力权重是
+softmax 后的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;α&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;\alpha_{t,i}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，注意力输出是加权后的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;o_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;。真正的“新
+token”由最后的语言模型头生成。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="prefill-和-decode一个-token-怎样被生成"&gt;2. Prefill 和
+Decode：一个 token 怎样被生成&lt;/h3&gt;
+&lt;p&gt;推理可以分成 &lt;strong&gt;Prefill&lt;/strong&gt; 和 &lt;strong&gt;Decode&lt;/strong&gt;
+两个阶段。理解这两个阶段时，最容易漏掉的一点是：&lt;strong&gt;每一层
+Transformer 都有自己独立的 KV cache&lt;/strong&gt;。层与层之间传递的是当前
+token 的 hidden state，而不是把某一层的 K/V 直接交给下一层。&lt;/p&gt;
+&lt;p&gt;设模型共有
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;L&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层，输入 hidden state 为
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msup&gt;&lt;mi&gt;H&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;X&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;H^{(0)}=X&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;。第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;l&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层接收上一层的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msup&gt;&lt;mi&gt;H&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;annotation encoding="application/x-tex"&gt;H^{(l-1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，用自己的投影矩阵产生
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msup&gt;&lt;mi&gt;Q&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;Q^{(l)},K^{(l)},V^{(l)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，并维护本层的缓存：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msup&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo form="prefix" stretchy="false"&gt;{&lt;/mo&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;msubsup&gt;&lt;mo form="postfix" stretchy="false"&gt;}&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msubsup&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+C^{(l)}=\{(K_i^{(l)},V_i^{(l)})\}_{i=1}^{t}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;因此，第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;l&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层的 cache 只服务于第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;l&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层；不同层不会共享同一份 K/V。&lt;/p&gt;
+&lt;h4 id="prefill先把已有上下文写入每一层的-cache"&gt;2.1
+Prefill：先把已有上下文写入每一层的 cache&lt;/h4&gt;
+&lt;p&gt;用户一次输入
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;…&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;x_1,\ldots,x_n&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+时，模型在因果 mask 下并行处理这
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;n&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个位置。第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个位置只能看到
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;…&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;x_1,\ldots,x_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;。对每一层来说，Prefill
+会完成两件事：&lt;/p&gt;
+&lt;ol type="1"&gt;
+&lt;li&gt;用本层的参数计算每个位置的 query、key、value 以及注意力输出；&lt;/li&gt;
+&lt;li&gt;把本层所有位置的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;…&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;K_1^{(l)},\ldots,K_n^{(l)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+和
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;…&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;V_1^{(l)},\ldots,V_n^{(l)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+写入本层的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msup&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;annotation encoding="application/x-tex"&gt;C^{(l)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Prefill 可以用矩阵乘法并行处理多个
+token，但它要在所有层都建立一份与上下文长度对应的 cache。&lt;/p&gt;
+&lt;h4 id="decode从第一层开始逐层传递-hidden-state"&gt;2.2
+Decode：从第一层开始，逐层传递 hidden state&lt;/h4&gt;
+&lt;p&gt;Prefill 得到最后一个位置的输出后，LM Head 产生第一个待生成
+token。生成下一个 token 时，流程可以写成：&lt;/p&gt;
+&lt;ol type="1"&gt;
+&lt;li&gt;新 token
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;x_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+先进入 embedding，得到第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;annotation encoding="application/x-tex"&gt;0&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层输入
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;h_t^{(0)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;；&lt;/li&gt;
+&lt;li&gt;在第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;annotation encoding="application/x-tex"&gt;1&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层，&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;h_t^{(0)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+经过本层投影得到
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;q_t^{(1)},k_t^{(1)},v_t^{(1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;。&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;q_t^{(1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+访问第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;annotation encoding="application/x-tex"&gt;1&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层从第一个 token 到当前位置的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msup&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;annotation encoding="application/x-tex"&gt;C^{(1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，得到
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;h_t^{(1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，并把新的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;k_t^{(1)},v_t^{(1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+追加进去；&lt;/li&gt;
+&lt;li&gt;&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;h_t^{(1)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+作为第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;annotation encoding="application/x-tex"&gt;2&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层输入，重复同样的过程，直到第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;L&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层得到
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;h_t^{(L)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;；&lt;/li&gt;
+&lt;li&gt;最终的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;h_t^{(L)}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+送入 LM Head，得到下一个 token 的概率分布。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;对第
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;l&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+层，可以把这一步简写成：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mspace width="0.222em"&gt;&lt;/mspace&gt;&lt;mo&gt;→&lt;/mo&gt;&lt;mspace width="0.222em"&gt;&lt;/mspace&gt;&lt;msubsup&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mspace width="0.222em"&gt;&lt;/mspace&gt;&lt;mo&gt;→&lt;/mo&gt;&lt;mspace width="0.222em"&gt;&lt;/mspace&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msub&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;Block&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="prefix" maxsize="120%" minsize="120%" stretchy="true"&gt;(&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;mrow&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;:&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/mrow&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo form="postfix" maxsize="120%" minsize="120%" stretchy="true"&gt;)&lt;/mo&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+h_t^{(l-1)}\ \longrightarrow\ q_t^{(l)},k_t^{(l)},v_t^{(l)}
+\ \longrightarrow\ h_t^{(l)}=\operatorname{Block}_l\bigl(h_t^{(l-1)},C_{1:t}^{(l)}\bigr).
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;所以“从第一个 token 开始算”准确地说，是&lt;strong&gt;每一层的新 query
+都可以读取从 token 1 到当前位置的本层 cache&lt;/strong&gt;；并不是每生成一个
+token，就把历史 token 从第一层到最后一层重新计算一遍。旧 token 的 K/V
+已经保存在各层自己的 cache 中，Decode 只需计算当前 token
+在每一层的新投影并追加新条目。&lt;/p&gt;
+&lt;p&gt;Decode 的瓶颈也因此分成三部分：历史 K/V
+越多，&lt;strong&gt;存储&lt;/strong&gt;越大；每一层都要从 cache
+中取出可见历史，&lt;strong&gt;读取&lt;/strong&gt;越多；query 与这些历史 key
+做匹配并聚合 value，&lt;strong&gt;计算&lt;/strong&gt;也越多。&lt;/p&gt;
+&lt;h3 id="mhagqa-和-mqa"&gt;3. MHA、GQA 和 MQA&lt;/h3&gt;
+&lt;figure&gt;
+&lt;img alt="MHA、GQA 与 MQA 的 K/V 共享方式" src="/images/llm-attention/attention-variants.svg"/&gt;
+&lt;figcaption aria-hidden="true"&gt;MHA、GQA 与 MQA 的 K/V
+共享方式&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;p&gt;设模型有
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;H&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;H&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个 query head。&lt;/p&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;机制&lt;/th&gt;
+&lt;th&gt;Q head&lt;/th&gt;
+&lt;th&gt;K/V 的组织&lt;/th&gt;
+&lt;th&gt;KV cache 特点&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;MHA&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;H&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;H&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个&lt;/td&gt;
+&lt;td&gt;每个 query head 都有自己的 K/V&lt;/td&gt;
+&lt;td&gt;表达能力强，缓存最大&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;GQA&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;H&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;H&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个&lt;/td&gt;
+&lt;td&gt;若干 query head 共享一组 K/V&lt;/td&gt;
+&lt;td&gt;在质量和缓存之间折中&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;MQA&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;H&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;H&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个&lt;/td&gt;
+&lt;td&gt;所有 query head 共享一组 K/V&lt;/td&gt;
+&lt;td&gt;缓存和带宽开销最小，但可能损失表达能力&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;GQA 和 MQA 的共同思路是：保留多个不同的查询视角，但减少 key/value
+的副本。它们主要降低的是 &lt;strong&gt;head
+维度上的缓存数量&lt;/strong&gt;，并没有改变“每个新 query 仍然要面对历史
+token”这一事实。MLA、线性注意力和稀疏注意力，则从缓存表示或 token
+数量上继续优化。&lt;/p&gt;
+&lt;p&gt;同一层里的不同 head 也不是重复计算：它们各自有不同的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;Q&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;W_Q,W_K,W_V&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，会在训练中形成不同的关注视角。有的
+head 更偏向局部语法和邻近
+token，有的擅长长距离指代或实体检索，有的对位置边界、分隔符或结构模式更敏感。模型并不会手工规定“第几个
+head 必须负责什么”，这些分工是训练后涌现出来的。各 head
+得到的输出会拼接起来，再经过输出投影写回这一层的 hidden state。GQA 和
+MQA 保留了多个 query head 的视角，只是让若干 query head 共享 K/V。&lt;/p&gt;
+&lt;h2 id="二注意力机制的三条优化路线"&gt;二、注意力机制的三条优化路线&lt;/h2&gt;
+&lt;figure&gt;
+&lt;img alt="注意力优化路线图" src="/images/llm-attention/optimization-map.svg"/&gt;
+&lt;figcaption aria-hidden="true"&gt;注意力优化路线图&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;p&gt;三条路线分别围绕低秩缓存、门控与递归状态、稀疏与压缩历史展开，可以组合使用。&lt;/p&gt;
+&lt;h3 id="mla压缩每个-token-的缓存"&gt;1. MLA：压缩每个 token 的缓存&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;MLA（Multi-head Latent
+Attention）&lt;/strong&gt;从存储表示入手，把每个历史 token 的 hidden state
+用低秩矩阵压成 latent：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;D&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+c_t^{KV}=W_D^{KV}h_t^{(l-1)}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;推理时主要存储
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;c_t^{KV}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，而不是完整的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;k_t,v_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，所以被压缩的是每个
+token 的存储维度。压缩和上投影矩阵通过训练共同学习，使 latent
+保留注意力所需的内容；不同的上投影分别生成内容 key 和 value：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;/msubsup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;/msubsup&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width="2.0em"&gt;&lt;/mspace&gt;&lt;msub&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/msubsup&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+k_t^C=W_U^Kc_t^{KV},\qquad v_t=W_U^Vc_t^{KV}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;RoPE
+则由独立的位置分支承载：&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mi&gt;R&lt;/mi&gt;&lt;/msubsup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;RoPE&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;R&lt;/mi&gt;&lt;/mrow&gt;&lt;/msup&gt;&lt;msubsup&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;l&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;k_t^R=\operatorname{RoPE}(W^{KR}h_t^{(l-1)})&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;。缓存保存低维
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;c_t^{KV}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+和较小的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msubsup&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mi&gt;R&lt;/mi&gt;&lt;/msubsup&gt;&lt;annotation encoding="application/x-tex"&gt;k_t^R&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，内容分支与位置分支共同参与打分。&lt;/p&gt;
+&lt;p&gt;矩阵乘法的结合律还允许把上投影吸收到 query 侧：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;/msubsup&gt;&lt;msup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mi&gt;⊤&lt;/mi&gt;&lt;/msup&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;/msubsup&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msubsup&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;/msubsup&gt;&lt;msup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mi&gt;⊤&lt;/mi&gt;&lt;/msup&gt;&lt;msubsup&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mi&gt;C&lt;/mi&gt;&lt;/msubsup&gt;&lt;msup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mi&gt;⊤&lt;/mi&gt;&lt;/msup&gt;&lt;msubsup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;K&lt;/mi&gt;&lt;mi&gt;V&lt;/mi&gt;&lt;/mrow&gt;&lt;/msubsup&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+(q_t^C)^{\top}(W_U^Kc_s^{KV})
+= ((W_U^K)^{\top}q_t^C)^{\top}c_s^{KV}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;因此可以先把 query 的内容分支映射到 latent 空间，直接与缓存中的
+latent 做匹配；value 侧的变换也可以吸收到后续输出投影中。MLA
+的核心收益是&lt;strong&gt;每个 token
+仍有自己的缓存表示，但存储维度更小&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3 id="gated-attentiongdn-与-kda门控与递归状态"&gt;2. Gated Attention、GDN
+与 KDA：门控与递归状态&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Gated Attention&lt;/strong&gt;仍然保留 scaled dot-product
+attention。得到注意力输出
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;o_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+后，再计算一个门控向量
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;g&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;g_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mover&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mo accent="true"&gt;̃&lt;/mo&gt;&lt;/mover&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;σ&lt;/mi&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;g&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;⊙&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+\tilde{o}_t=\sigma(g_t)\odot o_t.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;门控可以是 head-specific 的，也可以依赖当前 query。它不改变 Q、K
+的匹配过程，而是在注意力算完之后控制哪些通道或哪些头的结果应该被保留、抑制或缩小。Qwen
+的相关实验把 output gating 与非线性、稀疏输出调制、massive activation 和
+attention sink 联系起来。它的主要作用是控制信息流，&lt;strong&gt;不会直接减少
+KV cache 的存储量&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;GDN（Gated DeltaNet）&lt;/strong&gt;不再为每个历史 token
+保留一份独立的 K/V，而是维护一个随时间更新的有限状态
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;S_t&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;≈&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;λ&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;⊙&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mtext mathvariant="normal"&gt;delta-update&lt;/mtext&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width="2.0em"&gt;&lt;/mspace&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;msub&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+S_t\approx\lambda_t\odot S_{t-1}+\text{delta-update}(k_t,v_t),
+\qquad o_t=S_tq_t.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;门控决定旧记忆保留多少、新信息写入多少；query
+读取的是状态，而不是逐一读取全部历史 token。对整段序列的状态更新和读取随
+token 数线性增长，但有限状态对原文的精确回看能力会受到压缩限制。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;KDA（Kimi Delta Attention）&lt;/strong&gt;可以看作更细粒度的
+GDN。它仍然用 delta rule
+更新状态，但把遗忘和写入门细化到不同维度或状态分量：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msub&gt;&lt;mtext mathvariant="normal"&gt;forget&lt;/mtext&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;msub&gt;&lt;mtext mathvariant="normal"&gt;delta&lt;/mtext&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width="2.0em"&gt;&lt;/mspace&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;S&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;msub&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+S_t=\text{forget}_t(S_{t-1})+\text{delta}_t(k_t,v_t),
+\qquad o_t=S_tq_t.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;Kimi Linear 将 KDA 与 MLA 混合：KDA 负责持续更新的线性状态，MLA
+负责压缩后的全局检索。这让有限状态的持续更新与按 token
+保留的全局检索互相补充。&lt;/p&gt;
+&lt;h3 id="dsacsahca-与-swa稀疏与压缩历史"&gt;3. DSA、CSA、HCA 与
+SWA：稀疏与压缩历史&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;DSA（DeepSeek Sparse
+Attention）&lt;/strong&gt;保留历史条目，然后先用轻量索引器估计 query 与历史
+token 的相关性，再只对
+top-&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;k&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+条目做完整 attention：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;I&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;Indexer&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mspace width="2.0em"&gt;&lt;/mspace&gt;&lt;msub&gt;&lt;mi&gt;𝒮&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msub&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;TopK&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;/msub&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;I&lt;/mi&gt;&lt;mrow&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+I_{t,s}=\operatorname{Indexer}(h_t,h_s),
+\qquad \mathcal{S}_t=\operatorname{TopK}_s(I_{t,s}),
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;o&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;Attn&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mo form="prefix" maxsize="120%" minsize="120%" stretchy="true"&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;q&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mo form="prefix" stretchy="false"&gt;{&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;v&lt;/mi&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;/msub&gt;&lt;msub&gt;&lt;mo form="postfix" stretchy="false"&gt;}&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;s&lt;/mi&gt;&lt;mo&gt;∈&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;𝒮&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;/msub&gt;&lt;mo form="postfix" maxsize="120%" minsize="120%" stretchy="true"&gt;)&lt;/mo&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+o_t=\operatorname{Attn}\bigl(q_t,\{k_s,v_s\}_{s\in\mathcal{S}_t}\bigr).
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;DSA 的主要收益是少读、少算：单步 Decode 的主 attention 从读取
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;T&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;T&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个历史条目缩小到
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;k&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个候选；整段序列的主 attention 则从
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;O&lt;/mi&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;T&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;O(T^2)&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+降到
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;O&lt;/mi&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mi&gt;T&lt;/mi&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;O(Tk)&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;，此外还需索引和选择开销。它本身通常不改变
+KV cache 的存储量；与 MLA 组合时，MLA 负责压缩存储，DSA
+负责选择读取范围。笔记中的 QSA 可以理解为同一类 query/key
+驱动的候选选择思路。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;CSA（Compressed Sparse
+Attention）&lt;/strong&gt;先把历史压缩成更少的 KV
+条目，再从压缩条目中选出部分进行
+attention。它同时减少存储、读取和计算：cache 中条目更少，query
+不必扫描全部原始 token，主 attention 也只处理选中的压缩条目。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;HCA（重度压缩注意力）&lt;/strong&gt;采用比 CSA
+更强的历史压缩，把更长片段聚合成更少的条目，再对这些压缩条目做全局
+attention。它进一步降低存储和读取，但信息损失与训练难度也更高。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;SWA（Sliding Window
+Attention）&lt;/strong&gt;不依赖内容相关性，只让 query 关注最近的
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;W&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+个 token：&lt;/p&gt;
+&lt;p&gt;&lt;math display="block" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;𝒮&lt;/mi&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo form="prefix" stretchy="false"&gt;{&lt;/mo&gt;&lt;mrow&gt;&lt;mi mathvariant="normal"&gt;max&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;/mrow&gt;&lt;mo form="prefix" stretchy="false"&gt;(&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mi&gt;W&lt;/mi&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo form="postfix" stretchy="false"&gt;)&lt;/mo&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;…&lt;/mi&gt;&lt;mo&gt;,&lt;/mo&gt;&lt;mi&gt;t&lt;/mi&gt;&lt;mo form="postfix" stretchy="false"&gt;}&lt;/mo&gt;&lt;mi&gt;.&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;
+\mathcal{S}_t=\{\max(1,t-W+1),\ldots,t\}.
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/p&gt;
+&lt;p&gt;它能稳定地控制
+cache、读取和计算，但会截断窗口之外的远程信息，所以常与全局
+token、压缩摘要或 DSA 检索结合。&lt;/p&gt;
+&lt;p&gt;把这些方法的核心机制、缓存方式和取舍放在一起对比：&lt;/p&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;col style="width: 25%"/&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;方法&lt;/th&gt;
+&lt;th&gt;核心机制&lt;/th&gt;
+&lt;th&gt;缓存方式&lt;/th&gt;
+&lt;th&gt;主要收益与取舍&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;MLA&lt;/td&gt;
+&lt;td&gt;对每个 token 做低秩压缩&lt;/td&gt;
+&lt;td&gt;latent + RoPE key&lt;/td&gt;
+&lt;td&gt;减少存储与读取带宽；受低秩表示约束&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Gated Attention&lt;/td&gt;
+&lt;td&gt;对注意力输出加门控&lt;/td&gt;
+&lt;td&gt;基本不变&lt;/td&gt;
+&lt;td&gt;调节信息流、改善激活；不直接压缩 KV&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;GDN / KDA&lt;/td&gt;
+&lt;td&gt;门控与 delta rule 更新历史&lt;/td&gt;
+&lt;td&gt;固定大小的递归状态&lt;/td&gt;
+&lt;td&gt;历史不再逐 token 累积；精确回看受限&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;DSA / QSA&lt;/td&gt;
+&lt;td&gt;按相关性选择
+top-&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;k&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;k&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/td&gt;
+&lt;td&gt;选择本身不压缩历史；可叠加 MLA&lt;/td&gt;
+&lt;td&gt;少读、少算；仍有索引开销&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;CSA&lt;/td&gt;
+&lt;td&gt;先压缩，再选部分条目&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;更少的压缩 KV 条目&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;同时少存、少读、少算；损失部分细节&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;HCA&lt;/td&gt;
+&lt;td&gt;更强压缩，再读全部压缩条目&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;更少的重度压缩 KV 条目&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;兼顾少存和全局可见；细节损失更大&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;SWA&lt;/td&gt;
+&lt;td&gt;只读最近的窗口&lt;/td&gt;
+&lt;td&gt;可仅保留窗口内 KV&lt;/td&gt;
+&lt;td&gt;控制缓存与计算；窗口外需其他全局通道&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="参考资料"&gt;参考资料&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://papers.neurips.cc/paper_files/paper/2025/file/904e89bb4e632e75fb47f093b620b257-Paper-Conference.pdf"&gt;Gated
+Attention for Large Language Models: Non-linearity, Sparsity, and
+Attention-Sink-Free&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://qwen.ai/blog?id=qwen3.5"&gt;Qwen3.5: Towards Native
+Multimodal Agents&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://arxiv.org/abs/2405.04434"&gt;DeepSeek-V2: A Strong,
+Economical, and Efficient Mixture-of-Experts Language Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://arxiv.org/abs/2510.26692"&gt;Kimi Linear: An
+Expressive, Efficient Attention Architecture&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://modelscope.cn/models/deepseek-ai/DeepSeek-V3.2/resolve/master/assets/paper.pdf"&gt;DeepSeek-V3.2
+技术报告&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</content></entry><entry><title>Transformer+cuda学习</title><url>/2025/02/21/Transformer-cuda%E5%AD%A6%E4%B9%A0/</url><content type="html">&lt;div class="post-body" itemprop="articleBody"&gt;
 &lt;span id="more"&gt;&lt;/span&gt;
 &lt;h2 id="Transformer基本结构"&gt;&lt;a class="headerlink" href="#Transformer基本结构" title="Transformer基本结构"&gt;&lt;/a&gt;Transformer基本结构&lt;/h2&gt;&lt;p&gt;&lt;img alt="Transformer,_full_architecture" src="/images/Transformer-cuda%E5%AD%A6%E4%B9%A0/Transformer,_full_architecture.png"/&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href="https://zhuanlan.zhihu.com/p/338817680" rel="noopener" target="_blank"&gt;https://zhuanlan.zhihu.com/p/338817680&lt;/a&gt;&lt;/p&gt;

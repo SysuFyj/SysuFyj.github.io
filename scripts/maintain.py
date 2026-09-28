@@ -94,11 +94,18 @@ for p in sorted(ROOT.glob('20*/*/*/*/index.html')):
  m.update(title=s.select_one('.post-title').get_text(' ',strip=True),url=url(p),date=s.select_one('time[itemprop~="dateCreated"]')['datetime'][:10],path=str(p.relative_to(ROOT)),original_categories=[a.get_text(strip=True) for a in s.select('[itemprop="about"] a')],original_tags=[a.get_text(strip=True).removeprefix('#').strip() for a in s.select('.post-tags a')],headings=[h.get_text(' ',strip=True) for h in body.select('h1,h2,h3,h4,h5,h6')],image_count=len(body.select('img')))
  updated=s.select_one('time[itemprop="dateModified"]');m['updated']=updated['datetime'][:10] if updated else m['date']
  # Record original asset references (including missing ones) for recovery.
- original=subprocess.check_output(['git','show','origin/main:'+m['path']],cwd=ROOT,text=True)
+ try:
+  original=subprocess.check_output(['git','show','origin/main:'+m['path']],cwd=ROOT,text=True)
+ except subprocess.CalledProcessError:
+  # New posts have no counterpart in the pre-publication origin/main snapshot.
+  original=p.read_text()
  m['original_html_sha256']=hashlib.sha256(original.encode()).hexdigest()
  ob=fragment(original).select_one('.post-body')
- m['original_images']=[i['src'] for i in ob.select('img')]
- m['original_categories']=[a.get_text(strip=True) for a in s.select('.post-meta-item a[rel="index"]')]
+ m['original_images']=[i['src'] for i in ob.select('img')] if ob else []
+ cats=[a.get_text(strip=True) for a in s.select('.post-meta-item a[rel="index"]')]
+ if not cats:
+  cats=[e.get_text(strip=True) for e in s.select('[itemprop="about"] [itemprop="name"]')]
+ m['original_categories']=cats
  posts.append(m)
 posts.sort(key=lambda p:(p['date'],p['title']),reverse=True)
 (ROOT/'content/catalog.json').write_text(json.dumps(posts,ensure_ascii=False,indent=2)+'\n')
@@ -125,18 +132,22 @@ def page(path,title,body):
   data=json.loads(sc.string);data.update(title=title,path=path+'/index.html',permalink=absolute,isHome=False,isPost=False);sc.string=json.dumps(data,ensure_ascii=False)
  save(ROOT/path/'index.html',s)
 topics=list(dict.fromkeys(x['topic'] for x in META.values()))
-body='<p class="archive-intro">这里收录了 2024 年 10 月至 2025 年 2 月的全部 11 篇文章，按五个主题整理。也可以查看<a href="#by-time">完整时间线</a>。</p><nav class="topic-links" aria-label="主题导航">'
+years=collections.Counter(m['date'][:4] for m in posts)
+year_text='、'.join(f'{year} 年 {count} 篇' for year,count in sorted(years.items()))
+body=f'<p class="archive-intro">这里收录了 {year_text}，共 {len(posts)} 篇文章，按 {len(topics)} 个主题整理。也可以查看<a href="#by-time">完整时间线</a>。</p><nav class="topic-links" aria-label="主题导航">'
 for i,t in enumerate(topics):body+=f'<a href="#topic-{i}">{t} · {sum(m["topic"]==t for m in posts)}</a>'
 body+='</nav>'
 for i,t in enumerate(topics):body+=f'<section id="topic-{i}"><h2>{t}</h2><ul class="archive-entries">'+''.join(card(m) for m in posts if m['topic']==t)+'</ul></section>'
 body+='<section id="by-time"><h2>完整时间线</h2><ul class="archive-timeline">'+''.join(f'<li><time>{m["date"]}</time> <a href="{m["url"]}">{html.escape(m["title"])}</a></li>' for m in posts)+'</ul></section>'
 page('library','主题归档',body)
-papers=[p for p in posts if p['topic'] in topics[:2]]
-page('paper-notes','论文笔记','<p>六篇研究论文笔记：GPU 共享与调度 4 篇，大模型服务与参数调优 2 篇。<a href="/library/">查看全部主题</a>。</p><ul class="archive-entries">'+''.join(card(p) for p in papers)+'</ul>')
+papers=[p for p in posts if '论文' in p['original_categories']]
+paper_topics=collections.Counter(p['topic'] for p in papers)
+paper_summary='、'.join(f'{topic} {count} 篇' for topic,count in paper_topics.items())
+page('paper-notes','论文笔记',f'<p>{len(papers)} 篇研究论文笔记：{paper_summary}。<a href="/library/">查看全部主题</a>。</p><ul class="archive-entries">'+''.join(card(p) for p in papers)+'</ul>')
 tags=collections.Counter(t for p in posts for t in p['original_tags'])
 page('tags','标签','<p>按原有标签浏览文章，共 '+str(len(tags))+' 个标签。</p><ul class="tag-directory">'+''.join(f'<li><a href="/tags/{quote(t)}/">{html.escape(t)}</a><span>{n} 篇</span></li>' for t,n in sorted(tags.items(),key=lambda x:(-x[1],x[0])))+'</ul><p>尚未设置标签的文章也都收录在<a href="/library/">主题归档</a>中。</p>')
 # Independent Markdown recovery copies: rendered pages remain authoritative.
-md=['# 博客归档总目','', '归档日期：2026-09-21。共 11 篇：2024 年 9 篇，2025 年 2 篇。', '', '这些 Markdown 是由已发布 HTML 恢复的阅读副本，不是遗失的 Hexo 原稿。原始网页和全部 Git 历史另有备份。分类依据实际内容；原分类、标签、日期和链接均保留在 catalog.json。', '']
+md=['# 博客归档总目','', f'归档日期：2026-09-28。共 {len(posts)} 篇：{year_text}。', '', '这些 Markdown 是由已发布 HTML 恢复的阅读副本，不是遗失的 Hexo 原稿。原始网页和全部 Git 历史另有备份。分类依据实际内容；原分类、标签、日期和链接均保留在 catalog.json。', '']
 for topic in topics:
  md+=['## '+topic,'']
  for m in posts:

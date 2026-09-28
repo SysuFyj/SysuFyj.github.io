@@ -30,14 +30,18 @@ for p in root.glob('vendor/**/*.css'):
  for u in re.findall(r'url\(([^)]+)\)',p.read_text()):
   if not (p.parent/u.strip('"\'')).resolve().exists():errors.append((str(p),u))
 catalog=json.loads((root/'content/catalog.json').read_text())
-assert len(catalog)==11 and len({m['url'] for m in catalog})==11
-assert len(list((root/'content/posts').glob('*.md')))==11
-assert len(files[root/'library/index.html'].select('.archive-entry'))==11
-assert len(files[root/'paper-notes/index.html'].select('.archive-entry'))==6
+assert len(catalog)==len({m['url'] for m in catalog})
+assert len(list((root/'content/posts').glob('*.md')))==len(catalog)
+assert len(files[root/'library/index.html'].select('.archive-entry'))==len(catalog)
+assert len(files[root/'paper-notes/index.html'].select('.archive-entry'))==sum('论文' in m.get('original_categories',[]) for m in catalog)
 assert len(files[root/'tags/index.html'].select('.tag-directory li'))==9
-assert len(ET.parse(root/'search.xml').getroot().findall('entry'))==11
+assert len(ET.parse(root/'search.xml').getroot().findall('entry'))==len(catalog)
 for m in catalog:
- original=subprocess.check_output(['git','show','origin/main:'+m['path']],cwd=root,text=True)
+ try:
+  original=subprocess.check_output(['git','show','origin/main:'+m['path']],cwd=root,text=True)
+ except subprocess.CalledProcessError:
+  # A newly published article is intentionally absent from the old origin snapshot.
+  continue
  assert hashlib.sha256(original.encode()).hexdigest()==m['original_html_sha256']
  old=BeautifulSoup(original,'html.parser');new=files[root/m['path']]
  before=[x.get_text() for x in old.select('figure.highlight td.code pre')]
@@ -45,7 +49,7 @@ for m in catalog:
  if before!=after:errors.append((m['path'],'code changed'))
  if [x['id'] for x in old.select('.post-body [id]')]!=[x['id'] for x in new.select('.post-body [id]')]:errors.append((m['path'],'article anchors changed'))
  if len(old.select('.post-body img'))-len(new.select('.post-body img'))!=(1 if m['slug']=='cuda基础操作' else 0):errors.append((m['path'],'image count changed'))
-result={'html_pages':len(files),'local_references_checked':links,'posts':len(catalog),'recovered_markdown':11,'papers':6,'tags':9,'errors':errors}
+result={'html_pages':len(files),'local_references_checked':links,'posts':len(catalog),'recovered_markdown':len(catalog),'papers':sum('论文' in m.get('original_categories',[]) for m in catalog),'tags':9,'errors':errors}
 print(json.dumps(result,ensure_ascii=False,indent=2))
 (root/'docs/validation.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
 raise SystemExit(bool(errors))

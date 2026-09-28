@@ -1,5 +1,49 @@
 [
   {
+    "slug": "LLM注意力机制及优化",
+    "topic": "大模型服务与参数调优",
+    "summary": "梳理单 token 解码中的注意力计算、逐层 KV cache、MHA/GQA/MQA，以及 Gated Attention、MLA、KDA、DSA、CSA、HCA 与 SWA 的优化思路。",
+    "keywords": [
+      "LLM",
+      "注意力机制",
+      "KV Cache",
+      "MLA",
+      "线性注意力",
+      "稀疏注意力"
+    ],
+    "note": "按注意力机制、门控/递归状态和稀疏/压缩历史三条路线整理。",
+    "title": "LLM 注意力机制及优化：从单 token 解码到稀疏与线性注意力",
+    "url": "/2026/09/23/LLM%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%E5%8F%8A%E4%BC%98%E5%8C%96/",
+    "date": "2026-09-23",
+    "path": "2026/09/23/LLM注意力机制及优化/index.html",
+    "original_categories": [
+      "论文",
+      "大模型"
+    ],
+    "original_tags": [],
+    "headings": [
+      "一、注意力机制的梳理",
+      "1. 从文字到 Q、K、V",
+      "2. Prefill 和\nDecode：一个 token 怎样被生成",
+      "2.1\nPrefill：先把已有上下文写入每一层的 cache",
+      "2.2\nDecode：从第一层开始，逐层传递 hidden state",
+      "3. MHA、GQA 和 MQA",
+      "二、注意力机制的三条优化路线",
+      "1. MLA：压缩每个 token 的缓存",
+      "2. Gated Attention、GDN\n与 KDA：门控与递归状态",
+      "3. DSA、CSA、HCA 与\nSWA：稀疏与压缩历史",
+      "参考资料"
+    ],
+    "image_count": 3,
+    "updated": "2026-09-23",
+    "original_html_sha256": "a2f7b6797cf948889161631e61a75bf63bb383cd18ac2564d5e16c43e75f0ccc",
+    "original_images": [
+      "/images/llm-attention/pd-decode.svg",
+      "/images/llm-attention/attention-variants.svg",
+      "/images/llm-attention/optimization-map.svg"
+    ]
+  },
+  {
     "slug": "Transformer-cuda学习",
     "topic": "CUDA 与 Transformer 基础",
     "summary": "梳理 Transformer 编码器与解码器、词与位置嵌入、自注意力、多头注意力、残差归一化和前馈层。当前正文主要为 Transformer 基础。",
